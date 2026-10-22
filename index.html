@@ -188,6 +188,11 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
         <div class="chips" id="f-obj"></div>
         <p class="hint" id="obj-hint"></p>
       </fieldset>
+      <fieldset>
+        <legend>Style de jardin</legend>
+        <div class="chips" id="f-style"></div>
+        <p class="hint" id="style-hint"></p>
+      </fieldset>
       <fieldset id="fs-haut">
         <legend>Hauteur à masquer</legend>
         <div class="chips" id="f-haut"></div>
@@ -372,6 +377,7 @@ const OPT = {
   pal:[["all","Toutes"],["chaud","Tons chauds"],["froid","Bleus et violets"],["rose","Roses et pastels"],["blanc","Blanc et vert"]],
   arro:[["1","Aucun, une fois installées"],["2","Occasionnel"],["3","Régulier"]],
   prof:[["60","60 cm"],["100","1 m"],["150","1,5 m"],["200","2 m et plus"]],
+  style:Object.entries({libre:0,med:0,nat:0,anglais:0,contemporain:0,sauvage:0}).map(([k])=>[k, ({libre:"Sans style imposé",med:"Méditerranéen sec",nat:"Naturaliste",anglais:"Jardin anglais",contemporain:"Contemporain épuré",sauvage:"Refuge biodiversité"})[k]]),
   vite:[["rapide","Rapide en priorité"],["tout","Peu importe"]],
   haut:[["2","2 m"],["3","3 m"],["4","4 m et plus"]],
   fmt:[["petit","Petits formats"],["moyen","Formats moyens"]],
@@ -453,10 +459,26 @@ function yearsTo(p, target){
   return Math.max(1, Math.ceil((Math.min(target, p.h) - h0)/rate));
 }
 const AGES = [["0","À la plantation"],["1","Après 1 an"],["3","Après 3 ans"],["5","Après 5 ans"],["adulte","Adulte"]];
+// ---------- Styles de jardin ----------
+// Chaque style privilégie une famille de plantes. Si aucune plante du style ne convient à un emplacement, l'outil en prend une autre adaptée.
+const STYLES = {
+  libre:{label:"Sans style imposé", hint:"Toutes les plantes adaptées à tes conditions.", re:null},
+  med:{label:"Méditerranéen sec", hint:"Feuillages gris, arbustes aromatiques, floraisons bleues et blanches. Aucun arrosage une fois installé.",
+    re:/Lavandula|rosmarinus|Cistus|Myrtus|Teucrium|Euphorbia|Stachys|Thymus|officinalis|Origanum|Phillyrea|Quercus ilex|Laurus|Cercis|Pittosporum tobira|Ceanothus|Atriplex|Nerium|yangii|Nassella|Festuca|Iris|Centranthus|Erigeron|Agastache|Echinops|Pinus|Acanthus|Muscari|Allium hollandicum|Trachelospermum|banksiae|Elaeagnus|Viburnum tinus/},
+  nat:{label:"Naturaliste", hint:"Graminées et grandes vivaces mêlées, comme une prairie fleurie. L'inspiration des massifs de graminées et d'échinacées.",
+    re:/Nassella|Miscanthus|Pennisetum|Calamagrostis|Muhlenbergia|Echinacea|Rudbeckia|Achillea|Verbena|lindheimeri|Hylotelephium|Echinops|Agastache|Nepeta|nemorosa|Allium hollandicum|yangii|Kniphofia|Hemerocallis|Festuca|Carex|Koelreuteria|Elaeagnus|Viburnum tinus|Cornus|Geranium/},
+  anglais:{label:"Jardin anglais", hint:"Profusion de fleurs, rosiers, grimpantes et bordures généreuses. Demande souvent plus d'eau.",
+    re:/Rosa|Clematis|Lonicera|Digitalis|Geranium|Nepeta|Alchemilla|Hydrangea|Anemone|Lavandula|Astilbe|Iris|Agapanthus|Allium hollandicum|Centranthus|Echinacea|Heuchera|Lamium|Helleborus|Choisya|Abelia|Escallonia|Viburnum tinus|Osmanthus|Erigeron|Narcissus|Camassia|Cercis|Lagerstroemia|Hemerocallis|Trachelospermum/},
+  contemporain:{label:"Contemporain épuré", hint:"Peu d'espèces, formes nettes, boules persistantes et graminées. Palette sobre.",
+    re:/Pittosporum|Thuja|Pinus|Festuca|Ophiopogon|Carex|Hakonechloa|Miscanthus|Calamagrostis|Nassella|Euphorbia|Stachys|yangii|Lavandula|Allium hollandicum|Laurus|Prunus lusitanica|Phillyrea|Elaeagnus|Fargesia|Trachelospermum|Agapanthus|Lagerstroemia|Koelreuteria|Acanthus|Teucrium/},
+  sauvage:{label:"Refuge pour la biodiversité", hint:"Plantes mellifères, baies pour les oiseaux et espèces locales. Un jardin vivant qui demande peu d'entretien.",
+    re:/Centranthus|Origanum|Thymus|Viburnum tinus|Cornus|Pyracantha|Lonicera|Echinops|Achillea|Verbena|nemorosa|Nepeta|officinalis|Hylotelephium|Arbutus|Phillyrea|Laurus|Quercus ilex|Elaeagnus|Rosa|Agastache|Cistus|Lavandula|Echinacea|Erigeron|Digitalis|Geranium|Ceanothus|Cercis|Koelreuteria|Muscari|Narcissus|Cyclamen|Hedera|Atriplex/}
+};
+const inStyle = p => !STYLES[state.style].re || STYLES[state.style].re.test(p.latin);
 const WATER_LBL = {1:"Sans arrosage",2:"Arrosage occasionnel",3:"Arrosage régulier"};
 const isEcran = p => p.type==="arbuste" && p.h>=(+state.haut)*100 && EVERGREEN.test(p.latin);
 
-const state = {vite:"rapide",age:"3",arro:"1",prof:"150",haut:"2",fmt:"petit",obj:["massif"],expo:"s",sol:"ac",eau:"d",clim:"so",types:["arbuste","graminee","vivace","couvre-sol","bulbe","aromatique"],pal:"all",taille:"m"};
+const state = {style:"libre",vite:"rapide",age:"3",arro:"1",prof:"150",haut:"2",fmt:"petit",obj:["massif"],expo:"s",sol:"ac",eau:"d",clim:"so",types:["arbuste","graminee","vivace","couvre-sol","bulbe","aromatique"],pal:"all",taille:"m"};
 let combo = [];   // [{plant, role, locked}]
 
 // ---------- UI des filtres ----------
@@ -485,7 +507,7 @@ function chips(key, multi){
 }
 chips("obj",true);
 document.getElementById("obj-hint").textContent = objHint();
-["vite","arro","prof","haut","fmt","expo","sol","eau","clim","pal","taille"].forEach(k=>chips(k,false));
+["style","vite","arro","prof","haut","fmt","expo","sol","eau","clim","pal","taille"].forEach(k=>chips(k,false));
 chips("types",true);
 
 // ---------- Logique ----------
@@ -599,9 +621,10 @@ function generate(keepLocks=true){
         const mid = cand.filter(p=>growth(p)==="moyenne");
         cand = fast.length ? fast : mid.length ? mid : cand;
       }
+      if(state.style!=="libre"){ const st = cand.filter(inStyle); if(st.length) cand = st; }
       if(e.role==="arbre" && state.vite==="rapide"){ const nl = cand.filter(p=>growth(p)!=="lente"); if(nl.length) cand = nl; }
       if(!cand.length && e.role==="ecran") cand = pool.filter(p=>p.type==="arbuste" && p.h>=150 && !used.has(p.id));
-      for(const fr of (FALL[e.role]||[])){ if(cand.length) break; cand = pool.filter(p=>role(p)===fr && !used.has(p.id) && (e.layer!=="front" || p.h<=50)); }
+      for(const fr of (FALL[e.role]||[])){ if(cand.length) break; cand = pool.filter(p=>role(p)===fr && !used.has(p.id) && (e.layer!=="front" || p.h<=50)); if(state.style!=="libre"){ const st=cand.filter(inStyle); if(st.length) cand=st; } }
       const p = pick(cand, covered, colors);
       if(!p){ missing++; continue; }
       used.add(p.id); months(p).forEach(m=>covered.add(m)); colors.add(p.fam);
@@ -621,6 +644,7 @@ function replace(idx){
   const colors = new Set(others.map(c=>c.plant.fam));
   let rc = pool.filter(x=>role(x)===cur.role && !used.has(x.id));
   if(cur.role==="ecran" && state.vite==="rapide"){ const f = rc.filter(x=>growth(x)==="rapide"); if(f.length) rc = f; }
+  if(state.style!=="libre"){ const st = rc.filter(inStyle); if(st.length) rc = st; }
   const p = pick(rc, covered, colors);
   if(p){ combo[idx] = {plant:p, role:role(p), layer:cur.layer, locked:false}; render(pool.length,0); }
   else { const b=document.querySelector(`[data-rep="${idx}"]`); if(b){ b.textContent="Aucune autre"; b.disabled=true; } }
@@ -1043,6 +1067,7 @@ function lay(c){
 function renderCurrent(){ render(PLANTS.filter(compatible).length,0); }
 function render(nCompat, missing){
   document.getElementById("fs-haut").hidden = !goals().hedge;
+  document.getElementById("style-hint").textContent = STYLES[state.style].hint;
   const RL = rowLayers(), G0 = goals();
   const parts = [G0.hedge?"la haie":null, G0.wall?"une grimpante sur le support":null, ...RL.map(layerName)].filter(Boolean);
   document.getElementById("prof-hint").textContent = `Mesure la terre plantable, du fond jusqu'à l'allée ou la pelouse. Ici : ${parts.join(" + ")||"aucune rangée"}.`
@@ -1075,6 +1100,7 @@ function render(nCompat, missing){
     <div class="stat"><small>Fleuri</small><strong>${allM.size} mois sur 12</strong></div>
     <div class="stat"><small>Hauteurs</small><strong>${Math.min(...hs)} cm à ${(Math.max(...hs)/100).toLocaleString("fr-FR")} m</strong></div>
     <div class="stat"><small>Budget estimé</small><strong>${eur0(lastBudget.min)} – ${eur0(lastBudget.max)}</strong></div>
+    ${state.style!=="libre" ? `<div class="stat"><small>Style ${STYLES[state.style].label.toLowerCase()}</small><strong>${combo.filter(c=>inStyle(c.plant)).length} plantes sur ${combo.length}</strong></div>` : ""}
     ${missing?`<p class="warn">${missing} emplacement${missing>1?"s":""} sans plante adaptée. Élargis les critères pour compléter.</p>`:""}
   </div>`;
   html += boardHTML();
@@ -1132,8 +1158,8 @@ document.getElementById("saved").addEventListener("click",e=>{
   if(o){
     const s=list[+o.dataset.open]; Object.assign(state, s.st);
     state.obj = [].concat(state.obj || "massif");
-    state.haut = state.haut || "2"; state.fmt = state.fmt || "petit"; state.prof = state.prof || "150"; state.arro = state.arro || "1"; state.vite = state.vite || "rapide";
-    ["vite","arro","prof","haut","fmt","expo","sol","eau","clim","pal","taille"].forEach(k=>chips(k,false)); chips("types",true); chips("obj",true);
+    state.haut = state.haut || "2"; state.fmt = state.fmt || "petit"; state.prof = state.prof || "150"; state.arro = state.arro || "1"; state.vite = state.vite || "rapide"; state.style = state.style || "libre";
+    ["style","vite","arro","prof","haut","fmt","expo","sol","eau","clim","pal","taille"].forEach(k=>chips(k,false)); chips("types",true); chips("obj",true);
     document.getElementById("obj-hint").textContent = objHint();
     setZone(null, false);
     combo = restore(s.ids);
@@ -1155,7 +1181,7 @@ const ZONES = [
   {id:"fond", label:"Fond · face au balcon", note:"Bande tournée vers le sud-sud-est, la plus ensoleillée. Le balcon domine : écran de 4 m et plus, et un arbre dans l'axe. L'ombre tombe chez le voisin.",
    st:{vite:"rapide",arro:"1",obj:["isoler","massif"],prof:"150",haut:"4",expo:"s",sol:"ac",eau:"d",clim:"so",taille:"m",pal:"all",types:BASE_TYPES}}
 ];
-const ZKEY = "atelier-massifs-zones-v4";
+const ZKEY = "atelier-massifs-zones-v5";
 let zoneData = (()=>{ try{ return JSON.parse(localStorage.getItem(ZKEY))||{}; }catch(e){ return {}; } })();
 let curZone = null;
 function restore(ids){
@@ -1172,8 +1198,8 @@ function storeZone(){
 }
 function applyState(st){
   Object.assign(state, JSON.parse(JSON.stringify(st)));
-  state.fmt = state.fmt || "petit"; state.prof = state.prof || "150"; state.arro = state.arro || "1"; state.vite = state.vite || "rapide";
-  ["vite","arro","prof","haut","fmt","expo","sol","eau","clim","pal","taille"].forEach(k=>chips(k,false)); chips("types",true); chips("obj",true);
+  state.fmt = state.fmt || "petit"; state.prof = state.prof || "150"; state.arro = state.arro || "1"; state.vite = state.vite || "rapide"; state.style = state.style || "libre";
+  ["style","vite","arro","prof","haut","fmt","expo","sol","eau","clim","pal","taille"].forEach(k=>chips(k,false)); chips("types",true); chips("obj",true);
   document.getElementById("obj-hint").textContent = objHint();
 }
 function setZone(id, load=true){
