@@ -131,7 +131,7 @@ $("ph-input").addEventListener("change", async e => {
   for(const f of files.slice(0, room)){
     try{
       const img = await loadImage(f);
-      photos.push({id: Math.random().toString(36).slice(2), data: toJpeg(img, 1280, .8).split(",")[1], thumb: toJpeg(img, 360, .7), direction: null, note: ""});
+      photos.push({id: Math.random().toString(36).slice(2), data: toJpeg(img, 1024, .78).split(",")[1], thumb: toJpeg(img, 360, .7), direction: null, note: ""});
     }catch(err){
       phErr("Une photo n'a pas pu être lue. Choisis une photo au format JPEG ou PNG, ou fais une capture d'écran de la photo.");
     }
@@ -219,9 +219,20 @@ $("analyse").addEventListener("click", async () => {
     const r = await fetch("/api/analyse", {method:"POST", headers:{"content-type":"application/json"}, signal: ctrl.signal,
       body: JSON.stringify({code, ville: prefs.ville, sol: prefs.sol, arrosage: prefs.arrosage, objectifs: prefs.objectifs, style: prefs.style,
         photos: photos.map(p => ({data: p.data, direction: p.direction || null, note: p.note}))})});
-    const d = await r.json().catch(() => ({}));
+    const raw = await r.text(); let d = {}; try{ d = JSON.parse(raw); }catch(e){}
     if(r.status === 401){ show("s-accueil"); codeErr("Ce code ne fonctionne plus. Vérifie-le auprès de la personne qui te l'a donné."); return; }
-    if(!r.ok){ show("s-envies"); anErr(d.erreur || "L'analyse a échoué. Réessaie dans quelques minutes."); return; }
+    if(!r.ok){
+      // Erreurs renvoyées par Vercel lui-même (délai dépassé, envoi trop lourd) : pas de JSON de notre fonction.
+      let msg = d.erreur;
+      if(!msg){
+        if(r.status === 504 || /TIMEOUT/i.test(raw)) msg = "L'analyse a pris trop de temps côté serveur. Réessaie avec 2 ou 3 photos.";
+        else if(r.status === 413 || /PAYLOAD_TOO_LARGE/i.test(raw)) msg = "Les photos sont trop lourdes pour être envoyées ensemble. Réessaie avec moins de photos.";
+        else msg = `L'analyse a échoué (erreur ${r.status}).`;
+      }
+      const code = (raw.match(/[A-Z_]{8,}/) || [""])[0];
+      show("s-envies"); anErr(msg + (d.detail ? ` Détail technique : ${d.detail}` : code ? ` Code Vercel : ${code}` : ""));
+      return;
+    }
     const rec = {id: Date.now().toString(36), date: new Date().toISOString(), ville: prefs.ville.trim(), prefs: {...prefs}, analysis: d, thumbs: photos.map(p => p.thumb)};
     const list = store.get("app-analyses", []);
     list.unshift(rec);

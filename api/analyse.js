@@ -140,7 +140,7 @@ function sanitize(r, nPhotos) {
   };
 }
 
-module.exports = async (req, res) => {
+async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   if (req.method !== "POST") return res.status(405).json({ erreur: "Méthode non autorisée." });
 
@@ -171,40 +171,65 @@ module.exports = async (req, res) => {
     if (ph.data.length * 0.75 > MAX_PHOTO_BYTES) return res.status(413).json({ erreur: "Une photo est trop lourde. Réessaie avec une photo plus petite." });
   }
 
-  let r;
+  const content = buildContent({ ...body, photos });
+  // Premier essai avec la sortie JSON garantie par schéma ; si l'API refuse ce format, second essai en JSON libre.
+  const call = structured => fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: 3500,
+      system: structured ? SYSTEM : SYSTEM + "\n\nRéponds uniquement par un objet JSON valide, sans texte autour, conforme à ce schéma JSON : " + JSON.stringify(SCHEMA),
+      messages: [{ role: "user", content }],
+      ...(structured ? { output_config: { format: { type: "json_schema", schema: SCHEMA } } } : {})
+    })
+  });
+  const detail = (r, data) => `API ${r.status}${data && data.error ? ` ${data.error.type || ""} : ${String(data.error.message || "").slice(0, 220)}` : ""}`;
+
+  let r, data;
   try {
-    r = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 4000,
-        system: SYSTEM,
-        messages: [{ role: "user", content: buildContent({ ...body, photos }) }],
-        output_config: { format: { type: "json_schema", schema: SCHEMA } }
-      })
-    });
+    r = await call(true);
+    data = await r.json().catch(() => ({}));
+    if (r.status === 400 && !/credit|billing/i.test(JSON.stringify(data)) && /output_config|json_schema|schema|format/i.test(JSON.stringify(data.error || {}))) {
+      console.warn("Format JSON par schéma refusé, second essai :", detail(r, data));
+      r = await call(false);
+      data = await r.json().catch(() => ({}));
+    }
   } catch (e) {
-    return res.status(502).json({ erreur: "Le service d'analyse ne répond pas. Réessaie dans quelques minutes." });
+    return res.status(502).json({ erreur: "Le service d'analyse ne répond pas. Réessaie dans quelques minutes.", detail: String(e && e.message || e).slice(0, 200) });
   }
 
-  const data = await r.json().catch(() => ({}));
   if (!r.ok) {
-    console.error("Anthropic", r.status, data && data.error);
+    console.error("Anthropic", detail(r, data));
     const msg = r.status === 429 ? "Trop d'analyses en même temps. Réessaie dans une minute."
-      : r.status === 401 ? "La clé API configurée dans Vercel est refusée."
-      : r.status === 400 && /credit|billing/i.test(JSON.stringify(data)) ? "Le crédit du compte Anthropic est épuisé."
-      : "L'analyse a échoué. Réessaie dans quelques minutes.";
-    return res.status(502).json({ erreur: msg });
+      : r.status === 401 ? "La clé API configurée dans Vercel est refusée. Vérifie-la dans la Console Anthropic."
+      : r.status === 403 ? "La clé API n'a pas accès à ce modèle."
+      : r.status === 404 ? "Le modèle demandé n'existe pas pour cette clé API."
+      : r.status === 529 || r.status === 503 ? "Le service d'analyse est surchargé. Réessaie dans quelques minutes."
+      : r.status === 400 && /credit|billing/i.test(JSON.stringify(data)) ? "Le crédit du compte Anthropic est épuisé. Ajoute du crédit dans la Console Anthropic."
+      : r.status === 413 ? "Les photos sont trop lourdes pour l'analyse. Réessaie avec moins de photos."
+      : "L'analyse a échoué.";
+    return res.status(502).json({ erreur: msg, detail: detail(r, data) });
   }
   if (data.stop_reason === "refusal") return res.status(422).json({ erreur: "Ces photos n'ont pas pu être analysées. Essaie avec d'autres photos du jardin." });
 
   const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("");
   let report;
-  try { report = JSON.parse(text); } catch (e) {
-    return res.status(502).json({ erreur: data.stop_reason === "max_tokens" ? "L'analyse était trop longue. Réessaie avec moins de photos." : "La réponse de l'analyse est illisible. Réessaie." });
+  try {
+    const i = text.indexOf("{"), j = text.lastIndexOf("}");
+    report = JSON.parse(i >= 0 && j > i ? text.slice(i, j + 1) : text);
+  } catch (e) {
+    return res.status(502).json({ erreur: data.stop_reason === "max_tokens" ? "L'analyse était trop longue. Réessaie avec moins de photos." : "La réponse de l'analyse est illisible. Réessaie.", detail: `stop_reason ${data.stop_reason}` });
   }
   const out = sanitize(report, photos.length);
   if (!out.zones.length) return res.status(422).json({ erreur: "Aucune zone à planter n'a été repérée. Essaie avec des photos plus larges du jardin." });
   return res.status(200).json({ ...out, modele: MODEL });
+}
+
+module.exports = async (req, res) => {
+  try { return await handler(req, res); }
+  catch (e) {
+    console.error("Erreur inattendue", e);
+    return res.status(500).json({ erreur: "Erreur inattendue pendant l'analyse.", detail: String(e && e.message || e).slice(0, 200) });
+  }
 };
