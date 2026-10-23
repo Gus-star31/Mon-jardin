@@ -9,7 +9,7 @@ Deux outils pour composer les massifs et les haies d'un jardin selon l'expositio
 
 ## L'app (`/app/`)
 
-Web app installable sur téléphone. La personne prend 1 à 4 photos de son jardin, indique la direction de chaque prise de vue, sa ville, son sol, l'arrosage possible, ses envies et son style. Claude analyse les photos et repère les zones à planter ; l'app compose ensuite une proposition par zone avec le moteur de l'atelier.
+Web app installable sur téléphone, en DA « Carnet d'atelier » (papier crème, trait d'encre, bleu de Prusse ; design system dans Figma). L'accueil « Ton jardin » liste les espaces analysés : on les consulte, on en ajoute ou on en retire. Pour ajouter un espace, la personne prend une photo du coin à planter et indique ses envies ; la première fois, elle donne aussi son département, son sol et l'arrosage possible. Claude analyse la photo ; l'app compose ensuite la proposition de l'espace avec le moteur de l'atelier : plantes, plan de plantation, aperçu avant / après et budget.
 
 - `api/analyse.js` : fonction serveur Vercel qui vérifie le code d'accès et appelle l'API Claude.
 - `api/apercu.js` : fonction serveur qui dessine la zone plantée sur la photo avec un modèle d'image Gemini (Google). L'aperçu est créé à la demande, zone par zone, et gardé sur le téléphone.

@@ -1,5 +1,5 @@
 // Service worker : garde l'app disponible hors connexion (sauf l'analyse, qui demande Internet).
-const CACHE = "massifs-app-v4";
+const CACHE = "massifs-app-v5";
 const SHELL = ["/app/", "/app/index.html", "/app/app.css", "/app/atelier.css", "/app/app.js", "/app/engine.js",
   "/app/manifest.webmanifest", "/app/icons/icon-192.png", "/app/icons/icon-512.png"];
 

@@ -14,7 +14,7 @@ const MAX_PHOTO_BYTES = 1_500_000; // une photo redimensionnée côté app pèse
 const DIRS = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"];
 const DIR_NAMES = { N: "nord", NE: "nord-est", E: "est", SE: "sud-est", S: "sud", SO: "sud-ouest", O: "ouest", NO: "nord-ouest" };
 const SOLS = { a: "argileux", ac: "argilo-calcaire", c: "calcaire", s: "sableux", h: "humifère", inconnu: "inconnu" };
-const OBJS = { massif: "habiller le jardin", isoler: "s'isoler du voisinage", pollin: "attirer abeilles et papillons", mur: "habiller un mur ou une clôture" };
+const OBJS = { massif: "habiller le jardin", isoler: "s'isoler du voisinage", pollin: "attirer abeilles et papillons", mur: "habiller un mur ou une clôture", refuge: "créer un refuge pour la biodiversité" };
 const STYLES = { libre: "sans style imposé", med: "méditerranéen sec", nat: "naturaliste", anglais: "jardin anglais", contemporain: "contemporain épuré", sauvage: "refuge pour la biodiversité" };
 const ARRO = { "1": "aucun arrosage une fois les plantes installées", "2": "arrosage occasionnel pendant les canicules", "3": "arrosage régulier en été" };
 
@@ -72,7 +72,7 @@ Règles :
 - Objectifs : choisis parmi les envies de la personne celles qui ont du sens pour la zone. "isoler" seulement s'il y a un vis-à-vis réel (rue, fenêtre, balcon, jardin voisin visible). Hauteur à masquer : "4" si la vue vient d'un étage ou d'un balcon, sinon "2" ou "3" ; "aucune" si la zone n'a pas besoin d'écran.
 - Climat : déduis la zone de la ville indiquée. "med" méditerranéen, "so" Sud-Ouest (Toulouse, Bordeaux, Pau...), "oc" océanique (Bretagne, Normandie, Nantes...), "co" continental (Strasbourg, Lyon, Dijon), "mo" montagnard. Paris et le centre de la France sont "oc".
 - Sol : si la personne l'indique, garde son choix ; sinon déduis-le de la région et des indices visibles, et dis que c'est une estimation.
-- 2 à 6 zones au total. Chaque zone correspond à une bande ou un massif précis, visible sur une photo (numéro de photo à partir de 1). Une photo peut contenir plusieurs zones (par exemple les deux côtés d'une allée).
+- 1 à 6 zones au total. Chaque zone correspond à une bande ou un massif précis, visible sur une photo (numéro de photo à partir de 1). La personne photographie en général un seul coin à la fois : avec une seule photo, rends une seule zone, sauf si la photo montre clairement des coins séparés (par exemple les deux côtés d'une allée), et alors trois au plus.
 - "emplacement" : où se trouve exactement la zone sur la photo, en anglais, pour un logiciel de retouche d'image qui devra y dessiner les plantations. Donne la position dans le cadre (left, right, background, foreground, centre), les repères visibles (fence, palm tree, house wall, gate…) et l'étendue ("the strip of lawn along the reed fence in the background, from the white gate pillar on the left to the right edge of the photo, in front of the palm tree"). Une phrase, 40 mots au plus.
 - "a_garder" : arbres, arbustes ou éléments existants à conserver. "attention" : points à traiter avant de planter (plante envahissante comme le bambou traçant ou le liseron, racines, réseaux, ombre d'un grand arbre, sol tassé).
 - Écris en français, en tutoyant, avec des phrases courtes et concrètes. Le nom d'une zone fait 2 à 5 mots et se repère facilement ("Côté rue, le long de la canisse").
