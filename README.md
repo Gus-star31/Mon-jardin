@@ -34,6 +34,6 @@ Redéployer après avoir ajouté les variables. Fixer une limite de dépense men
 
 Une analyse de 4 photos coûte environ 4 centimes avec Claude Sonnet 5.5, et un aperçu environ 3 centimes avec Gemini Nano Banana 2.1 en 1K. Les photos sont envoyées à l'API Claude le temps de l'analyse, puis à l'API Gemini pour chaque aperçu demandé ; l'app ne les enregistre sur aucun serveur.
 
-Les données sur les plantes (rusticité, besoins en eau, croissance, prix) sont des ordres de grandeur indicatifs.
+La base compte 217 plantes. Les données (rusticité, besoins en eau, croissance, prix) sont des ordres de grandeur indicatifs.
 
 Déploiement : Vercel publie automatiquement chaque modification poussée sur `main`.

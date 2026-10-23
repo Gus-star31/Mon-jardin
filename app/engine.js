@@ -100,9 +100,144 @@ const RAW = [
 ["Arroche marine","Atriplex halimus","arbuste","s","csa","d",-12,1,250,null,"vert","#AEB9AE","Feuillage argenté persistant, pousse très vite en sol sec."],
 ["Sauge officinale","Salvia officinalis","aromatique","s","cs","d",-15,1,60,[5,6],"froid","#8F7FC8","Feuillage gris persistant."],
 ["Origan","Origanum vulgare","aromatique","s","csa","d",-20,1,40,[7,9],"rose","#D69ABF","Très mellifère."],
-["Ciboulette","Allium schoenoprasum","aromatique","sm","ahc","f",-30,1,30,[5,6],"rose","#C9A0D8","Pompons comestibles."]
+["Ciboulette","Allium schoenoprasum","aromatique","sm","ahc","f",-30,1,30,[5,6],"rose","#C9A0D8","Pompons comestibles."],
+// ---- Ajouts : chaque fiche porte ses propres informations (eau 1/2/3, pousse, persistant, mellifère, styles, forme, feuillage gris)
+// ---- Arbustes persistants, haies sèches
+["Alaterne","Rhamnus alaternus","arbuste","smo","acs","d",-15,1,400,[3,4],"vert","#9CB24A","Persistant local de garrigue, très résistant à la sécheresse. Baies pour les oiseaux.",{eau:1,pousse:"moyenne",pers:true,mel:true,styles:["med","sauvage","contemporain"]}],
+["Pistachier lentisque","Pistacia lentiscus","arbuste","s","cs","d",-10,1,300,[4,5],"vert","#7A8F3A","Persistant méditerranéen aromatique, supporte vent et embruns.",{eau:1,pousse:"lente",pers:true,mel:false,styles:["med","sauvage"]}],
+["Coronille glauque","Coronilla valentina subsp. glauca","arbuste","s","cs","d",-10,1,120,[1,4],"chaud","#F2C62E","Fleurs jaunes parfumées en plein hiver, feuillage bleuté.",{eau:1,pousse:"rapide",pers:true,mel:true,styles:["med"],gris:true}],
+["Buplèvre ligneux","Bupleurum fruticosum","arbuste","sm","cs","d",-15,1,200,[6,8],"chaud","#D9C440","Persistant gris-vert, ombelles jaunes en été. Supporte l'ombre sèche.",{eau:1,pousse:"moyenne",pers:true,mel:true,styles:["med","sauvage"]}],
+["Phlomis frutescent","Phlomis fruticosa","arbuste","s","cs","d",-12,1,120,[5,7],"chaud","#E6B422","Feuillage gris laineux, fleurs jaunes en étages. Increvable en sol sec.",{eau:1,pousse:"rapide",pers:true,mel:true,styles:["med","nat"],gris:true}],
+["Santoline","Santolina chamaecyparissus","arbuste","s","cs","d",-15,1,50,[6,7],"chaud","#F0D232","Petite boule argentée, pompons jaunes. Se taille après floraison.",{eau:1,pousse:"rapide",pers:true,mel:true,styles:["med","contemporain"],gris:true}],
+["Immortelle d'Italie","Helichrysum italicum","arbuste","s","cs","d",-12,1,50,[6,8],"chaud","#E8C730","Feuillage argenté à odeur de curry, très résistant au sec.",{eau:1,pousse:"rapide",pers:true,mel:true,styles:["med"],gris:true}],
+["Ciste blanc","Cistus × hybridus","arbuste","s","csa","d",-12,1,100,[5,6],"blanc","#F7F2EA","Couvert de fleurs blanches au printemps, sans arrosage.",{eau:1,pousse:"rapide",pers:true,mel:true,styles:["med","sauvage"]}],
+["Westringia","Westringia fruticosa","arbuste","s","sca","d",-7,1,150,[4,9],"blanc","#F2F0F6","Ressemble au romarin et se passe de taille. Craint les grands froids.",{eau:1,pousse:"moyenne",pers:true,mel:true,styles:["med","contemporain"],gris:true}],
+["Grevillea","Grevillea rosmarinifolia","arbuste","s","sa","d",-12,1,150,[1,5],"rose","#D2453F","Fleurs rouges en araignée pendant l'hiver. Sol non calcaire.",{eau:1,pousse:"moyenne",pers:true,mel:true,styles:["med"]}],
+["Rince-bouteille","Callistemon citrinus","arbuste","s","as","df",-8,1,250,[5,7],"chaud","#D8262E","Goupillons rouges spectaculaires. Préfère les sols peu calcaires.",{eau:2,pousse:"moyenne",pers:true,mel:true,styles:["med"],forme:"epi"}],
+["Fusain du Japon","Euonymus japonicus","arbuste","smo","acsh","df",-15,1,300,[6,6],"vert","#5E8A3C","Persistant brillant, supporte l'ombre et les embruns. Haie facile.",{eau:2,pousse:"moyenne",pers:true,mel:false,styles:["contemporain"]}],
+["Chèvrefeuille arbustif","Lonicera nitida","arbuste","smo","acsh","df",-20,1,200,[4,5],"vert","#6E9A48","Petites feuilles, se taille en haie ou en boule. Pousse vite.",{eau:2,pousse:"rapide",pers:true,mel:true,styles:["contemporain","sauvage"]}],
+["Houx","Ilex aquifolium","arbuste","smo","ah","f",-25,1,500,[5,5],"vert","#2F5A2A","Persistant d'ombre, baies rouges en hiver sur les pieds femelles.",{eau:2,pousse:"lente",pers:true,mel:true,styles:["sauvage","anglais"]}],
+["If","Taxus baccata","arbuste","smo","acsh","df",-25,1,600,null,"vert","#2B4A26","Persistant dense qui supporte l'ombre et la taille. Toxique.",{eau:2,pousse:"lente",pers:true,mel:false,styles:["contemporain","anglais"],forme:"conifere"}],
+["Osmanthe à feuilles de houx","Osmanthus heterophyllus","arbuste","smo","acsh","df",-15,1,300,[9,10],"blanc","#F5F2E6","Persistant piquant, fleurs très parfumées à l'automne.",{eau:2,pousse:"lente",pers:true,mel:true,styles:["anglais","contemporain"]}],
+["Cotonéaster","Cotoneaster lacteus","arbuste","smo","acs","df",-20,1,350,[6,6],"blanc","#F2EEE2","Persistant, fleurs blanches puis baies rouges tout l'hiver.",{eau:1,pousse:"rapide",pers:true,mel:true,styles:["sauvage"]}],
+["Céanothe 'Skylark'","Ceanothus thyrsiflorus 'Skylark'","arbuste","s","acs","d",-15,1,200,[5,6],"froid","#3D5FC4","Bleu intense, plus rustique que la plupart des céanothes.",{eau:1,pousse:"rapide",pers:true,mel:true,styles:["med","nat"]}],
+["Lavande vraie 'Hidcote'","Lavandula angustifolia 'Hidcote'","arbuste","s","cs","d",-20,1,50,[6,7],"froid","#6B4FB8","Compacte et très parfumée, idéale en bordure.",{eau:1,pousse:"moyenne",pers:true,mel:true,styles:["med","anglais","contemporain"],gris:true,forme:"epi"}],
+["Lavande papillon","Lavandula stoechas","arbuste","s","sa","d",-10,1,60,[4,6],"froid","#6A3FA0","Épis surmontés de « papillons » violets. Sol non calcaire.",{eau:1,pousse:"rapide",pers:true,mel:true,styles:["med"],gris:true,forme:"epi"}],
+// ---- Arbustes à fleurs caducs
+["Gattilier","Vitex agnus-castus","arbuste","s","csa","d",-15,1,300,[7,9],"froid","#8A82D8","Épis bleu lavande en plein été, adoré des abeilles.",{eau:1,pousse:"rapide",pers:false,mel:true,styles:["med","nat","sauvage"],forme:"epi"}],
+["Caryoptéris","Caryopteris × clandonensis","arbuste","s","csa","d",-20,1,100,[8,9],"froid","#5B6FD0","Petit arbuste bleu de fin d'été, très mellifère.",{eau:1,pousse:"rapide",pers:false,mel:true,styles:["nat","med"]}],
+["Dentelaire de Willmott","Ceratostigma willmottianum","arbuste","sm","csa","d",-15,1,90,[7,10],"froid","#2F4FD0","Fleurs bleu vif jusqu'en octobre, feuillage rouge à l'automne.",{eau:1,pousse:"moyenne",pers:false,mel:true,styles:["med","nat"]}],
+["Hibiscus de Syrie","Hibiscus syriacus","arbuste","s","acs","df",-20,1,250,[7,9],"rose","#C25A9E","Grandes fleurs tout l'été, se plaît en sol calcaire.",{eau:2,pousse:"moyenne",pers:false,mel:true,styles:["anglais"]}],
+["Lilas","Syringa vulgaris","arbuste","s","acs","df",-30,1,400,[4,5],"froid","#9C7CC8","Floraison parfumée en mai. Aime le calcaire.",{eau:2,pousse:"moyenne",pers:false,mel:true,styles:["anglais"]}],
+["Seringat","Philadelphus coronarius","arbuste","sm","acsh","f",-25,1,250,[5,6],"blanc","#FBFAF3","Fleurs blanches au parfum d'oranger en juin.",{eau:2,pousse:"rapide",pers:false,mel:true,styles:["anglais"]}],
+["Deutzia","Deutzia × hybrida","arbuste","sm","acsh","f",-20,1,150,[5,6],"rose","#F0C9DA","Pluie de petites fleurs roses au printemps.",{eau:2,pousse:"rapide",pers:false,mel:true,styles:["anglais"]}],
+["Weigela","Weigela florida","arbuste","sm","acsh","f",-25,1,200,[5,6],"rose","#D9457E","Floraison généreuse en mai, arbuste facile.",{eau:2,pousse:"rapide",pers:false,mel:true,styles:["anglais"]}],
+["Rosier glauque","Rosa glauca","arbuste","sm","acs","df",-25,1,200,[6,6],"rose","#D57A9C","Feuillage pourpre bleuté, fleurs simples puis fruits rouges.",{eau:1,pousse:"rapide",pers:false,mel:true,styles:["nat","sauvage","anglais"]}],
+["Rosier rugueux","Rosa rugosa","arbuste","s","as","df",-30,1,150,[6,9],"rose","#C2306E","Increvable et très parfumé, gros fruits rouges.",{eau:1,pousse:"rapide",pers:false,mel:true,styles:["sauvage","anglais"]}],
+["Arbre à perruque","Cotinus coggygria 'Royal Purple'","arbuste","s","acs","d",-20,1,300,[6,7],"rose","#C09AAE","Feuillage pourpre, plumets vaporeux en été.",{eau:1,pousse:"moyenne",pers:false,mel:false,styles:["contemporain","nat"]}],
+// ---- Haie champêtre locale
+["Viorne lantane","Viburnum lantana","arbuste","sm","acs","d",-25,1,350,[4,5],"blanc","#F3EFDF","Arbuste local des sols calcaires secs. Baies pour les oiseaux.",{eau:1,pousse:"moyenne",pers:false,mel:true,styles:["sauvage"]}],
+["Viorne obier","Viburnum opulus","arbuste","sm","ah","fw",-30,1,350,[5,6],"blanc","#F6F5EC","Boules blanches au printemps, baies rouges translucides.",{eau:3,pousse:"rapide",pers:false,mel:true,styles:["sauvage","anglais"]}],
+["Noisetier","Corylus avellana","arbuste","smo","acsh","df",-30,1,500,[1,2],"chaud","#D8C35A","Chatons dès janvier, puis noisettes. Pilier de la haie champêtre.",{eau:2,pousse:"rapide",pers:false,mel:true,styles:["sauvage"]}],
+["Aubépine","Crataegus monogyna","arbuste","sm","acs","d",-30,1,500,[4,5],"blanc","#FAF7F0","Haie défensive locale, refuge et nourriture pour les oiseaux.",{eau:1,pousse:"moyenne",pers:false,mel:true,styles:["sauvage"]}],
+["Sureau noir","Sambucus nigra","arbuste","smo","ach","f",-30,1,500,[5,6],"blanc","#F4F1DE","Ombelles parfumées puis baies noires. Pousse très vite.",{eau:2,pousse:"rapide",pers:false,mel:true,styles:["sauvage"]}],
+["Charmille","Carpinus betulus","arbuste","smo","acs","df",-30,1,500,null,"vert","#6F9A4A","Garde ses feuilles sèches en hiver : un écran presque toute l'année.",{eau:2,pousse:"moyenne",pers:false,mel:false,styles:["contemporain","sauvage"]}],
+["Érable champêtre","Acer campestre","arbuste","smo","acs","d",-30,1,600,null,"chaud","#D8A93A","Haie ou petit arbre local, feuillage doré à l'automne.",{eau:1,pousse:"moyenne",pers:false,mel:true,styles:["sauvage"]}],
+["Cornouiller mâle","Cornus mas","arbuste","smo","acs","df",-30,1,500,[2,3],"chaud","#E8C62C","Fleurs jaunes en février avant les feuilles, fruits comestibles.",{eau:1,pousse:"lente",pers:false,mel:true,styles:["sauvage"]}],
+// ---- Arbres
+["Olivier","Olea europaea","arbre","s","cs","d",-10,1,600,[5,6],"vert","#8FA392","Silhouette argentée, très résistant au sec. Craint les hivers très froids.",{eau:1,pousse:"lente",pers:true,mel:false,styles:["med","contemporain"],gris:true}],
+["Arbre de soie","Albizia julibrissin","arbre","s","acs","df",-15,1,700,[6,8],"rose","#E58AB4","Pompons roses soyeux en été, ombre légère.",{eau:2,pousse:"rapide",pers:false,mel:true,styles:["med"]}],
+["Érable de Montpellier","Acer monspessulanum","arbre","s","cs","d",-20,1,800,null,"chaud","#C9962E","Petit érable méditerranéen très résistant à la sécheresse.",{eau:1,pousse:"lente",pers:false,mel:true,styles:["med","sauvage"]}],
+["Pommier d'ornement","Malus 'Evereste'","arbre","s","acsh","f",-25,1,600,[4,5],"blanc","#F6E8EC","Floraison blanche au printemps, petites pommes décoratives.",{eau:2,pousse:"moyenne",pers:false,mel:true,styles:["anglais","sauvage"]}],
+["Prunier pourpre","Prunus cerasifera 'Nigra'","arbre","s","acs","df",-25,1,600,[3,4],"rose","#F2C7D6","Feuillage pourpre, nuage de fleurs roses en mars.",{eau:2,pousse:"rapide",pers:false,mel:true,styles:["anglais"]}],
+["Lilas de Perse","Melia azedarach","arbre","s","acs","d",-12,1,800,[5,6],"froid","#B9A6E0","Grappes mauves parfumées, ombre légère. Fruits toxiques.",{eau:1,pousse:"rapide",pers:false,mel:true,styles:["med"]}],
+["Tamaris","Tamarix ramosissima","arbre","s","acs","d",-25,1,400,[7,9],"rose","#E3A0C0","Plumeaux roses, supporte le vent, le sel et la sécheresse.",{eau:1,pousse:"rapide",pers:false,mel:true,styles:["med","nat"]}],
+["Amélanchier","Amelanchier lamarckii","arbre","sm","ach","f",-30,1,500,[4,4],"blanc","#FAF7F2","Fleurs blanches, baies pour les oiseaux, couleurs d'automne.",{eau:2,pousse:"moyenne",pers:false,mel:true,styles:["anglais","sauvage","nat"]}],
+// ---- Vivaces de soleil
+["Sauge de Graham","Salvia greggii","vivace","s","csa","d",-12,1,70,[5,11],"rose","#D63B6E","Petite sauge arbustive qui fleurit de mai aux gelées.",{eau:1,pers:true,mel:true,styles:["med","nat"],forme:"boule"}],
+["Sauge sclarée","Salvia sclarea","vivace","s","cs","d",-20,1,100,[6,7],"rose","#D9B6D6","Grandes hampes rose lilas. Bisannuelle qui se ressème.",{eau:1,mel:true,styles:["med","nat","sauvage"],forme:"epi"}],
+["Sauge 'Amistad'","Salvia 'Amistad'","vivace","s","acs","df",-10,1,120,[6,11],"froid","#4B2A90","Grands épis violet profond tout l'été et l'automne.",{eau:2,mel:true,styles:["nat","anglais"],forme:"epi"}],
+["Calament","Clinopodium nepeta","vivace","s","csa","d",-20,1,40,[7,10],"blanc","#E9E2F2","Nuage de petites fleurs blanc lilas, ruche à abeilles tout l'été.",{eau:1,mel:true,styles:["nat","med","sauvage"],forme:"nuage"}],
+["Origan 'Herrenhausen'","Origanum laevigatum 'Herrenhausen'","vivace","s","csa","d",-20,1,50,[7,9],"rose","#A54C8C","Fleurs pourpres, feuillage bronze, très mellifère.",{eau:1,mel:true,styles:["nat","med","sauvage"],forme:"ombelle"}],
+["Panicaut des Pyrénées","Eryngium bourgatii","vivace","s","cs","d",-20,1,50,[6,8],"froid","#7C9AC8","Chardon bleu argenté, sculptural.",{eau:1,mel:true,styles:["med","nat"],forme:"globe"}],
+["Panicaut plane","Eryngium planum","vivace","s","csa","d",-25,1,80,[7,8],"froid","#5F7FC9","Petites têtes bleu acier qui tiennent en bouquet sec.",{eau:1,mel:true,styles:["nat"],forme:"globe"}],
+["Molène","Verbascum olympicum","vivace","s","cs","d",-20,1,180,[6,8],"chaud","#F1CC2A","Grandes hampes jaunes au-dessus d'une rosette argentée. Se ressème.",{eau:1,mel:true,styles:["med","nat","sauvage"],forme:"epi",gris:true}],
+["Asphodéline jaune","Asphodeline lutea","vivace","s","cs","d",-15,1,90,[5,6],"chaud","#F2C537","Épis jaunes parfumés, feuillage fin bleuté.",{eau:1,mel:true,styles:["med"],forme:"epi"}],
+["Scabieuse colombaire","Scabiosa columbaria","vivace","s","cs","d",-25,1,50,[6,10],"froid","#A9A6E6","Pompons lavande légers, butinés tout l'été.",{eau:1,mel:true,styles:["nat","sauvage","anglais"]}],
+["Knautie de Macédoine","Knautia macedonica","vivace","s","csa","d",-20,1,70,[6,9],"rose","#8E1F48","Pompons pourpres sur tiges fines, effet prairie.",{eau:1,mel:true,styles:["nat","sauvage"],forme:"nuage"}],
+["Penstemon 'Garnet'","Penstemon 'Garnet'","vivace","sm","acs","df",-15,1,70,[6,10],"rose","#A3213F","Clochettes rouge grenat de juin à octobre.",{eau:2,mel:true,styles:["anglais","nat"],forme:"epi"}],
+["Gaillarde","Gaillardia × grandiflora","vivace","s","sca","d",-20,1,50,[6,10],"chaud","#D9542A","Marguerites rouge et jaune tout l'été, aime la chaleur.",{eau:1,mel:true,styles:["nat"]}],
+["Coréopsis 'Moonbeam'","Coreopsis verticillata 'Moonbeam'","vivace","s","acs","df",-25,1,40,[6,9],"chaud","#F2E38A","Petites étoiles jaune pâle sur un feuillage très fin.",{eau:2,mel:true,styles:["nat","anglais"]}],
+["Hélénie","Helenium autumnale","vivace","s","ah","fw",-30,1,120,[7,10],"chaud","#D2642A","Marguerites cuivrées de fin d'été. Aime les sols frais.",{eau:3,mel:true,styles:["nat","anglais"]}],
+["Aster de Frikart","Aster × frikartii 'Mönch'","vivace","s","ach","f",-25,1,80,[7,10],"froid","#8F8BE0","Marguerites bleu lavande de juillet aux gelées.",{eau:2,mel:true,styles:["anglais","nat"]}],
+["Aster d'automne","Symphyotrichum novae-angliae","vivace","sm","ach","fw",-30,1,130,[9,10],"froid","#7A4FC2","Explosion violette en automne, dernière ressource des abeilles.",{eau:3,mel:true,styles:["anglais","nat","sauvage"]}],
+["Grande marguerite","Leucanthemum × superbum","vivace","sm","ach","f",-30,1,70,[6,8],"blanc","#FFFFFF","La marguerite des jardins, généreuse et facile.",{eau:2,mel:true,styles:["anglais"]}],
+["Coquelourde","Lychnis coronaria","vivace","s","csa","d",-25,1,70,[6,8],"rose","#C4166A","Fleurs magenta sur feuillage argenté laineux. Se ressème.",{eau:1,mel:true,styles:["anglais","med"],gris:true}],
+["Fuchsia de Californie","Epilobium canum","vivace","s","csa","d",-12,1,40,[8,10],"chaud","#E24A2A","Trompettes rouge orangé en fin d'été, feuillage gris.",{eau:1,mel:true,styles:["med"],gris:true}],
+["Ballote","Ballota pseudodictamnus","vivace","s","cs","d",-12,1,50,[6,7],"blanc","#DDE0D4","Boule de feuillage gris feutré, presque persistante.",{eau:1,pers:true,mel:true,styles:["med","contemporain"],gris:true,forme:"boule"}],
+["Iris de Sibérie","Iris sibirica","vivace","sm","ah","fw",-30,1,80,[5,6],"froid","#4E52B8","Fines fleurs bleues, feuillage graphique. Aime les sols frais.",{eau:3,mel:true,styles:["anglais","nat"],forme:"epi"}],
+["Lin vivace","Linum perenne","vivace","s","cs","d",-25,1,50,[5,7],"froid","#7AA2E8","Fleurs bleu ciel légères qui s'ouvrent chaque matin.",{eau:1,mel:true,styles:["nat","sauvage"],forme:"nuage"}],
+["Bleuet vivace","Centaurea montana","vivace","sm","acs","df",-30,1,50,[5,7],"froid","#4A5ED0","Bleuets bleu intense au printemps, facile.",{eau:2,mel:true,styles:["anglais","sauvage"]}],
+["Renouée amplexicaule","Persicaria amplexicaulis","vivace","sm","ah","fw",-25,1,110,[7,10],"rose","#B0204A","Épis rouges de juillet aux gelées, pour sols frais.",{eau:3,mel:true,styles:["nat","anglais"],forme:"epi"}],
+["Sanguisorbe","Sanguisorba officinalis","vivace","sm","ah","fw",-30,1,120,[7,9],"rose","#7A1E3A","Petits pompons bordeaux sur tiges fines, effet prairie.",{eau:3,mel:true,styles:["nat","sauvage"],forme:"nuage"}],
+// ---- Couvre-sols de soleil
+["Germandrée petit-chêne","Teucrium chamaedrys","couvre-sol","s","cs","d",-20,1,30,[6,8],"rose","#C873A6","Petit couvre-sol persistant de garrigue, très mellifère.",{eau:1,pers:true,mel:true,styles:["med","sauvage"]}],
+["Onagre rose","Oenothera speciosa","couvre-sol","s","csa","d",-15,1,30,[5,9],"rose","#F2B8CC","Coupes rose tendre, s'étale vite en sol pauvre.",{eau:1,mel:true,styles:["med","nat"]}],
+["Hélianthème","Helianthemum nummularium","couvre-sol","s","cs","d",-20,1,25,[5,7],"chaud","#F0A830","Petit tapis fleuri pour les rocailles et les bords d'allée.",{eau:1,pers:true,mel:true,styles:["med"]}],
+["Céraiste","Cerastium tomentosum","couvre-sol","s","csa","d",-30,1,20,[5,6],"blanc","#F6F6F1","Tapis argenté couvert de fleurs blanches en mai.",{eau:1,pers:true,mel:true,styles:["med","anglais"],gris:true}],
+["Orpin bâtard","Phedimus spurius","couvre-sol","s","csa","d",-30,1,10,[7,8],"rose","#D26C8F","Couvre-sol succulent qui supporte tout, même un piétinement léger.",{eau:1,pers:true,mel:true,styles:["med","contemporain"]}],
+["Géranium sanguin","Geranium sanguineum","couvre-sol","s","csa","d",-30,1,30,[5,8],"rose","#C2287C","Coussin couvert de fleurs magenta, résiste au sec.",{eau:1,mel:true,styles:["nat","anglais","sauvage"]}],
+// ---- Ombre et ombre sèche
+["Iris fétide","Iris foetidissima","vivace","mo","acs","d",-20,1,50,[5,6],"chaud","#E87B2A","Persistant pour l'ombre sèche, graines orange vif en hiver.",{eau:1,pers:true,mel:false,styles:["sauvage","contemporain"],forme:"touffe"}],
+["Fragon","Ruscus aculeatus","arbuste","mo","acs","d",-15,1,60,null,"vert","#2F5A2A","Persistant local qui pousse à l'ombre sèche des arbres. Baies rouges.",{eau:1,pousse:"lente",pers:true,mel:false,styles:["sauvage","contemporain"]}],
+["Fougère scolopendre","Asplenium scolopendrium","vivace","mo","acs","df",-25,1,40,null,"vert","#4E8A3A","Fougère persistante aux frondes en ruban, aime le calcaire.",{eau:2,pers:true,mel:false,styles:["anglais","contemporain","sauvage"],forme:"feuillage"}],
+["Polystic à soies","Polystichum setiferum","vivace","mo","ach","df",-20,1,60,null,"vert","#5E8A3C","Fougère persistante très fine, tolère l'ombre sèche une fois installée.",{eau:2,pers:true,mel:false,styles:["anglais","contemporain"],forme:"fougere"}],
+["Ellébore fétide","Helleborus foetidus","vivace","smo","acs","d",-25,1,60,[1,4],"vert","#B9CC5A","Feuillage découpé persistant, clochettes vertes en hiver. Ombre sèche.",{eau:1,pers:true,mel:true,styles:["sauvage","anglais"],forme:"feuillage"}],
+["Bergénia","Bergenia cordifolia","couvre-sol","smo","acsh","df",-30,1,40,[2,4],"rose","#D2468A","Grandes feuilles persistantes, fleurs roses en fin d'hiver.",{eau:2,pers:true,mel:true,styles:["anglais","contemporain"],forme:"feuillage"}],
+["Pulmonaire","Pulmonaria officinalis","couvre-sol","mo","ah","f",-30,0,30,[3,4],"froid","#8A6AC8","Feuilles tachetées d'argent, fleurs roses puis bleues au printemps.",{eau:3,mel:true,styles:["anglais","sauvage"],forme:"feuillage"}],
+["Liriope","Liriope muscari","couvre-sol","smo","acsh","df",-15,1,35,[8,10],"froid","#7A5CC0","Touffes persistantes, épis violets en fin d'été. Ombre sèche.",{eau:2,pers:true,mel:true,styles:["contemporain"],forme:"touffe"}],
+["Lierre","Hedera helix","couvre-sol","mo","acsh","d",-25,1,20,[9,11],"vert","#2F5A2A","Couvre-sol persistant pour l'ombre la plus sèche. Floraison d'automne très mellifère.",{eau:1,pers:true,mel:true,styles:["sauvage"]}],
+["Luzule des bois","Luzula sylvatica","graminee","mo","ah","f",-25,1,40,[4,5],"vert","#5E8A3C","Graminée persistante d'ombre qui forme un tapis dense.",{eau:2,pers:true,styles:["sauvage","contemporain"],forme:"touffe"}],
+["Anémone des bois","Anemone nemorosa","bulbe","mo","h","f",-30,0,15,[3,4],"blanc","#FBFBF6","Tapis de petites étoiles blanches au printemps, sous les arbres.",{eau:2,mel:true,styles:["sauvage","anglais"]}],
+["Perce-neige","Galanthus nivalis","bulbe","mo","ach","f",-30,1,15,[1,2],"blanc","#FFFFFF","Premières fleurs de l'année, se naturalise sous les arbres.",{eau:2,mel:true,styles:["anglais","sauvage"]}],
+["Cyclamen de Cos","Cyclamen coum","bulbe","mo","ach","df",-20,1,10,[1,3],"rose","#D63D84","Petites fleurs magenta en plein hiver.",{eau:2,mel:true,styles:["anglais","sauvage"]}],
+// ---- Graminées
+["Panic érigé","Panicum virgatum 'Heavy Metal'","graminee","s","acs","df",-30,1,120,[8,10],"froid","#9DB2C2","Touffe bleutée dressée, nuage de graines en automne.",{eau:2,styles:["nat","contemporain"],forme:"raide"}],
+["Herbe aux écouvillons d'Orient","Pennisetum orientale 'Karley Rose'","graminee","s","csa","d",-15,1,70,[6,9],"rose","#D9A6C4","Épis rose poudré tout l'été.",{eau:1,styles:["nat","med"]}],
+["Grand stipa","Stipa gigantea","graminee","s","csa","d",-20,1,200,[6,8],"chaud","#D9B46A","Épis dorés transparents qui dominent le massif.",{eau:1,styles:["nat","med","contemporain"],forme:"nuage"}],
+["Calamagrostide argentée","Achnatherum calamagrostis","graminee","s","cs","d",-20,1,90,[6,9],"blanc","#E2D9C2","Plumets argentés qui ondulent, très tolérante au sec.",{eau:1,styles:["nat","med"]}],
+["Miscanthus 'Gracillimus'","Miscanthus sinensis 'Gracillimus'","graminee","sm","ach","df",-25,1,150,[9,11],"chaud","#C9B07A","Feuillage très fin en fontaine, beau tout l'hiver.",{eau:2,styles:["nat","contemporain"]}],
+["Avoine bleue","Helictotrichon sempervirens","graminee","s","cs","d",-25,1,60,[6,7],"froid","#8FA8B8","Touffe bleu argent persistante, très graphique.",{eau:1,pers:true,styles:["med","contemporain"],forme:"touffe"}],
+["Seslérie d'automne","Sesleria autumnalis","graminee","smo","acs","df",-25,1,40,[8,10],"vert","#B7C74A","Touffe vert-jaune lumineuse, au soleil comme à l'ombre sèche.",{eau:1,pers:true,styles:["nat","contemporain"],forme:"touffe"}],
+["Brize","Briza media","graminee","s","cs","df",-30,1,40,[5,7],"chaud","#C8B370","Petits épillets en cœur qui tremblent au vent.",{eau:2,styles:["nat","sauvage"]}],
+["Herbe aux moustiques","Bouteloua gracilis","graminee","s","cs","d",-30,1,40,[7,9],"chaud","#C9A15A","Épis en cils horizontaux, très résistante au sec.",{eau:1,styles:["nat"]}],
+// ---- Bulbes
+["Tulipe botanique","Tulipa clusiana","bulbe","s","cs","d",-25,1,30,[4,4],"rose","#F2C1CF","Tulipe sauvage qui revient chaque année en sol sec.",{eau:1,mel:true,styles:["med","nat"]}],
+["Ail à tête ronde","Allium sphaerocephalon","bulbe","s","csa","d",-25,1,60,[6,7],"rose","#8E1F5A","Petits œufs pourpres qui ponctuent les graminées.",{eau:1,mel:true,styles:["nat","sauvage"],forme:"globe"}],
+["Ail de Christoph","Allium cristophii","bulbe","s","csa","d",-25,1,50,[5,6],"froid","#B49BD8","Grosses sphères étoilées, puis têtes sèches décoratives.",{eau:1,mel:true,styles:["nat","contemporain","anglais"],forme:"globe"}],
+["Crocus de Tommasini","Crocus tommasinianus","bulbe","sm","acs","df",-25,1,10,[2,3],"froid","#B5A3E6","Tapis mauve en fin d'hiver, première nourriture des abeilles.",{eau:2,mel:true,styles:["sauvage","anglais"]}],
+["Sternbergie","Sternbergia lutea","bulbe","s","cs","d",-15,1,15,[9,10],"chaud","#F2D02A","Crocus jaune d'automne pour sols secs et calcaires.",{eau:1,styles:["med"]}],
+["Ipheion","Ipheion uniflorum","bulbe","sm","acs","df",-15,1,15,[3,4],"froid","#C9D4F2","Étoiles bleu pâle au printemps, se naturalise vite.",{eau:1,mel:true,styles:["med","sauvage"]}],
+["Narcisse 'Tête-à-tête'","Narcissus 'Tête-à-tête'","bulbe","sm","acsh","df",-25,1,20,[2,3],"chaud","#F4D22E","Petite jonquille précoce, parfaite en bordure.",{eau:2,styles:["anglais"]}],
+// ---- Grimpantes
+["Clématite d'Armand","Clematis armandii","grimpante","sm","acs","df",-12,1,600,[3,4],"blanc","#FBF8F0","Grimpante persistante, fleurs blanches parfumées au printemps.",{eau:2,pousse:"rapide",pers:true,mel:true,styles:["anglais","contemporain"]}],
+["Clématite d'hiver","Clematis cirrhosa","grimpante","sm","acs","d",-12,1,400,[12,2],"blanc","#F2EAD2","Persistante, clochettes crème en plein hiver.",{eau:1,pousse:"rapide",pers:true,mel:true,styles:["med","sauvage"]}],
+["Glycine","Wisteria sinensis","grimpante","s","acsh","df",-25,1,1000,[4,5],"froid","#A796DA","Grappes mauves parfumées. Très vigoureuse : il lui faut un support solide.",{eau:2,pousse:"rapide",pers:false,mel:true,styles:["anglais","med"]}],
+["Vigne vierge","Parthenocissus tricuspidata","grimpante","smo","acsh","df",-25,1,1500,null,"chaud","#C4422A","Couvre un mur sans support, rouge flamboyant en automne.",{eau:2,pousse:"rapide",pers:false,mel:true,styles:["contemporain","anglais"]}],
+["Passiflore bleue","Passiflora caerulea","grimpante","s","acs","df",-12,1,600,[6,10],"froid","#9DB3E6","Fleurs étonnantes tout l'été, pousse très vite.",{eau:2,pousse:"rapide",pers:true,mel:true,styles:["med"]}],
+["Morelle faux-jasmin","Solanum laxum","grimpante","s","acs","df",-8,1,500,[6,10],"blanc","#F7F4F7","Fleurs blanches de juin aux gelées. Craint les grands froids.",{eau:2,pousse:"rapide",pers:true,mel:true,styles:["med","anglais"]}],
+["Akébia","Akebia quinata","grimpante","smo","acsh","f",-20,1,600,[4,5],"rose","#7A2F5A","Fleurs chocolat parfumées, semi-persistante, supporte la mi-ombre.",{eau:2,pousse:"rapide",pers:false,mel:true,styles:["anglais","contemporain"]}],
+["Pois vivace","Lathyrus latifolius","grimpante","s","acs","d",-25,1,200,[6,9],"rose","#D84A8E","Grimpante qui résiste au sec, fleurs roses tout l'été.",{eau:1,pousse:"rapide",pers:false,mel:true,styles:["anglais","sauvage","nat"]}],
+["Vigne","Vitis vinifera","grimpante","s","acs","d",-20,1,800,null,"vert","#5E8A3C","Treille ou pergola : du raisin et de l'ombre en été.",{eau:1,pousse:"rapide",pers:false,mel:false,styles:["med","sauvage"]}],
+// ---- Aromatiques
+["Thym commun","Thymus vulgaris","aromatique","s","cs","d",-20,1,30,[5,6],"rose","#DAB6D8","Petit buisson aromatique persistant, les abeilles adorent.",{eau:1,pers:true,mel:true,styles:["med","sauvage"],gris:true,forme:"boule"}],
+["Hysope","Hyssopus officinalis","aromatique","s","cs","d",-20,1,50,[7,9],"froid","#4A5ED0","Épis bleus en été, très mellifère.",{eau:1,pers:true,mel:true,styles:["med","sauvage"],forme:"epi"}],
+["Sarriette des montagnes","Satureja montana","aromatique","s","cs","d",-20,1,30,[7,10],"blanc","#EEE6F2","Coussin persistant fleuri en fin d'été.",{eau:1,pers:true,mel:true,styles:["med"],forme:"boule"}]
 ];
-const PLANTS = RAW.map((r,i)=>({id:i,nom:r[0],latin:r[1],type:r[2],expo:r[3],sol:r[4],eau:r[5],rust:r[6],heat:r[7],h:r[8],bloom:r[9],fam:r[10],hex:r[11],note:r[12]}));
+const PLANTS = RAW.map((r,i)=>({id:i,nom:r[0],latin:r[1],type:r[2],expo:r[3],sol:r[4],eau:r[5],rust:r[6],heat:r[7],h:r[8],bloom:r[9],fam:r[10],hex:r[11],note:r[12],x:r[13]||null}));
+// Les plantes ajoutées décrivent elles-mêmes leurs caractéristiques ; les premières passent par les listes de noms latins.
+const evergreen = p => p.x ? !!p.x.pers : EVERGREEN.test(p.latin);
+const melli = p => p.x ? !!p.x.mel : MELLI.test(p.latin);
 
 // ---------- Options ----------
 const OPT = {
@@ -165,6 +300,7 @@ function tailleLbl(v){
 const DRY = /Ceanothus arboreus|Nerium|Atriplex|Pyracantha|Lavandula|rosmarinus|Cistus|yangii|Ceanothus|Viburnum tinus|Myrtus|Pittosporum tobira|Teucrium|Nassella|Festuca|Muhlenbergia|lindheimeri|Achillea|Nepeta|Euphorbia|Hylotelephium|Centranthus|Iris|Erigeron|Thymus|Stachys|Allium hollandicum|Muscari|Cyclamen|Geranium macrorrhizum|officinalis|Origanum|Elaeagnus|Phillyrea|Laurus|Quercus ilex|Cercis|Agastache|microphylla|Echinops|Acanthus|Pinus|Vinca|Koelreuteria|banksiae|Campsis/;
 const THIRSTY = /Hydrangea|Heuchera|Anemone|Rudbeckia|Astilbe|Hosta|Dryopteris|Camassia|Carex|Brunnera|Digitalis|Lamium|Ajuga|Hakonechloa|Cornus|Spiraea|Choisya|Sarcococca|Lonicera|Clematis|Rosa|Alchemilla|Fargesia|schoenoprasum/;
 function water(p){
+  if(p.x && p.x.eau) return p.x.eau;
   if(DRY.test(p.latin)) return 1;
   if(THIRSTY.test(p.latin) || !p.heat || (p.eau.includes("w") && !p.eau.includes("d"))) return 3;
   return 2;
@@ -173,7 +309,7 @@ function water(p){
 // Vitesse de pousse des plantes ligneuses (hauteur gagnée par an) et taille à la plantation selon le format.
 const FAST = /Ceanothus arboreus|Pyracantha|Atriplex|Elaeagnus|Pittosporum tenuifolium|Ceanothus|Cistus|Escallonia|Photinia|yangii|Lavandula|Campsis|banksiae|Clematis|Lonicera|Abelia|Spiraea|Cornus|Teucrium|Hydrangea paniculata/;
 const SLOW = /Quercus ilex|Phillyrea|Myrtus|Pinus|Thuja|Arbutus|Lagerstroemia|Hydrangea anomala|Sarcococca|Pittosporum tobira|Osmanthus/;
-function growth(p){ return FAST.test(p.latin) ? "rapide" : SLOW.test(p.latin) ? "lente" : "moyenne"; }
+function growth(p){ if(p.x && p.x.pousse) return p.x.pousse; return FAST.test(p.latin) ? "rapide" : SLOW.test(p.latin) ? "lente" : "moyenne"; }
 const RATE = {arbre:{rapide:70,moyenne:45,lente:30}, autre:{rapide:60,moyenne:40,lente:25}};
 const START = {petit:{arbre:180,arbuste:40,grimpante:50}, moyen:{arbre:280,arbuste:80,grimpante:100}};
 const woody = p => ["arbre","arbuste","grimpante"].includes(p.type);
@@ -212,9 +348,9 @@ const STYLES = {
   sauvage:{label:"Refuge pour la biodiversité", hint:"Plantes mellifères, baies pour les oiseaux et espèces locales. Un jardin vivant qui demande peu d'entretien.",
     re:/Centranthus|Origanum|Thymus|Viburnum tinus|Cornus|Pyracantha|Lonicera|Echinops|Achillea|Verbena|nemorosa|Nepeta|officinalis|Hylotelephium|Arbutus|Phillyrea|Laurus|Quercus ilex|Elaeagnus|Rosa|Agastache|Cistus|Lavandula|Echinacea|Erigeron|Digitalis|Geranium|Ceanothus|Cercis|Koelreuteria|Muscari|Narcissus|Cyclamen|Hedera|Atriplex/}
 };
-const inStyle = p => !STYLES[state.style].re || STYLES[state.style].re.test(p.latin);
+const inStyle = p => !STYLES[state.style].re || (p.x ? (p.x.styles||[]).includes(state.style) : STYLES[state.style].re.test(p.latin));
 const WATER_LBL = {1:"Sans arrosage",2:"Arrosage occasionnel",3:"Arrosage régulier"};
-const isEcran = p => p.type==="arbuste" && p.h>=(+state.haut)*100 && EVERGREEN.test(p.latin);
+const isEcran = p => p.type==="arbuste" && p.h>=(+state.haut)*100 && evergreen(p);
 
 const state = {style:"libre",vite:"rapide",age:"3",arro:"1",prof:"150",haut:"2",fmt:"petit",obj:["massif"],expo:"s",sol:"ac",eau:"d",clim:"so",types:["arbuste","graminee","vivace","couvre-sol","bulbe","aromatique"],pal:"all",taille:"m"};
 let combo = [];   // [{plant, role, locked}]
@@ -265,7 +401,7 @@ function compatible(p){
   if(!state.types.includes(p.type) && !forced) return false;
   if(state.pal!=="all" && !PAL[state.pal].includes(p.fam)) return false;
   if(water(p) > +state.arro) return false;
-  if(G.melli && p.type!=="graminee" && !MELLI.test(p.latin)) return false;
+  if(G.melli && p.type!=="graminee" && !melli(p)) return false;
   return true;
 }
 function role(p){
@@ -297,13 +433,19 @@ function density(p, r){
   return "3 à 5 / m²";
 }
 
+// Mémoire des tirages récents : une plante déjà proposée plusieurs fois passe derrière les autres,
+// pour que deux clics sur « Nouvelle combinaison » donnent vraiment des massifs différents.
+const SEEN = new Map();
+function remember(p){ SEEN.set(p.id, (SEEN.get(p.id)||0) + 1); }
+function fadeSeen(){ for(const [k,v] of SEEN){ const n = v*0.6; if(n<0.05) SEEN.delete(k); else SEEN.set(k,n); } }
 function pick(pool, covered, colors){
   if(!pool.length) return null;
   const scored = pool.map(p=>{
     const nm = months(p).filter(m=>!covered.has(m)).length;
     const colorBonus = colors.has(p.fam) ? 0.4 : 0;
-    return {p, s: Math.random()*1.4 + nm*0.18 + colorBonus};
+    return {p, s: Math.random()*1.4 + nm*0.18 + colorBonus - (SEEN.get(p.id)||0)*0.9};
   }).sort((x,y)=>y.s-x.s);
+  remember(scored[0].p);
   return scored[0].p;
 }
 
@@ -340,6 +482,7 @@ function layout(){
 function layerName(l){ return {back:"un fond d'arbustes",mid:"une rangée de vivaces",front:"une bordure basse"}[l]||""; }
 
 function generate(keepLocks=true){
+  fadeSeen();
   const pool = PLANTS.filter(compatible);
   const locked = keepLocks ? combo.filter(c=>c.locked && compatible(c.plant)) : [];
   const used = new Set(locked.map(c=>c.plant.id));
@@ -575,6 +718,7 @@ function planHTML(){
 // ---------- Illustrations des plantes ----------
 function form(p){
   const l = p.latin;
+  if(p.x && p.x.forme && p.type!=="arbre" && p.type!=="grimpante") return p.x.forme;
   if(p.type==="grimpante") return "grimpe";
   if(p.type==="arbre") return "arbre";
   if(/Salvia microphylla/.test(l)) return "boule";
@@ -598,7 +742,7 @@ function form(p){
 }
 const GREENS = ["#3F6B35","#4F7D40","#62904B","#355C2E"];
 const SILVER = ["#8FA392","#A3B4A2","#B6C3B3","#7D917F"];
-function leafCols(p){ return /Lavandula|yangii|Teucrium|Stachys|Festuca|officinalis|rosmarinus|Myrtus/.test(p.latin) ? SILVER : GREENS; }
+function leafCols(p){ if(p.x) return p.x.gris ? SILVER : GREENS; return /Lavandula|yangii|Teucrium|Stachys|Festuca|officinalis|rosmarinus|Myrtus/.test(p.latin) ? SILVER : GREENS; }
 
 function drawPlant(ctx,p,cx,base,w,H,R){
   const f=form(p), L=leafCols(p), fc=p.hex, bloom=!!p.bloom;
@@ -788,7 +932,7 @@ function calCells(p){
 function card(c, idx){
   const p=c.plant;
   const fl = p.bloom ? `${MOIS_LONG[p.bloom[0]-1]} → ${MOIS_LONG[p.bloom[1]-1]}` : "feuillage";
-  const tags = [woody(p) && growth(p)==="rapide" ? "Pousse rapide" : "", WATER_LBL[water(p)], EVERGREEN.test(p.latin)?"Persistant":"", MELLI.test(p.latin)?"Mellifère":""].filter(Boolean).map(t=>`<span>${t}</span>`).join("");
+  const tags = [woody(p) && growth(p)==="rapide" ? "Pousse rapide" : "", WATER_LBL[water(p)], evergreen(p)?"Persistant":"", melli(p)?"Mellifère":""].filter(Boolean).map(t=>`<span>${t}</span>`).join("");
   return `<article class="card ${c.locked?"locked":""}">
     ${photoOf(p) ? `<figure class="cph"><img src="${photoOf(p).src}" alt="${p.nom}" loading="lazy" width="480" height="360" referrerpolicy="no-referrer" onerror="photoFail(this)"><figcaption>${creditHTML(photoOf(p))}</figcaption></figure>` : ""}<a class="pvlink" href="${photoUrl(p)}" target="_blank" rel="noopener" aria-label="Voir des photos de ${p.nom} sur Google Images" ${photoOf(p)?"hidden":""}><canvas class="pv" data-pv="${idx}" role="img" aria-label="Illustration : ${p.nom}"></canvas><span>Voir en photo ↗</span></a>
     <div class="top"><span class="dot" style="background:${p.hex}"></span>

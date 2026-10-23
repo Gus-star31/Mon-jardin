@@ -523,7 +523,7 @@ async function generateApercu(z, rec, ph){
     emplacement: z.z.emplacement || `${z.z.nom}. ${z.z.description}`,
     profondeur: state.prof, age: state.age, a_garder: z.z.a_garder || [],
     plantes: combo.map(c => ({nom: c.plant.nom, latin: c.plant.latin, type: c.plant.type, couche: lay(c), hauteur: Math.round(heightAt(c.plant, state.age)),
-      forme: form(c.plant), fleur: c.plant.bloom ? c.plant.fam : null, argente: leafCols(c.plant) === SILVER, persistant: EVERGREEN.test(c.plant.latin), quantite: qty[c.plant.nom] || 1}))
+      forme: form(c.plant), fleur: c.plant.bloom ? c.plant.fam : null, argente: leafCols(c.plant) === SILVER, persistant: evergreen(c.plant), quantite: qty[c.plant.nom] || 1}))
   };
   const sig = sigOf();
   apBusy = true; actions.innerHTML = ""; note.classList.remove("err"); note.textContent = "";
