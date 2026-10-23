@@ -140,7 +140,10 @@ async function handler(req, res) {
   return res.status(200).json({ image: img.data, mime: img.mime, modele: MODEL });
 }
 
+// Aperçu en pause par défaut pour ne pas consommer de crédit Gemini.
+// Pour le réactiver : ajouter APERCU_ACTIF = 1 dans les variables d'environnement Vercel (et remettre APERCU_PAUSE à false dans app/app.js).
 module.exports = async (req, res) => {
+  if (process.env.APERCU_ACTIF !== "1") return res.status(503).json({ erreur: "L'aperçu sur photo est en pause pour le moment." });
   try { return await handler(req, res); }
   catch (e) {
     console.error("Erreur inattendue", e);

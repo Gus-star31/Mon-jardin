@@ -348,6 +348,13 @@ const STYLES = {
   sauvage:{label:"Refuge pour la biodiversité", hint:"Plantes mellifères, baies pour les oiseaux et espèces locales. Un jardin vivant qui demande peu d'entretien.",
     re:/Centranthus|Origanum|Thymus|Viburnum tinus|Cornus|Pyracantha|Lonicera|Echinops|Achillea|Verbena|nemorosa|Nepeta|officinalis|Hylotelephium|Arbutus|Phillyrea|Laurus|Quercus ilex|Elaeagnus|Rosa|Agastache|Cistus|Lavandula|Echinacea|Erigeron|Digitalis|Geranium|Ceanothus|Cercis|Koelreuteria|Muscari|Narcissus|Cyclamen|Hedera|Atriplex/}
 };
+// Photos d'illustration des styles (Wikimedia Commons, licences libres : la page source indique l'auteur et la licence).
+const STYLE_PHOTOS = {"med": {"src": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Luxembourg_Schwebsange_Jardin_m%C3%A9diterran%C3%A9en_02.jpg/640px-Luxembourg_Schwebsange_Jardin_m%C3%A9diterran%C3%A9en_02.jpg", "page": "https://commons.wikimedia.org/wiki/File:Luxembourg_Schwebsange_Jardin_m%C3%A9diterran%C3%A9en_02.jpg", "cap": "Jardin méditerranéen de Schwebsange (Luxembourg)"}, "nat": {"src": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Piet_Oudolf_Tuin%2C_Voorlinden%2C_September_2025.jpg/640px-Piet_Oudolf_Tuin%2C_Voorlinden%2C_September_2025.jpg", "page": "https://commons.wikimedia.org/wiki/File:Piet_Oudolf_Tuin%2C_Voorlinden%2C_September_2025.jpg", "cap": "Jardin de Piet Oudolf à Voorlinden (Pays-Bas)"}, "anglais": {"src": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/The_Long_Border%2C_Great_Dixter_%28geograph_3970801%29.jpg/640px-The_Long_Border%2C_Great_Dixter_%28geograph_3970801%29.jpg", "page": "https://commons.wikimedia.org/wiki/File:The_Long_Border%2C_Great_Dixter_%28geograph_3970801%29.jpg", "cap": "La longue bordure de Great Dixter (Angleterre)"}, "contemporain": {"src": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Grass_Garden_at_Kew_-_geograph.org.uk_-_63996.jpg/640px-Grass_Garden_at_Kew_-_geograph.org.uk_-_63996.jpg", "page": "https://commons.wikimedia.org/wiki/File:Grass_Garden_at_Kew_-_geograph.org.uk_-_63996.jpg", "cap": "Jardin de graminées de Kew (Londres)"}, "sauvage": {"src": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Gunnersbury_Triangle_Wildflower_Meadow_with_Bumblebee.JPG/640px-Gunnersbury_Triangle_Wildflower_Meadow_with_Bumblebee.JPG", "page": "https://commons.wikimedia.org/wiki/File:Gunnersbury_Triangle_Wildflower_Meadow_with_Bumblebee.JPG", "cap": "Prairie fleurie de Gunnersbury Triangle (Londres)"}};
+function styleFigure(k){
+  const ph = STYLE_PHOTOS[k];
+  if(!ph) return "";
+  return `<figure class="style-ph"><img src="${ph.src}" alt="Exemple de style : ${ph.cap}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"><figcaption>${ph.cap} · <a href="${ph.page}" target="_blank" rel="noopener">Wikimedia Commons ↗</a></figcaption></figure>`;
+}
 const inStyle = p => !STYLES[state.style].re || (p.x ? (p.x.styles||[]).includes(state.style) : STYLES[state.style].re.test(p.latin));
 const WATER_LBL = {1:"Sans arrosage",2:"Arrosage occasionnel",3:"Arrosage régulier"};
 const isEcran = p => p.type==="arbuste" && p.h>=(+state.haut)*100 && evergreen(p);
@@ -958,6 +965,7 @@ function renderCurrent(){ render(PLANTS.filter(compatible).length,0); }
 function render(nCompat, missing){
   document.getElementById("fs-haut").hidden = !goals().hedge;
   document.getElementById("style-hint").textContent = STYLES[state.style].hint;
+  document.getElementById("style-ph").innerHTML = styleFigure(state.style);
   const RL = rowLayers(), G0 = goals();
   const parts = [G0.hedge?"la haie":null, G0.wall?"une grimpante sur le support":null, ...RL.map(layerName)].filter(Boolean);
   document.getElementById("prof-hint").textContent = `Mesure la terre plantable, du fond jusqu'à l'allée ou la pelouse. Ici : ${parts.join(" + ")||"aucune rangée"}.`

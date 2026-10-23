@@ -255,7 +255,7 @@ $("to-envies").addEventListener("click", () => { renderEnvies(); show("s-envies"
 // 03 · Envies
 appChips("a-obj", OBJ_OPT, "multi", () => envies.objectifs, v => { envies.objectifs = v; store.set("app-envies", envies); });
 appChips("a-style", STYLE_OPT, "single", () => envies.style, v => { envies.style = v; store.set("app-envies", envies); styleHint(); });
-function styleHint(){ $("a-style-hint").textContent = (STYLES[envies.style] || STYLES.libre).hint; }
+function styleHint(){ $("a-style-hint").textContent = (STYLES[envies.style] || STYLES.libre).hint; $("a-style-ph").innerHTML = styleFigure(envies.style); }
 styleHint();
 function renderEnvies(){
   setProgress("pg-envies", 2);
@@ -454,6 +454,8 @@ $("crit-toggle").addEventListener("click", () => {
 });
 
 // ---------- Aperçu sur la photo (Gemini) ----------
+// En pause : aucune image n'est demandée à Gemini, l'espace montre seulement la photo d'origine.
+const APERCU_PAUSE = true;
 let apTok = 0, apTimer = null, apBusy = false;
 const AP_NOTE = "Image créée par IA (Gemini, de Google) à partir de ta photo : l’aspect réel variera. Ta photo est envoyée à Google le temps de créer l’image.";
 function curZoneObj(){ return ZONES.find(z => z.id === curZone); }
@@ -481,6 +483,12 @@ async function refreshApercu(){
     return;
   }
   const ph = z.z ? await idb.get(`photo-${rec.id}-${(z.z.photo || 1) - 1}`) : null;
+  if(APERCU_PAUSE){
+    if(tk !== apTok || !$("ap-actions")) return;
+    if(ph && $("ba-before")) $("ba-before").src = `data:image/jpeg;base64,${ph.data}`;
+    actions.innerHTML = ""; note.classList.remove("err"); note.textContent = "";
+    return;
+  }
   const cached = await idb.get(`apercu-${rec.id}-${z.id}`);
   if(tk !== apTok || !$("ap-actions")) return;
   const before = ph ? `data:image/jpeg;base64,${ph.data}` : z.thumb;
