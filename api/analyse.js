@@ -3,10 +3,12 @@
 //   ANTHROPIC_API_KEY  clé API créée dans la Console Anthropic
 //   ACCESS_CODE        code partagé avec les proches (comparé sans tenir compte des majuscules)
 //   CLAUDE_MODEL       facultatif, "claude-sonnet-5-5" par défaut
+//   ANTHROPIC_WORKSPACE_ID  facultatif, identifiant wrkspc_… à fournir si la clé n'est rattachée à aucun espace de travail
 
 const crypto = require("crypto");
 
 const MODEL = process.env.CLAUDE_MODEL || "claude-sonnet-5-5";
+const WORKSPACE = (process.env.ANTHROPIC_WORKSPACE_ID || "").trim();
 const MAX_PHOTOS = 4;
 const MAX_PHOTO_BYTES = 1_500_000; // une photo redimensionnée côté app pèse ~200 à 400 Ko
 const DIRS = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"];
@@ -175,7 +177,8 @@ async function handler(req, res) {
   // Premier essai avec la sortie JSON garantie par schéma ; si l'API refuse ce format, second essai en JSON libre.
   const call = structured => fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
-    headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+    headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json",
+      ...(WORKSPACE ? { "anthropic-workspace-id": WORKSPACE } : {}) },
     body: JSON.stringify({
       model: MODEL,
       max_tokens: 3500,
@@ -207,6 +210,9 @@ async function handler(req, res) {
       : r.status === 404 ? "Le modèle demandé n'existe pas pour cette clé API."
       : r.status === 529 || r.status === 503 ? "Le service d'analyse est surchargé. Réessaie dans quelques minutes."
       : r.status === 400 && /credit|billing/i.test(JSON.stringify(data)) ? "Le crédit du compte Anthropic est épuisé. Ajoute du crédit dans la Console Anthropic."
+      : /workspace/i.test(JSON.stringify(data.error || {})) ? (WORKSPACE
+          ? "L'espace de travail indiqué dans ANTHROPIC_WORKSPACE_ID est introuvable ou la clé n'y a pas accès. Vérifie l'identifiant wrkspc_… dans la Console Anthropic."
+          : "Ta clé API n'est rattachée à aucun espace de travail. Ajoute dans Vercel la variable ANTHROPIC_WORKSPACE_ID avec l'identifiant wrkspc_… de ton espace de travail, ou crée une clé rattachée à un espace de travail.")
       : r.status === 413 ? "Les photos sont trop lourdes pour l'analyse. Réessaie avec moins de photos."
       : "L'analyse a échoué.";
     return res.status(502).json({ erreur: msg, detail: detail(r, data) });
