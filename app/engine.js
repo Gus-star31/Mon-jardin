@@ -1,0 +1,975 @@
+// Fichier généré par tools/build_app.py à partir de /index.html. Ne pas modifier à la main.
+
+// ---------- Données ----------
+// nom, latin, type, expo(s=soleil,m=mi-ombre,o=ombre), sol(a=argileux,c=calcaire,s=sableux/caillouteux,h=humifère), eau(d=sec,f=frais,w=humide),
+// rusticité °C, supporte la chaleur (1/0), hauteur cm, floraison [début,fin] ou null, famille couleur, teinte, note
+const RAW = [
+["Lavandin 'Grosso'","Lavandula × intermedia","arbuste","s","cs","d",-15,1,70,[6,8],"froid","#8A73C4","Parfumé, mellifère. Taille après floraison."],
+["Romarin","Salvia rosmarinus","aromatique","s","cs","d",-10,1,100,[2,5],"froid","#9DB6E0","Persistant, fleurit dès la fin de l'hiver."],
+["Ciste pourpre","Cistus × purpureus","arbuste","s","csa","d",-10,1,100,[5,6],"rose","#D46A9A","Très résistant à la sécheresse."],
+["Sauge d'Afghanistan","Salvia yangii (Perovskia)","arbuste","s","csa","df",-20,1,120,[7,10],"froid","#8EA0D8","Feuillage argenté, floraison longue."],
+["Abélia","Abelia × grandiflora","arbuste","sm","ach","f",-12,1,150,[6,10],"blanc","#F1E4EA","Semi-persistant, fleurit tout l'été."],
+["Hortensia","Hydrangea macrophylla","arbuste","mo","ha","fw",-15,0,120,[6,9],"froid","#7E9BD6","Bleu en sol acide, rose en sol neutre. Craint le calcaire."],
+["Hortensia paniculé 'Limelight'","Hydrangea paniculata","arbuste","sm","ahc","f",-25,1,180,[7,10],"blanc","#E8F0C8","Plus robuste au soleil que l'hortensia classique."],
+["Céanothe 'Concha'","Ceanothus","arbuste","s","sc","d",-12,1,200,[4,5],"froid","#3E5BC2","Persistant, bleu intense au printemps."],
+["Laurier-tin","Viburnum tinus","arbuste","smo","acsh","df",-15,1,250,[11,3],"blanc","#F4F1F1","Fleurit en hiver. Bonne base persistante."],
+["Oranger du Mexique","Choisya ternata","arbuste","sm","ahc","f",-12,1,180,[4,5],"blanc","#FAFAF2","Fleurs parfumées, feuillage aromatique."],
+["Sarcococca","Sarcococca confusa","arbuste","mo","ach","f",-15,1,80,[12,2],"blanc","#F6F3E8","Parfum puissant en plein hiver."],
+["Myrte","Myrtus communis","arbuste","s","sc","d",-10,1,200,[6,8],"blanc","#FBFBF4","Persistant méditerranéen, fleurs étoilées."],
+["Pittosporum nain","Pittosporum tobira 'Nana'","arbuste","sm","acs","df",-12,1,80,[5,6],"blanc","#F7F4E2","Boule persistante sans taille."],
+["Germandrée arbustive","Teucrium fruticans","arbuste","s","cs","d",-10,1,150,[3,6],"froid","#B5C6E8","Feuillage argenté, supporte le vent."],
+["Spirée du Japon","Spiraea japonica","arbuste","sm","ahc","f",-25,1,60,[6,8],"rose","#E07AA7","Petit arbuste facile."],
+["Cornouiller 'Midwinter Fire'","Cornus sanguinea","arbuste","sm","ach","fw",-25,1,200,[5,6],"chaud","#E8853A","Bois orange flamboyant en hiver."],
+["Stipa cheveux d'ange","Nassella tenuissima","graminee","s","csa","d",-15,1,50,[6,8],"chaud","#D8C48A","Mouvement au moindre souffle."],
+["Miscanthus 'Morning Light'","Miscanthus sinensis","graminee","sm","ahc","f",-25,1,150,[9,11],"vert","#C9CDB8","Graphique, tient tout l'hiver."],
+["Herbe aux écouvillons 'Hameln'","Pennisetum alopecuroides","graminee","s","ach","fd",-15,1,60,[8,10],"blanc","#E6DCC4","Épis duveteux en fin d'été."],
+["Calamagrostis 'Karl Foerster'","Calamagrostis × acutiflora","graminee","sm","ahc","fw",-30,1,150,[6,9],"chaud","#D2B36E","Port vertical, verticalité au massif."],
+["Laîche 'Ice Dance'","Carex morrowii","graminee","mo","ah","fw",-20,1,30,[4,5],"vert","#C8D8A8","Feuillage panaché persistant."],
+["Fétuque bleue","Festuca glauca","graminee","s","sc","d",-25,1,25,[6,7],"froid","#9DB7C4","Touffe bleutée pour la bordure."],
+["Herbe du Japon","Hakonechloa macra","graminee","mo","h","f",-25,0,40,[8,9],"chaud","#D9C255","Cascade dorée à l'ombre."],
+["Muhlenbergia","Muhlenbergia capillaris","graminee","s","sca","d",-12,1,80,[9,11],"rose","#D86FA3","Nuage rose en automne."],
+["Gaura","Oenothera lindheimeri","vivace","s","acs","df",-15,1,80,[6,10],"blanc","#F6EEF0","Floraison continue, papillons blancs."],
+["Achillée 'Terracotta'","Achillea millefolium","vivace","s","csa","d",-25,1,70,[6,9],"chaud","#D27A3A","Ombelles plates, couleur qui évolue."],
+["Échinacée pourpre","Echinacea purpurea","vivace","s","ach","fd",-25,1,90,[7,9],"rose","#C9558A","Têtes séchées décoratives en hiver."],
+["Rudbeckia 'Goldsturm'","Rudbeckia fulgida","vivace","sm","ahc","f",-30,1,60,[7,10],"chaud","#F0B21C","Jaune lumineux jusqu'en automne."],
+["Népéta","Nepeta × faassenii","vivace","s","csa","df",-25,1,40,[5,9],"froid","#8F8BD0","Remonte si on la rabat après la 1re floraison."],
+["Sauge des bois 'Caradonna'","Salvia nemorosa","vivace","s","cas","df",-25,1,50,[5,9],"froid","#5C3FA3","Épis violet foncé sur tiges noires."],
+["Euphorbe des garrigues","Euphorbia characias","vivace","sm","cs","d",-15,1,100,[3,5],"vert","#C2D44A","Persistante. Sève irritante."],
+["Verveine de Buenos Aires","Verbena bonariensis","vivace","s","acs","df",-10,1,150,[6,10],"froid","#8A5BC7","Transparente, se ressème."],
+["Géranium 'Rozanne'","Geranium","vivace","sm","ahc","f",-25,1,50,[6,11],"froid","#6F78D6","Une des floraisons les plus longues."],
+["Heuchère","Heuchera","vivace","mo","ha","f",-25,1,35,[5,7],"rose","#7A3A55","Cultivée pour son feuillage pourpre."],
+["Hellébore d'Orient","Helleborus × hybridus","vivace","mo","ach","f",-25,1,40,[1,3],"blanc","#EBD9DF","Fleurit au cœur de l'hiver."],
+["Fougère mâle","Dryopteris filix-mas","vivace","mo","ha","fw",-30,1,90,null,"vert","#6E8F4E","Feuillage seul, très rustique."],
+["Hosta","Hosta","vivace","mo","ha","fw",-30,0,50,[7,8],"froid","#B8A9D8","Grandes feuilles. Attention aux limaces."],
+["Anémone du Japon 'Honorine Jobert'","Anemone × hybrida","vivace","sm","ahc","f",-25,1,100,[8,10],"blanc","#FFFFFF","Prend le relais en fin de saison."],
+["Astilbe","Astilbe","vivace","mo","h","wf",-25,0,60,[6,8],"rose","#E58AB0","Aime les sols toujours frais."],
+["Orpin d'automne","Hylotelephium 'Herbstfreude'","vivace","s","csa","d",-25,1,50,[8,10],"rose","#B85A6A","Succulent, adoré des abeilles."],
+["Tritoma","Kniphofia","vivace","s","sac","df",-15,1,100,[6,9],"chaud","#EE7B2B","Torches verticales."],
+["Valériane rouge","Centranthus ruber","vivace","s","cs","d",-20,1,70,[5,9],"rose","#C84455","Pousse même dans les murs."],
+["Agapanthe","Agapanthus","vivace","s","ahs","f",-10,1,80,[7,8],"froid","#6C8FE0","Boules bleues en plein été."],
+["Hémérocalle","Hemerocallis","vivace","sm","ach","fd",-30,1,70,[6,8],"chaud","#E8822C","Increvable, une fleur par jour."],
+["Iris des jardins","Iris germanica","vivace","s","cs","d",-25,1,80,[4,5],"froid","#6A4BB0","Rhizomes à fleur de terre."],
+["Vergerette","Erigeron karvinskianus","couvre-sol","sm","csa","df",-12,1,25,[4,11],"blanc","#F4E1E6","Petites marguerites d'avril à novembre."],
+["Brunnera 'Jack Frost'","Brunnera macrophylla","vivace","mo","ha","f",-30,0,40,[4,5],"froid","#7EA3E6","Feuilles argentées, fleurs type myosotis."],
+["Alchémille","Alchemilla mollis","vivace","sm","ach","f",-30,1,40,[6,7],"vert","#D6DC6A","Retient les gouttes de rosée."],
+["Digitale","Digitalis purpurea","vivace","m","hsa","f",-25,0,120,[5,7],"rose","#C46CA4","Bisannuelle qui se ressème. Toxique."],
+["Thym serpolet","Thymus serpyllum","couvre-sol","s","cs","d",-25,1,8,[6,7],"rose","#D88EC0","Tapis aromatique, supporte le piétinement léger."],
+["Petite pervenche","Vinca minor","couvre-sol","mo","ach","fd",-25,1,15,[3,5],"froid","#7F86D6","Couvre-sol persistant pour l'ombre sèche."],
+["Géranium à grosses racines","Geranium macrorrhizum","couvre-sol","mos","ach","df",-25,1,30,[5,6],"rose","#D477A2","Feuillage parfumé, supporte l'ombre sèche."],
+["Épimède","Epimedium × perralchicum","couvre-sol","mo","hac","df",-20,1,30,[4,5],"chaud","#E8CC3A","Résiste aux racines des arbres."],
+["Lamier 'White Nancy'","Lamium maculatum","couvre-sol","mo","ha","f",-25,0,20,[5,7],"blanc","#F5F5F0","Éclaire les coins sombres."],
+["Herbe aux turquoises","Ophiopogon japonicus","couvre-sol","mos","ah","f",-12,1,20,[7,8],"vert","#4F7A4A","Tapis persistant très dense."],
+["Oreille d'ours","Stachys byzantina","couvre-sol","s","cs","d",-20,1,30,[6,7],"blanc","#D9DCD4","Feuillage argenté et duveteux."],
+["Bugle rampante","Ajuga reptans","couvre-sol","mo","ah","fw",-25,1,15,[4,6],"froid","#4C5BC0","Feuillage bronze selon variétés."],
+["Ail d'ornement 'Purple Sensation'","Allium hollandicum","bulbe","s","csa","df",-25,1,80,[5,6],"froid","#7A4CC0","Sphères violettes au-dessus des vivaces."],
+["Narcisse 'Thalia'","Narcissus","bulbe","sm","ach","f",-25,1,35,[3,4],"blanc","#FBFBEF","Se naturalise. À planter en automne."],
+["Camassia","Camassia leichtlinii","bulbe","sm","ah","fw",-25,0,70,[4,5],"froid","#7B95E0","Aime les sols frais, même humides."],
+["Crocosmia 'Lucifer'","Crocosmia","bulbe","sm","ah","f",-15,1,100,[7,8],"chaud","#D63A2A","Rouge vif, feuillage en lame."],
+["Muscari","Muscari armeniacum","bulbe","sm","csa","df",-25,1,15,[3,4],"froid","#3E55B8","Tapis bleu au printemps."],
+["Cyclamen de Naples","Cyclamen hederifolium","bulbe","mo","ch","df",-20,1,12,[9,10],"rose","#E08AB4","Feuilles marbrées tout l'hiver."],
+["Jasmin étoilé","Trachelospermum jasminoides","grimpante","sm","ach","df",-12,1,400,[6,7],"blanc","#FFFFFF","Persistant, parfum intense."],
+["Clématite 'Étoile Violette'","Clematis viticella","grimpante","sm","ach","f",-25,1,300,[6,9],"froid","#5B3A9A","Pied à l'ombre, tête au soleil."],
+["Rosier grimpant 'New Dawn'","Rosa","grimpante","sm","ahc","f",-25,1,400,[6,10],"rose","#F2C9CF","Remontant, résistant aux maladies."],
+["Chèvrefeuille des bois","Lonicera periclymenum","grimpante","ms","ahc","f",-25,1,400,[6,9],"blanc","#F1E2B8","Parfum en soirée."],
+["Rosier de Banks","Rosa banksiae 'Lutea'","grimpante","sm","acs","df",-12,1,600,[4,5],"chaud","#EED36A","Sans épines, très résistant à la sécheresse une fois installé. Floraison massive au printemps."],
+["Bignone 'Madame Galen'","Campsis × tagliabuana","grimpante","s","acs","df",-15,1,600,[7,9],"chaud","#E0662A","Trompettes orange tout l'été. Vigoureuse et drageonnante : à contenir."],
+["Hortensia grimpant","Hydrangea anomala petiolaris","grimpante","om","ha","f",-25,0,600,[6,7],"blanc","#F6F6EC","Pour un mur au nord."],
+["Pin des montagnes","Pinus mugo","arbuste","s","acs","df",-30,1,150,null,"vert","#4A6B35","Conifère nain persistant, structure toute l'année."],
+["Thuya boule 'Danica'","Thuja occidentalis","arbuste","sm","ach","f",-30,1,80,null,"vert","#6E9455","Boule persistante compacte, sans taille."],
+["Photinia 'Red Robin'","Photinia × fraseri","arbuste","sm","ash","df",-15,1,300,[4,5],"blanc","#F3EFE6","Jeunes pousses rouge vif. Jaunit en sol calcaire."],
+["Éléagnus","Elaeagnus × ebbingei","arbuste","smo","acsh","df",-15,1,400,[10,11],"blanc","#EFEBDD","Pousse vite, supporte vent et sécheresse. Fleurs parfumées en automne."],
+["Laurier du Portugal","Prunus lusitanica","arbuste","smo","ach","df",-20,1,400,[5,6],"blanc","#F8F6EE","Persistant brillant, très opaque."],
+["Osmanthe","Osmanthus × burkwoodii","arbuste","sm","ach","f",-20,1,250,[4,4],"blanc","#FBF8EE","Parfum de jasmin au printemps."],
+["Filaire","Phillyrea angustifolia","arbuste","s","cs","d",-12,1,300,[3,4],"blanc","#EEF0DA","Persistant local, résiste à la sécheresse."],
+["Arbousier","Arbutus unedo","arbuste","sm","ash","df",-12,1,400,[10,12],"blanc","#F4ECD8","Fleurs et fruits rouges à l'automne. Préfère les sols non calcaires."],
+["Escallonia","Escallonia","arbuste","s","acs","df",-12,1,250,[6,9],"rose","#D86A8C","Floraison estivale longue."],
+["Bambou non traçant","Fargesia murielae","arbuste","sm","ah","f",-25,1,300,null,"vert","#7BA05B","Pousse en touffe, ne drageonne pas, contrairement aux bambous traçants."],
+["Savonnier","Koelreuteria paniculata","arbre","s","acs","df",-20,1,800,[7,8],"chaud","#E8C33A","Petit arbre, grappes jaunes en été puis lanternes en automne."],
+["Lilas des Indes","Lagerstroemia indica","arbre","s","ach","df",-15,1,500,[7,9],"rose","#D9468C","Floraison spectaculaire en plein été, écorce décorative."],
+["Arbre de Judée","Cercis siliquastrum","arbre","s","cs","d",-15,1,600,[4,4],"rose","#C8559C","Fleurs roses sur le bois nu au printemps. Aime le calcaire."],
+["Laurier-sauce","Laurus nobilis","arbuste","smo","acs","df",-12,1,600,[3,4],"chaud","#E6D88A","Persistant aromatique, forme un grand écran."],
+["Chêne vert","Quercus ilex","arbuste","s","acs","d",-15,1,800,null,"vert","#4B5E3A","Persistant méditerranéen très résistant à la sécheresse. Se taille en haie haute."],
+["Pittosporum à petites feuilles","Pittosporum tenuifolium","arbuste","sm","acsh","df",-10,1,500,[4,5],"vert","#6C8F55","Feuillage léger et persistant, croissance rapide."],
+["Agastache 'Tutti Frutti'","Agastache","vivace","s","csa","d",-15,1,100,[7,10],"rose","#D97AA8","Épis roses parfumés, très mellifère, aime la chaleur."],
+["Sauge arbustive 'Hot Lips'","Salvia microphylla","vivace","s","csa","d",-12,1,80,[5,11],"chaud","#D23B46","Fleurs rouges et blanches de mai aux gelées."],
+["Échinops","Echinops ritro","vivace","s","csa","d",-25,1,90,[7,8],"froid","#6F8BD8","Boules bleu acier, adorées des abeilles."],
+["Acanthe","Acanthus mollis","vivace","mo","acs","df",-15,1,100,[5,7],"blanc","#E8E2EE","Grandes feuilles découpées, supporte l'ombre sèche. Peut s'étendre."],
+["Céanothe arborescent 'Trewithen Blue'","Ceanothus arboreus","arbuste","s","acs","d",-10,1,500,[3,5],"froid","#5A7BD0","Le céanothe le plus haut, pousse très vite. Floraison bleue au printemps."],
+["Laurier-rose","Nerium oleander","arbuste","s","acs","d",-10,1,350,[6,9],"rose","#E2558C","Fleurit tout l'été sans eau. Toutes les parties sont toxiques."],
+["Buisson ardent","Pyracantha coccinea","arbuste","sm","acs","df",-20,1,350,[5,5],"chaud","#E0582E","Pousse vite, épineux, baies orange en hiver. Bonne haie défensive."],
+["Arroche marine","Atriplex halimus","arbuste","s","csa","d",-12,1,250,null,"vert","#AEB9AE","Feuillage argenté persistant, pousse très vite en sol sec."],
+["Sauge officinale","Salvia officinalis","aromatique","s","cs","d",-15,1,60,[5,6],"froid","#8F7FC8","Feuillage gris persistant."],
+["Origan","Origanum vulgare","aromatique","s","csa","d",-20,1,40,[7,9],"rose","#D69ABF","Très mellifère."],
+["Ciboulette","Allium schoenoprasum","aromatique","sm","ahc","f",-30,1,30,[5,6],"rose","#C9A0D8","Pompons comestibles."]
+];
+const PLANTS = RAW.map((r,i)=>({id:i,nom:r[0],latin:r[1],type:r[2],expo:r[3],sol:r[4],eau:r[5],rust:r[6],heat:r[7],h:r[8],bloom:r[9],fam:r[10],hex:r[11],note:r[12]}));
+
+// ---------- Options ----------
+const OPT = {
+  obj:[["massif","Habiller mon jardin"],["isoler","M'isoler du voisinage"],["pollin","Attirer abeilles et papillons"],["mur","Habiller un mur ou une clôture"]],
+  expo:[["s","Plein soleil"],["m","Mi-ombre"],["o","Ombre"]],
+  sol:[["a","Argileux"],["ac","Argilo-calcaire"],["c","Calcaire"],["s","Sableux"],["h","Humifère"]],
+  eau:[["d","Sec"],["f","Frais"],["w","Humide"]],
+  clim:[["med","Méditerranéen"],["so","Sud-Ouest"],["oc","Océanique"],["co","Continental"],["mo","Montagnard"]],
+  types:[["arbre","Arbres"],["arbuste","Arbustes"],["graminee","Graminées"],["vivace","Vivaces"],["couvre-sol","Couvre-sols"],["bulbe","Bulbes"],["aromatique","Aromatiques"],["grimpante","Grimpantes"]],
+  pal:[["all","Toutes"],["chaud","Tons chauds"],["froid","Bleus et violets"],["rose","Roses et pastels"],["blanc","Blanc et vert"]],
+  arro:[["1","Aucun, une fois installées"],["2","Occasionnel"],["3","Régulier"]],
+  prof:[["60","60 cm"],["100","1 m"],["150","1,5 m"],["200","2 m et plus"]],
+  style:Object.entries({libre:0,med:0,nat:0,anglais:0,contemporain:0,sauvage:0}).map(([k])=>[k, ({libre:"Sans style imposé",med:"Méditerranéen sec",nat:"Naturaliste",anglais:"Jardin anglais",contemporain:"Contemporain épuré",sauvage:"Refuge biodiversité"})[k]]),
+  vite:[["rapide","Rapide en priorité"],["tout","Peu importe"]],
+  haut:[["2","2 m"],["3","3 m"],["4","4 m et plus"]],
+  fmt:[["petit","Petits formats"],["moyen","Formats moyens"]],
+  taille:[["p","Petit · 3 m²"],["m","Moyen · 6 m²"],["g","Grand · 12 m²"]]
+};
+const CLIM = {
+  med:{min:-6,hint:"Hivers doux (jusqu'à −6 °C), étés chauds et secs."},
+  so:{min:-10,hint:"Hivers jusqu'à −10 °C, étés chauds avec épisodes de sécheresse."},
+  oc:{min:-10,hint:"Hivers doux et humides, étés tempérés."},
+  co:{min:-20,hint:"Hivers froids jusqu'à −20 °C, étés chauds."},
+  mo:{min:-25,hint:"Hivers rudes jusqu'à −25 °C, saison courte."}
+};
+const PAL = {chaud:["chaud","blanc","vert"],froid:["froid","blanc","vert","rose"],rose:["rose","blanc","froid","vert"],blanc:["blanc","vert"]};
+const SWATCH = {chaud:"#E8822C",froid:"#6A4BB0",rose:"#D46A9A",blanc:"#F6F3E8"};
+const MOIS = ["J","F","M","A","M","J","J","A","S","O","N","D"];
+const MOIS_LONG = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+
+const OBJ_HINT = {
+  massif:"Un massif en rangées, du fond vers l'allée, selon la profondeur disponible.",
+  isoler:"Une haie libre et persistante qui cache la vue toute l'année : plusieurs espèces mélangées, un pied tous les mètres environ.",
+  pollin:"Uniquement des plantes mellifères, avec des floraisons étalées du printemps à l'automne.",
+  mur:"Des grimpantes sur le support, et quelques plantes basses pour habiller le pied."
+};
+const TAILLE_LBL = {
+  massif:{p:"3 m de long",m:"4 m de long",g:"6 m de long"},
+  pollin:{p:"3 m de long",m:"4 m de long",g:"6 m de long"},
+  mur:{p:"3 m de mur",m:"5 m de mur",g:"8 m de mur"},
+  isoler:{p:"5 m de haie",m:"10 m de haie",g:"15 m de haie"}
+};
+const EVERGREEN = /Ceanothus arboreus|Nerium|Pyracantha|Atriplex|Viburnum tinus|Choisya|Myrtus|Pittosporum|Ceanothus|Teucrium|Abelia|Pinus|Thuja|Trachelospermum|Salvia rosmarinus|Sarcococca|Cistus|Photinia|Elaeagnus|Prunus lusitanica|Osmanthus|Phillyrea|Arbutus|Escallonia|Fargesia|Lavandula|Euphorbia|Vinca|Ophiopogon|Festuca|Carex|Helleborus|Heuchera|Thymus|Stachys|Laurus|Quercus ilex/;
+const MELLI = /Ceanothus arboreus|Pyracantha|banksiae|Campsis|Lavandula|yangii|Nepeta|nemorosa|Echinacea|Origanum|Hylotelephium|officinalis|Achillea|Verbena|Centranthus|Thymus|rosmarinus|Teucrium|Ceanothus|Cistus|Allium|Abelia|Agapanthus|lindheimeri|Rudbeckia|Geranium|Digitalis|Elaeagnus|Escallonia|Viburnum|Arbutus|Phillyrea|Lonicera|Erigeron|Muscari|Kniphofia|Myrtus|Clematis|Photinia|Choisya|Sarcococca|Crocosmia|Camassia|Spiraea|Hydrangea paniculata|Agastache|Echinops|microphylla|Koelreuteria|Lagerstroemia|Cercis|Laurus|Acanthus/;
+const has = o => state.obj.includes(o);
+function goals(){
+  const hedge=has("isoler"), wall=has("mur"), melli=has("pollin");
+  const massif=has("massif") || (melli && !hedge && !wall);
+  return {hedge,wall,melli,massif};
+}
+function objHint(){ return state.obj.map(o=>OBJ_HINT[o]).join(" "); }
+function tailleLbl(v){
+  const G=goals();
+  if(G.hedge) return TAILLE_LBL.isoler[v];
+  if(G.massif) return TAILLE_LBL.massif[v];
+  return TAILLE_LBL.mur[v];
+}
+// Besoin en eau une fois la plante installée (après 1 à 2 étés), sous climat du Sud-Ouest.
+// 1 = aucun arrosage, 2 = arrosage occasionnel pendant les canicules, 3 = arrosage régulier en été.
+const DRY = /Ceanothus arboreus|Nerium|Atriplex|Pyracantha|Lavandula|rosmarinus|Cistus|yangii|Ceanothus|Viburnum tinus|Myrtus|Pittosporum tobira|Teucrium|Nassella|Festuca|Muhlenbergia|lindheimeri|Achillea|Nepeta|Euphorbia|Hylotelephium|Centranthus|Iris|Erigeron|Thymus|Stachys|Allium hollandicum|Muscari|Cyclamen|Geranium macrorrhizum|officinalis|Origanum|Elaeagnus|Phillyrea|Laurus|Quercus ilex|Cercis|Agastache|microphylla|Echinops|Acanthus|Pinus|Vinca|Koelreuteria|banksiae|Campsis/;
+const THIRSTY = /Hydrangea|Heuchera|Anemone|Rudbeckia|Astilbe|Hosta|Dryopteris|Camassia|Carex|Brunnera|Digitalis|Lamium|Ajuga|Hakonechloa|Cornus|Spiraea|Choisya|Sarcococca|Lonicera|Clematis|Rosa|Alchemilla|Fargesia|schoenoprasum/;
+function water(p){
+  if(DRY.test(p.latin)) return 1;
+  if(THIRSTY.test(p.latin) || !p.heat || (p.eau.includes("w") && !p.eau.includes("d"))) return 3;
+  return 2;
+}
+// ---------- Croissance ----------
+// Vitesse de pousse des plantes ligneuses (hauteur gagnée par an) et taille à la plantation selon le format.
+const FAST = /Ceanothus arboreus|Pyracantha|Atriplex|Elaeagnus|Pittosporum tenuifolium|Ceanothus|Cistus|Escallonia|Photinia|yangii|Lavandula|Campsis|banksiae|Clematis|Lonicera|Abelia|Spiraea|Cornus|Teucrium|Hydrangea paniculata/;
+const SLOW = /Quercus ilex|Phillyrea|Myrtus|Pinus|Thuja|Arbutus|Lagerstroemia|Hydrangea anomala|Sarcococca|Pittosporum tobira|Osmanthus/;
+function growth(p){ return FAST.test(p.latin) ? "rapide" : SLOW.test(p.latin) ? "lente" : "moyenne"; }
+const RATE = {arbre:{rapide:70,moyenne:45,lente:30}, autre:{rapide:60,moyenne:40,lente:25}};
+const START = {petit:{arbre:180,arbuste:40,grimpante:50}, moyen:{arbre:280,arbuste:80,grimpante:100}};
+const woody = p => ["arbre","arbuste","grimpante"].includes(p.type);
+function heightAt(p, t){
+  if(t==="adulte") return p.h;
+  t = +t;
+  if(!woody(p)){
+    if(p.type==="bulbe") return t===0 ? 0 : p.h;
+    const r = t===0 ? (state.fmt==="moyen" ? .45 : .3) : t===1 ? .75 : 1;
+    return p.h*r;
+  }
+  const h0 = Math.min(p.h, START[state.fmt][p.type]);
+  const rate = RATE[p.type==="arbre"?"arbre":"autre"][growth(p)] * (p.type==="grimpante" ? 1.5 : 1);
+  return Math.min(p.h, h0 + rate*t);
+}
+function ratioAt(p, t){ return p.h ? heightAt(p,t)/p.h : 1; }
+function yearsTo(p, target){
+  if(!woody(p)) return p.type==="bulbe" ? 1 : 2;
+  const h0 = Math.min(p.h, START[state.fmt][p.type]);
+  const rate = RATE[p.type==="arbre"?"arbre":"autre"][growth(p)] * (p.type==="grimpante" ? 1.5 : 1);
+  return Math.max(1, Math.ceil((Math.min(target, p.h) - h0)/rate));
+}
+const AGES = [["0","À la plantation"],["1","Après 1 an"],["3","Après 3 ans"],["5","Après 5 ans"],["adulte","Adulte"]];
+// ---------- Styles de jardin ----------
+// Chaque style privilégie une famille de plantes. Si aucune plante du style ne convient à un emplacement, l'outil en prend une autre adaptée.
+const STYLES = {
+  libre:{label:"Sans style imposé", hint:"Toutes les plantes adaptées à tes conditions.", re:null},
+  med:{label:"Méditerranéen sec", hint:"Feuillages gris, arbustes aromatiques, floraisons bleues et blanches. Aucun arrosage une fois installé.",
+    re:/Lavandula|rosmarinus|Cistus|Myrtus|Teucrium|Euphorbia|Stachys|Thymus|officinalis|Origanum|Phillyrea|Quercus ilex|Laurus|Cercis|Pittosporum tobira|Ceanothus|Atriplex|Nerium|yangii|Nassella|Festuca|Iris|Centranthus|Erigeron|Agastache|Echinops|Pinus|Acanthus|Muscari|Allium hollandicum|Trachelospermum|banksiae|Elaeagnus|Viburnum tinus/},
+  nat:{label:"Naturaliste", hint:"Graminées et grandes vivaces mêlées, comme une prairie fleurie. L'inspiration des massifs de graminées et d'échinacées.",
+    re:/Nassella|Miscanthus|Pennisetum|Calamagrostis|Muhlenbergia|Echinacea|Rudbeckia|Achillea|Verbena|lindheimeri|Hylotelephium|Echinops|Agastache|Nepeta|nemorosa|Allium hollandicum|yangii|Kniphofia|Hemerocallis|Festuca|Carex|Koelreuteria|Elaeagnus|Viburnum tinus|Cornus|Geranium/},
+  anglais:{label:"Jardin anglais", hint:"Profusion de fleurs, rosiers, grimpantes et bordures généreuses. Demande souvent plus d'eau.",
+    re:/Rosa|Clematis|Lonicera|Digitalis|Geranium|Nepeta|Alchemilla|Hydrangea|Anemone|Lavandula|Astilbe|Iris|Agapanthus|Allium hollandicum|Centranthus|Echinacea|Heuchera|Lamium|Helleborus|Choisya|Abelia|Escallonia|Viburnum tinus|Osmanthus|Erigeron|Narcissus|Camassia|Cercis|Lagerstroemia|Hemerocallis|Trachelospermum/},
+  contemporain:{label:"Contemporain épuré", hint:"Peu d'espèces, formes nettes, boules persistantes et graminées. Palette sobre.",
+    re:/Pittosporum|Thuja|Pinus|Festuca|Ophiopogon|Carex|Hakonechloa|Miscanthus|Calamagrostis|Nassella|Euphorbia|Stachys|yangii|Lavandula|Allium hollandicum|Laurus|Prunus lusitanica|Phillyrea|Elaeagnus|Fargesia|Trachelospermum|Agapanthus|Lagerstroemia|Koelreuteria|Acanthus|Teucrium/},
+  sauvage:{label:"Refuge pour la biodiversité", hint:"Plantes mellifères, baies pour les oiseaux et espèces locales. Un jardin vivant qui demande peu d'entretien.",
+    re:/Centranthus|Origanum|Thymus|Viburnum tinus|Cornus|Pyracantha|Lonicera|Echinops|Achillea|Verbena|nemorosa|Nepeta|officinalis|Hylotelephium|Arbutus|Phillyrea|Laurus|Quercus ilex|Elaeagnus|Rosa|Agastache|Cistus|Lavandula|Echinacea|Erigeron|Digitalis|Geranium|Ceanothus|Cercis|Koelreuteria|Muscari|Narcissus|Cyclamen|Hedera|Atriplex/}
+};
+const inStyle = p => !STYLES[state.style].re || STYLES[state.style].re.test(p.latin);
+const WATER_LBL = {1:"Sans arrosage",2:"Arrosage occasionnel",3:"Arrosage régulier"};
+const isEcran = p => p.type==="arbuste" && p.h>=(+state.haut)*100 && EVERGREEN.test(p.latin);
+
+const state = {style:"libre",vite:"rapide",age:"3",arro:"1",prof:"150",haut:"2",fmt:"petit",obj:["massif"],expo:"s",sol:"ac",eau:"d",clim:"so",types:["arbuste","graminee","vivace","couvre-sol","bulbe","aromatique"],pal:"all",taille:"m"};
+let combo = [];   // [{plant, role, locked}]
+
+// ---------- UI des filtres ----------
+function chips(key, multi){
+  const box = document.getElementById("f-"+key);
+  box.innerHTML = OPT[key].map(([v,l])=>{
+    if(key==="taille") l = tailleLbl(v);
+    const id = `opt-${key}-${v}`;
+    const checked = Array.isArray(state[key]) ? state[key].includes(v) : state[key]===v;
+    const sw = key==="pal" && SWATCH[v] ? `<i class="sw" style="background:${SWATCH[v]}"></i>` : "";
+    return `<label class="chip" for="${id}"><input id="${id}" type="${multi?"checkbox":"radio"}" name="${key}" value="${v}" ${checked?"checked":""}><span>${sw}${l}</span></label>`;
+  }).join("");
+  if(box.dataset.bound) return;
+  box.dataset.bound = "1";
+  box.addEventListener("change",e=>{
+    if(multi){
+      const vals = [...box.querySelectorAll("input:checked")].map(i=>i.value);
+      if(key==="obj" && !vals.length){ e.target.checked = true; return; }
+      state[key] = vals;
+    }
+    else state[key] = e.target.value;
+    if(key==="fmt"){ renderCurrent(); return; }
+    if(key==="obj"){ chips("taille",false); document.getElementById("obj-hint").textContent = objHint(); }
+    generate(false);
+  });
+}
+chips("obj",true);
+document.getElementById("obj-hint").textContent = objHint();
+["style","vite","arro","prof","haut","fmt","expo","sol","eau","clim","pal","taille"].forEach(k=>chips(k,false));
+chips("types",true);
+
+// ---------- Logique ----------
+function solOk(p){
+  if(state.sol==="ac") return p.sol.includes("c") && (p.sol.includes("a") || !p.sol.includes("s") || p.sol.length>1);
+  return p.sol.includes(state.sol);
+}
+function compatible(p){
+  const c = CLIM[state.clim];
+  if(!p.expo.includes(state.expo)) return false;
+  if(!solOk(p)) return false;
+  if(!p.eau.includes(state.eau)) return false;
+  if(p.rust > c.min) return false;
+  if(!p.heat && (state.clim==="med" || (state.clim==="so" && state.expo==="s"))) return false;
+  const G = goals();
+  const forced = (G.hedge && isEcran(p)) || (G.wall && p.type==="grimpante") || (G.hedge && state.haut==="4" && p.type==="arbre");
+  if(!state.types.includes(p.type) && !forced) return false;
+  if(state.pal!=="all" && !PAL[state.pal].includes(p.fam)) return false;
+  if(water(p) > +state.arro) return false;
+  if(G.melli && p.type!=="graminee" && !MELLI.test(p.latin)) return false;
+  return true;
+}
+function role(p){
+  if(has("isoler") && isEcran(p)) return "ecran";
+  if(p.type==="arbre") return "arbre";
+  if(p.type==="grimpante") return "grimpante";
+  if(p.type==="bulbe") return "bulbe";
+  if(p.type==="couvre-sol" || p.h<=25) return "bordure";
+  if(p.type==="graminee") return p.h>=100 ? "structure" : "graminee";
+  if(p.type==="arbuste" || p.h>=100) return "structure";
+  return "vivace";
+}
+const ROLE_LABEL = {arbre:"Arbre",ecran:"Haie persistante",structure:"Structure",graminee:"Graminée",vivace:"Vivace de remplissage",bordure:"Bordure",bulbe:"Bulbe",grimpante:"Grimpante"};
+const SLOTS = {p:{structure:1,graminee:1,vivace:2,bordure:1},m:{structure:1,graminee:1,vivace:3,bordure:1,bulbe:1},g:{structure:2,graminee:2,vivace:3,bordure:2,bulbe:1}};
+function months(p){
+  if(!p.bloom) return [];
+  let [a,b]=p.bloom, out=[];
+  for(let m=a;;m=m%12+1){ out.push(m); if(m===b) break; }
+  return out;
+}
+function density(p, r){
+  if(r==="arbre") return "1 sujet";
+  if(r==="ecran") return "1 pied tous les 80 à 100 cm";
+  if(r==="grimpante") return "1 pied";
+  if(r==="structure") return p.type==="graminee" ? "1 à 2 pieds" : "1 pied";
+  if(r==="bulbe") return "15 à 25 bulbes";
+  if(r==="bordure") return "6 à 9 / m²";
+  if(r==="graminee") return "3 à 5 / m²";
+  return "3 à 5 / m²";
+}
+
+function pick(pool, covered, colors){
+  if(!pool.length) return null;
+  const scored = pool.map(p=>{
+    const nm = months(p).filter(m=>!covered.has(m)).length;
+    const colorBonus = colors.has(p.fam) ? 0.4 : 0;
+    return {p, s: Math.random()*1.4 + nm*0.18 + colorBonus};
+  }).sort((x,y)=>y.s-x.s);
+  return scored[0].p;
+}
+
+// Rangées autorisées selon la profondeur de terre disponible.
+// Une haie occupe environ 1 m ; chaque rangée de vivaces 40 à 60 cm.
+function rows(){
+  const G = goals(), P = +state.prof;
+  if(G.hedge) return !G.massif && !G.wall ? (P>=150 ? 1 : 0) : (P>=200 ? 2 : P>=150 ? 1 : 0);
+  return P>=200 ? 3 : P>=100 ? 2 : 1;
+}
+function rowLayers(){
+  const G = goals(), P = +state.prof, n = rows();
+  if(n===0) return [];
+  if(G.hedge) return n===1 ? ["mid"] : ["mid","front"];
+  if(n===1) return ["mid"];
+  if(n===2) return P>=150 ? ["back","front"] : ["mid","front"];
+  return ["back","mid","front"];
+}
+function layout(){
+  const G = goals(), T = state.taille, n = {p:1,m:2,g:2}[T];
+  const S = []; const add = (role,layer,c)=>{ if(c>0) S.push({role,layer,c}); };
+  if(G.hedge){
+    add("arbre","hedge", state.haut==="4" ? 1 : 0);
+    add("ecran","hedge",{p:2,m:3,g:3}[T]);
+  }
+  if(G.wall) add("grimpante","wall",{p:1,m:2,g:2}[T]);
+  const L = rowLayers();
+  if(L.includes("back")) add("structure","back", T==="g" ? 2 : 1);
+  if(L.includes("mid")){ add("vivace","mid", n); if(T!=="p" || L.length===1) add("graminee","mid",1); }
+  if(L.includes("front")) add("bordure","front", T==="g" ? 2 : 1);
+  if(L.length && state.types.includes("bulbe")) add("bulbe","bulb",1);
+  return S;
+}
+function layerName(l){ return {back:"un fond d'arbustes",mid:"une rangée de vivaces",front:"une bordure basse"}[l]||""; }
+
+function generate(keepLocks=true){
+  const pool = PLANTS.filter(compatible);
+  const locked = keepLocks ? combo.filter(c=>c.locked && compatible(c.plant)) : [];
+  const used = new Set(locked.map(c=>c.plant.id));
+  const covered = new Set(locked.flatMap(c=>months(c.plant)));
+  const colors = new Set(locked.map(c=>c.plant.fam));
+  const S = layout();
+  locked.forEach(c=>{ const e = S.find(e=>e.role===c.role && e.c>0); if(e){ e.c--; if(!c.layer) c.layer=e.layer; } });
+
+  const result = [...locked];
+  let missing = 0;
+  const FALL = {graminee:["vivace","bordure"], vivace:["graminee","bordure"], structure:["graminee","vivace"], bordure:["vivace"]};
+  for(const e of S){
+    for(let i=0;i<e.c;i++){
+      let cand = pool.filter(p=>role(p)===e.role && !used.has(p.id));
+      if(e.role==="ecran" && state.vite==="rapide"){
+        const fast = cand.filter(p=>growth(p)==="rapide");
+        const mid = cand.filter(p=>growth(p)==="moyenne");
+        cand = fast.length ? fast : mid.length ? mid : cand;
+      }
+      if(state.style!=="libre"){ const st = cand.filter(inStyle); if(st.length) cand = st; }
+      if(e.role==="arbre" && state.vite==="rapide"){ const nl = cand.filter(p=>growth(p)!=="lente"); if(nl.length) cand = nl; }
+      if(!cand.length && e.role==="ecran") cand = pool.filter(p=>p.type==="arbuste" && p.h>=150 && !used.has(p.id));
+      for(const fr of (FALL[e.role]||[])){ if(cand.length) break; cand = pool.filter(p=>role(p)===fr && !used.has(p.id) && (e.layer!=="front" || p.h<=50)); if(state.style!=="libre"){ const st=cand.filter(inStyle); if(st.length) cand=st; } }
+      const p = pick(cand, covered, colors);
+      if(!p){ missing++; continue; }
+      used.add(p.id); months(p).forEach(m=>covered.add(m)); colors.add(p.fam);
+      result.push({plant:p, role:role(p), layer:e.layer, locked:false});
+    }
+  }
+  combo = result;
+  render(pool.length, missing);
+}
+
+function replace(idx){
+  const pool = PLANTS.filter(compatible);
+  const cur = combo[idx];
+  const used = new Set(combo.map(c=>c.plant.id));
+  const others = combo.filter((_,i)=>i!==idx);
+  const covered = new Set(others.flatMap(c=>months(c.plant)));
+  const colors = new Set(others.map(c=>c.plant.fam));
+  let rc = pool.filter(x=>role(x)===cur.role && !used.has(x.id));
+  if(cur.role==="ecran" && state.vite==="rapide"){ const f = rc.filter(x=>growth(x)==="rapide"); if(f.length) rc = f; }
+  if(state.style!=="libre"){ const st = rc.filter(inStyle); if(st.length) rc = st; }
+  const p = pick(rc, covered, colors);
+  if(p){ combo[idx] = {plant:p, role:role(p), layer:cur.layer, locked:false}; render(pool.length,0); }
+  else { const b=document.querySelector(`[data-rep="${idx}"]`); if(b){ b.textContent="Aucune autre"; b.disabled=true; } }
+}
+
+// ---------- Budget ----------
+// Prix unitaires indicatifs (€ TTC), calés sur des prix constatés en jardinerie et pépinière en ligne en France :
+// vivace en godet ≈ 4 €, vivace en pot de 2 L ≈ 10 à 13 €, laurier du Portugal 50–60 cm ≈ 23 €.
+const PRICE = {
+  petit:{vivace:[4,7],arbuste:[12,22],ecran:[10,18],grimpante:[12,20],arbre:[60,110],bulbe:[0.3,0.9]},
+  moyen:{vivace:[10,16],arbuste:[25,45],ecran:[25,45],grimpante:[25,40],arbre:[130,250],bulbe:[0.3,0.9]}
+};
+const FMT_DESC = {petit:"godets et jeunes plants (arbustes 30–60 cm, arbres en baliveau)", moyen:"pots de 2–3 L, arbustes 60–100 cm, arbres en tige 10/12"};
+const PRICE_FACTOR = [[/Fargesia/,1.6],[/Hydrangea/,1.3],[/Lagerstroemia/,1.2],[/Trachelospermum/,1.2],[/Pinus/,1.5],[/Cyclamen/,6],[/Helleborus/,1.6],[/Agapanthus/,1.3]];
+function unitPrice(p, r){
+  const T = PRICE[state.fmt];
+  let base = r==="arbre" ? T.arbre : r==="ecran" ? T.ecran : r==="grimpante" ? T.grimpante : r==="bulbe" ? T.bulbe
+    : (p.type==="arbuste" ? T.arbuste : T.vivace);
+  let f = 1; for(const [re,v] of PRICE_FACTOR) if(re.test(p.latin)) f = v;
+  if(p.type==="graminee" && p.h>=100) f *= 1.3;
+  return [base[0]*f, base[1]*f];
+}
+const eur = n => new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",maximumFractionDigits:n<10?2:0}).format(n);
+const eur0 = n => new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",maximumFractionDigits:0}).format(Math.round(n/5)*5);
+let lastBudget = null;
+function budgetHTML(items){
+  let min=0, max=0;
+  const rows = items.map(it=>{
+    const [a,b] = unitPrice(it.c.plant, it.c.role);
+    const q = it.n || 1; min += a*q; max += b*q;
+    const qty = it.c.role==="bulbe" ? `${q} bulbes` : `${q}`;
+    return `<tr><td>${it.c.plant.nom}<small>${ROLE_LABEL[it.c.role]}</small></td><td class="n">${qty}</td><td class="n">${eur(a)} – ${eur(b)}</td><td class="n">${eur0(a*q)} – ${eur0(b*q)}</td></tr>`;
+  }).join("");
+  lastBudget = {min, max, rows: items.map(it=>[it.c.plant.nom, it.c.role, it.n||1])};
+  return `<section class="budget"><h2>Budget estimé <em>${eur0(min)} – ${eur0(max)}</em></h2>
+    <p class="note">Formats : ${FMT_DESC[state.fmt]}. Prix indicatifs de jardinerie et de pépinière, hors terre, paillage, livraison et main-d'œuvre.</p>
+    <div class="tbl"><table><thead><tr><th>Plante</th><th class="n">Quantité</th><th class="n">Prix unitaire</th><th class="n">Sous-total</th></tr></thead>
+    <tbody>${rows}</tbody><tfoot><tr><td>Total</td><td></td><td></td><td class="n">${eur0(min)} – ${eur0(max)}</td></tr></tfoot></table></div></section>`;
+}
+
+// ---------- Plan de plantation (vue de dessus) ----------
+const BED = {p:[300,100],m:[400,150],g:[600,200]};
+const BED_OBJ = {isoler:{p:[500,150],m:[1000,150],g:[1500,170]}, mur:{p:[300,80],m:[500,80],g:[800,90]}};
+function spread(p, r){
+  if(r==="ecran") return 100;
+  if(r==="structure") return p.type==="graminee" ? 70 : Math.min(160, Math.max(80, p.h*0.8));
+  if(r==="graminee") return p.h>=60 ? 55 : 40;
+  if(r==="bordure") return 30;
+  return p.h>=80 ? 55 : 42;
+}
+function codes(list){
+  const seen = {};
+  return list.map(c=>{
+    const w = c.plant.latin.replace(/[×'"]/g,"").split(/\s+/).filter(Boolean);
+    let k = w[0][0].toUpperCase() + (w[1] ? w[1][0].toLowerCase() : w[0][1]);
+    if(seen[k]){ seen[k]++; k = k + seen[k]; } else seen[k]=1;
+    return k;
+  });
+}
+function darkHex(h){
+  const n=parseInt(h.slice(1),16), r=n>>16, g=(n>>8)&255, b=n&255;
+  return (0.299*r+0.587*g+0.114*b) < 140;
+}
+function rng(seed){ let s = seed*9301+49297; return ()=>{ s=(s*9301+49297)%233280; return s/233280; }; }
+
+function growthNote(){
+  const fmt = state.fmt==="moyen" ? "en formats moyens" : "en petits formats";
+  const lines = [];
+  const hedge = combo.filter(c=>c.role==="ecran");
+  if(hedge.length){
+    const target = +state.haut*100;
+    const ys = hedge.map(c=>yearsTo(c.plant, target));
+    const a = Math.min(...ys), b = Math.max(...ys);
+    lines.push(`Haie plantée ${fmt} : ${state.haut} m atteints en ${a===b?`${a} ans`:`${a} à ${b} ans selon les espèces`}.`);
+  }
+  combo.filter(c=>c.role==="arbre").forEach(c=>lines.push(`${c.plant.nom} : 4 m en ${yearsTo(c.plant,400)} ans environ.`));
+  if(combo.some(c=>!woody(c.plant))) lines.push("Les vivaces et les graminées remplissent leur place dès la 2e année.");
+  return lines.length ? lines.join(" ")+" Les cercles en pointillés montrent la taille adulte." : "";
+}
+function planHTML(){
+  const G = goals();
+  let [W] = G.hedge ? BED_OBJ.isoler[state.taille] : G.massif ? BED[state.taille] : BED_OBJ.mur[state.taille];
+  let D = +state.prof;
+  const code = codes(combo);
+  const items = combo.map((c,i)=>({c, code:code[i], n:0}));
+  const layerOf = it => (it.c.role==="bulbe" || it.c.role==="arbre") ? null : it.c.role==="grimpante" ? "g" : it.c.role==="ecran" ? "hedge"
+    : (it.c.layer && it.c.layer!=="bulb") ? it.c.layer : it.c.plant.h>=90 ? "back" : it.c.plant.h>=35 ? "mid" : "front";
+  const bands = ["hedge","back","mid","front"].filter(b=>items.some(it=>layerOf(it)===b));
+  // la haie prend environ 1 m, le reste se partage entre les rangées
+  const hedgeH = bands.includes("hedge") ? (bands.length>1 ? Math.min(100, D*0.65) : D) : 0;
+  const rest = bands.filter(b=>b!=="hedge").length;
+  const wts = bands.map(b=>b==="hedge" ? hedgeH : (D-hedgeH)/rest);
+  const wSum = D;
+  let circles = [], yAcc = 0;
+  bands.forEach((b,bi)=>{
+    const L = items.filter(it=>layerOf(it)===b);
+    const y0 = yAcc, y1 = y0 + wts[bi]; yAcc = y1;
+    // dérives répétées pour donner du rythme quand le massif est long
+    const reps = Math.max(1, Math.round(W/(L.length*(b==="hedge"?200:240))));
+    let seq = [];
+    for(let k=0;k<reps;k++) seq = seq.concat(k%2 ? [...L].reverse() : L);
+    const segW = W/seq.length;
+    seq.forEach((it,si)=>{
+      const d = spread(it.c.plant, it.c.role), r=d/2;
+      const x0 = si*segW, x1 = x0+segW;
+      const rowStep = d*0.87;
+      const rows = Math.max(1, Math.floor((y1-y0)/rowStep));
+      const colsBase = it.c.role==="ecran" ? Math.max(1, Math.round(segW/d)) : Math.max(1, Math.floor(segW/d));
+      const step = it.c.role==="ecran" ? segW/colsBase : d;
+      const offY = (y1-y0 - (rows-1)*rowStep)/2;
+      for(let ri=0; ri<rows; ri++){
+        const shift = (ri%2 && colsBase>1) ? r : 0;
+        const cols = (ri%2 && colsBase>1) ? colsBase-1 : colsBase;
+        const offX = (segW - (cols-1)*step)/2;
+        for(let ci=0; ci<cols; ci++){
+          circles.push({x:x0+offX+ci*step, y:y0+offY+ri*rowStep, r:r*0.96, it});
+          it.n++;
+        }
+      }
+    });
+  });
+  // bulbes semés entre les vivaces
+  const bulbs = items.filter(it=>it.c.role==="bulbe");
+  const dots = [];
+  bulbs.forEach(it=>{
+    const R = rng(it.c.plant.id+7), n = Math.round(W*(bands.includes("hedge") ? Math.max(20,D-100) : D)/1000);
+    const yStart = bands.includes("hedge") ? Math.min(D-10, (wts[0]||0)+5) : D*0.15;
+    for(let k=0;k<n;k++) dots.push({x:8+R()*(W-16), y:yStart+R()*Math.max(5,(D-yStart-8)), it});
+    it.n = n;
+  });
+  const climbers = items.filter(it=>it.c.role==="grimpante");
+  climbers.forEach(it=>it.n=Math.max(1,Math.round(W/300)));
+  // arbre : une couronne placée dans l'axe de la vue, au fond
+  const trees = items.filter(it=>it.c.role==="arbre").map((it,j)=>{ it.n=1; return {x:W*(0.5+j*0.25), y:Math.min(D*0.35,50), r:Math.min(180, W/4), it}; });
+
+  const k = Math.max(1, W/450), fs = n => (n*k).toFixed(1);
+  const pad = 30*k, top = (climbers.length ? 46 : 34)*k;
+  const vbW = W+pad*2, vbH = D+top+24*k;
+  let svg = `<svg viewBox="0 0 ${vbW} ${vbH}" role="img" aria-label="Plan de plantation vu de dessus, ${W/100} m sur ${D/100} m">
+    <g transform="translate(${pad},${top})">
+    <line x1="0" y1="${-18*k}" x2="${W}" y2="${-18*k}" stroke="var(--muted)" stroke-width="1"/>
+    <line x1="0" y1="${-23*k}" x2="0" y2="${-13*k}" stroke="var(--muted)"/><line x1="${W}" y1="${-23*k}" x2="${W}" y2="${-13*k}" stroke="var(--muted)"/>
+    <text x="${W/2}" y="${-25*k}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="${fs(11)}" fill="var(--muted)">${(W/100).toLocaleString("fr-FR")} m</text>
+    <text x="${-10*k}" y="${D/2}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="${fs(11)}" fill="var(--muted)" transform="rotate(-90 ${-10*k} ${D/2})">${(D/100).toLocaleString("fr-FR")} m</text>
+    <defs><clipPath id="bedclip"><rect x="0" y="0" width="${W}" height="${D}" rx="6"/></clipPath></defs>
+    <rect x="0" y="0" width="${W}" height="${D}" rx="6" fill="var(--pollen-soft)" stroke="var(--line)"/>`;
+  if(climbers.length){
+    svg += `<rect x="0" y="${-8*k}" width="${W}" height="${5*k}" fill="var(--muted)" opacity=".5"/>`;
+    climbers.forEach((it,k)=>{
+      for(let j=0;j<it.n;j++){
+        const x = W*(j+0.5)/it.n + k*24;
+        svg += `<circle cx="${x}" cy="${-5*k}" r="${11*k}" fill="${it.c.plant.hex}" stroke="rgba(0,0,0,.25)"/><text x="${x}" y="${-1.5*k}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="${fs(9)}" fill="${darkHex(it.c.plant.hex)?"#fff":"#1E2820"}">${it.code}</text>`;
+      }
+    });
+  }
+  svg += `<g clip-path="url(#bedclip)">`;
+  circles.forEach(o=>{
+    const h=o.it.c.plant.hex, rr = o.r*Math.max(.18, ratioAt(o.it.c.plant, state.age));
+    svg += `<circle cx="${o.x.toFixed(1)}" cy="${o.y.toFixed(1)}" r="${o.r.toFixed(1)}" fill="none" stroke="var(--line)" stroke-dasharray="3 3" stroke-width="1"/>`;
+    svg += `<circle cx="${o.x.toFixed(1)}" cy="${o.y.toFixed(1)}" r="${rr.toFixed(1)}" fill="${h}" fill-opacity=".88" stroke="rgba(0,0,0,.22)" stroke-width="1"/>`;
+    if(rr>=14) svg += `<text x="${o.x.toFixed(1)}" y="${(o.y+4).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="${rr>=35?13:10}" fill="${darkHex(h)?"#fff":"#1E2820"}">${o.it.code}</text>`;
+  });
+  trees.forEach(o=>{
+    const tr = o.r*Math.max(.12, ratioAt(o.it.c.plant, state.age));
+    svg += `<circle cx="${o.x}" cy="${o.y}" r="${o.r}" fill="none" stroke="var(--line)" stroke-dasharray="${4*k} ${4*k}"/>
+      <circle cx="${o.x}" cy="${o.y}" r="${tr}" fill="${o.it.c.plant.hex}" fill-opacity=".28" stroke="${o.it.c.plant.hex}" stroke-width="${2*k}" stroke-dasharray="${8*k} ${6*k}"/>
+      <circle cx="${o.x}" cy="${o.y}" r="${6*k}" fill="#6B5137"/>
+      <text x="${o.x}" y="${o.y - 12*k}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="${fs(13)}" fill="var(--ink)">${o.it.code}</text>`;
+  });
+  if(state.age!=="0") dots.forEach(o=>{ svg += `<circle cx="${o.x.toFixed(1)}" cy="${o.y.toFixed(1)}" r="4" fill="${o.it.c.plant.hex}" stroke="rgba(0,0,0,.35)" stroke-width=".6"/>`; });
+  svg += `</g>
+    <text x="0" y="${D+16*k}" font-family="IBM Plex Mono, monospace" font-size="${fs(10)}" fill="var(--muted)">↑ fond (côté limite ou mur)</text>
+    <text x="${W}" y="${D+16*k}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="${fs(10)}" fill="var(--muted)">bordure, côté allée ↓</text>
+    </g></svg>`;
+
+  lastLayout = {W,D,circles,dots,climbers,trees};
+  const budget = budgetHTML(items);
+  const unit = it => it.c.role==="bulbe" ? `≈ ${it.n} bulbes` : it.c.role==="arbre" ? "1 arbre, couronne adulte en pointillés" : `${it.n} pied${it.n>1?"s":""}`;
+  const legend = items.map(it=>`<li><b style="background:${it.c.plant.hex};color:${darkHex(it.c.plant.hex)?"#fff":"#1E2820"}">${it.code}</b>
+    <span><a class="lg" href="${photoUrl(it.c.plant)}" target="_blank" rel="noopener">${it.c.plant.nom}</a> <i>${it.c.plant.latin}</i><small>${unit(it)}</small></span></li>`).join("");
+  const total = items.filter(it=>it.c.role!=="bulbe").reduce((s,it)=>s+it.n,0);
+
+  return `<section class="plan"><h2>${G.hedge&&G.massif?"Plan de la haie et du massif":G.hedge?"Plan de la haie":G.massif?"Plan de plantation":"Plan du pied de mur"} <em>${(W/100).toLocaleString("fr-FR")} × ${(D/100).toLocaleString("fr-FR")} m · ${total} pieds</em></h2>
+    <div class="ages" role="group" aria-label="Âge du jardin">${AGES.map(([v,l])=>`<button type="button" class="small" data-age="${v}" aria-pressed="${state.age===v}">${l}</button>`).join("")}</div>
+    <p class="note">${growthNote()}</p>
+    <div class="elev"><span>Vue de face, en pleine floraison · ${AGES.find(a=>a[0]===state.age)[1].toLowerCase()}</span><canvas id="elev" aria-label="Vue de face du massif dessinée"></canvas></div>
+    <div class="plansvg">${svg}</div><ul class="legend">${legend}</ul></section>${budget}`;
+}
+
+// ---------- Illustrations des plantes ----------
+function form(p){
+  const l = p.latin;
+  if(p.type==="grimpante") return "grimpe";
+  if(p.type==="arbre") return "arbre";
+  if(/Salvia microphylla/.test(l)) return "boule";
+  if(/Echinops/.test(l)) return "globe";
+  if(/Acanthus/.test(l)) return "feuillage";
+  if(/Agastache/.test(l)) return "epi";
+  if(/Pinus/.test(l)) return "conifere";
+  if(/Lavandula|yangii|nemorosa|Nepeta|Digitalis|Astilbe|officinalis|Camassia|Muscari|Crocosmia/.test(l)) return "epi";
+  if(/Kniphofia/.test(l)) return "torche";
+  if(/Hydrangea|Allium|Agapanthus/.test(l)) return "globe";
+  if(/Muhlenbergia|Gaura|lindheimeri|Verbena/.test(l)) return "nuage";
+  if(/Calamagrostis/.test(l)) return "raide";
+  if(/Carex|Festuca|Hakonechloa|Ophiopogon/.test(l)) return "touffe";
+  if(p.type==="graminee") return "plumet";
+  if(/Dryopteris/.test(l)) return "fougere";
+  if(/Hosta|Heuchera|Brunnera|Epimedium/.test(l)) return "feuillage";
+  if(/Achillea|Hylotelephium|Euphorbia|Origanum|Alchemilla|Centranthus/.test(l)) return "ombelle";
+  if(p.type==="arbuste" || /Salvia rosmarinus/.test(l)) return "boule";
+  if(p.h<=30) return "tapis";
+  return "marguerite";
+}
+const GREENS = ["#3F6B35","#4F7D40","#62904B","#355C2E"];
+const SILVER = ["#8FA392","#A3B4A2","#B6C3B3","#7D917F"];
+function leafCols(p){ return /Lavandula|yangii|Teucrium|Stachys|Festuca|officinalis|rosmarinus|Myrtus/.test(p.latin) ? SILVER : GREENS; }
+
+function drawPlant(ctx,p,cx,base,w,H,R){
+  const f=form(p), L=leafCols(p), fc=p.hex, bloom=!!p.bloom;
+  const g=i=>L[i%L.length];
+  const ell=(x,y,rx,ry,c,a=1,rot=0)=>{ctx.globalAlpha=a;ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(x,y,Math.max(.5,rx),Math.max(.5,ry),rot,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;};
+  const line=(x1,y1,x2,y2,c,lw=1.2,a=1,cpx,cpy)=>{ctx.globalAlpha=a;ctx.strokeStyle=c;ctx.lineWidth=lw;ctx.beginPath();ctx.moveTo(x1,y1);cpx!==undefined?ctx.quadraticCurveTo(cpx,cpy,x2,y2):ctx.lineTo(x2,y2);ctx.stroke();ctx.globalAlpha=1;};
+  const dots=(x,y,rx,ry,n,c,r,a=1)=>{for(let i=0;i<n;i++){const t=R()*Math.PI*2,d=Math.sqrt(R());ell(x+Math.cos(t)*rx*d,y+Math.sin(t)*ry*d,r,r,c,a);}};
+  const blades=(n,len,spread,cols,lw=1.1)=>{for(let i=0;i<n;i++){const s=(R()-.5)*2, ex=cx+s*spread, ey=base-len*(.55+R()*.45);line(cx+s*w*.08,base,ex,ey,cols[i%cols.length],lw,1,cx+s*spread*.2,base-len*.7);}};
+  ctx.lineCap="round";
+  ell(cx,base,w*.45,Math.max(2,H*.04),"#6B5137",.25);
+  switch(f){
+    case "boule":
+    case "conifere":{
+      const dark = f==="conifere";
+      ell(cx,base-H*.48,w*.48,H*.48,dark?"#2F4A27":g(3));
+      for(let i=0;i<9;i++) ell(cx+(R()-.5)*w*.6,base-H*(.25+R()*.5),w*(.14+R()*.12),H*(.14+R()*.12),dark?(i%2?"#3B5A2F":"#4A6B35"):g(i),.9);
+      if(dark) for(let i=0;i<40;i++){const x=cx+(R()-.5)*w*.85,y=base-H*(.08+R()*.85);line(x,y,x+(R()-.5)*6,y-4,"#25391F",1);}
+      if(bloom) dots(cx,base-H*.55,w*.42,H*.38,Math.round(w*.5),fc,Math.max(1.5,w*.022),.95);
+      break;}
+    case "epi":{
+      ell(cx,base-H*.12,w*.42,H*.14,g(0));
+      const n=Math.max(5,Math.round(w/9));
+      for(let i=0;i<n;i++){
+        const x=cx+(R()-.5)*w*.8, lean=(x-cx)*.25, top=base-H*(.72+R()*.28);
+        line(x,base-H*.08,x+lean,top,g(1),1.1);
+        const len=(base-top)*.45;
+        for(let k=0;k<9;k++){const y=top+k*len/9, xx=x+lean*(1-(y-top+H*.08)/(base-top));ell(xx,y,Math.max(1.4,w*.022),Math.max(1.6,len/12),fc);}
+      }
+      break;}
+    case "torche":{
+      blades(16,H*.55,w*.5,L,1.3);
+      for(let i=0;i<5;i++){const x=cx+(R()-.5)*w*.6, top=base-H*(.75+R()*.25);line(x,base,x,top+H*.1,g(1),1.4);ell(x,top+H*.03,Math.max(2.5,w*.045),H*.08,fc);ell(x,top+H*.11,Math.max(2.5,w*.045),H*.05,"#F2CF4A");}
+      break;}
+    case "marguerite":{
+      ell(cx,base-H*.18,w*.44,H*.2,g(0));ell(cx+w*.1,base-H*.24,w*.25,H*.14,g(2),.8);
+      const n=Math.max(4,Math.round(w/14)), rp=Math.max(3,w*.06);
+      for(let i=0;i<n;i++){
+        const x=cx+(R()-.5)*w*.85, top=base-H*(.65+R()*.35);
+        line(x,base-H*.15,x,top,g(1),1.1);
+        for(let a=0;a<8;a++){const t=a/8*Math.PI*2;ell(x+Math.cos(t)*rp*.7,top+Math.sin(t)*rp*.45,rp*.55,rp*.2,fc,1,t);}
+        ell(x,top,rp*.35,rp*.3,p.fam==="blanc"?"#E3B83A":"#5A3A1E");
+      }
+      break;}
+    case "ombelle":{
+      ell(cx,base-H*.2,w*.42,H*.22,g(0));
+      const n=Math.max(4,Math.round(w/16));
+      for(let i=0;i<n;i++){const x=cx+(R()-.5)*w*.8, top=base-H*(.75+R()*.25);line(x,base-H*.15,x,top,g(1),1.2);ell(x,top,Math.max(4,w*.1),Math.max(2.5,H*.07),fc);dots(x,top-1,w*.08,H*.04,6,"#FFFFFF",.9,.35);}
+      break;}
+    case "globe":{
+      const hyd=/Hydrangea/.test(p.latin);
+      if(hyd){ell(cx,base-H*.42,w*.48,H*.42,g(3));for(let i=0;i<6;i++){const x=cx+(R()-.5)*w*.7,y=base-H*(.45+R()*.4),r=Math.max(5,w*.12);ell(x,y,r,r*.85,fc,.95);dots(x,y,r,r*.8,12,"#FFFFFF",1,.3);}break;}
+      blades(14,H*.35,w*.5,L,1.6);
+      const n=Math.max(3,Math.round(w/16));
+      for(let i=0;i<n;i++){const x=cx+(R()-.5)*w*.7, top=base-H*(.8+R()*.2), rs=Math.max(4,w*.09);line(x,base,x,top,g(1),1.2);ell(x,top,rs,rs,fc,.4);dots(x,top,rs,rs,22,fc,Math.max(1,rs*.18));}
+      break;}
+    case "nuage":{
+      blades(20,H*.45,w*.45,L,1);
+      for(let i=0;i<10;i++){const x=cx+(R()-.5)*w*.8;line(x,base-H*.2,x+(R()-.5)*10,base-H*(.7+R()*.3),g(1),.8,.8);}
+      dots(cx,base-H*.65,w*.48,H*.33,Math.round(w*1.6),fc,Math.max(1,w*.018),.6);
+      break;}
+    case "raide":{
+      blades(20,H*.45,w*.4,L,1.1);
+      for(let i=0;i<26;i++){const s=(R()-.5)*2;line(cx+s*w*.08,base,cx+s*w*.3,base-H*(.8+R()*.2),fc,1.3,.9);}
+      break;}
+    case "plumet":{
+      blades(30,H*.8,w*.55,L,1.1);
+      for(let i=0;i<9;i++){const s=(R()-.5)*2, x=cx+s*w*.35, y=base-H*(.75+R()*.25);line(cx+s*w*.1,base,x,y,g(1),.9);ell(x,y,Math.max(2,w*.035),H*.09,fc,.85,s*.3);}
+      break;}
+    case "touffe":blades(36,H,w*.55,[fc,g(0),fc,g(2)],1.3);break;
+    case "fougere":{
+      for(let i=0;i<8;i++){const s=(i/7-.5)*2, ex=cx+s*w*.48, ey=base-H*(.55+(1-Math.abs(s))*.45);line(cx,base,ex,ey,g(i),1.4,1,cx+s*w*.15,ey-H*.1);
+        for(let k=1;k<9;k++){const t=k/9, x=cx+(ex-cx)*t, y=base+(ey-base)*t-Math.sin(t*Math.PI)*H*.08;line(x,y,x+(s>=0?1:-1)*w*.05,y+H*.03,g(i+1),1);line(x,y,x-(s>=0?1:-1)*w*.02,y-H*.04,g(i+1),1);}}
+      break;}
+    case "feuillage":{
+      const lc = /Heuchera/.test(p.latin) ? "#6E2E4A" : /Brunnera/.test(p.latin) ? "#B9C8B4" : null;
+      if(bloom && !/Heuchera/.test(p.latin)) for(let i=0;i<4;i++){const x=cx+(R()-.5)*w*.5,top=base-H*(.85+R()*.15);line(x,base-H*.3,x,top,g(1),1);dots(x,top+H*.08,3,H*.08,8,fc,1.6);}
+      if(/Heuchera/.test(p.latin)) for(let i=0;i<4;i++){const x=cx+(R()-.5)*w*.5,top=base-H*(.85+R()*.15);line(x,base-H*.3,x,top,"#4A2A30",.8);dots(x,top+H*.1,3,H*.1,8,"#E58AB0",1.2);}
+      for(let i=0;i<9;i++){const s=(i/8-.5)*2;ell(cx+s*w*.3,base-H*(.18+(1-Math.abs(s))*.18),w*.16,H*.12,lc||g(i),1,s*.9);}
+      break;}
+    case "tapis":{
+      for(let i=0;i<6;i++) ell(cx+(R()-.5)*w*.6,base-H*(.3+R()*.3),w*(.2+R()*.12),H*.35,g(i));
+      if(bloom) dots(cx,base-H*.55,w*.45,H*.35,Math.round(w*.6),fc,Math.max(1.4,w*.02));
+      break;}
+    case "arbre":{
+      ctx.fillStyle="#6B5137";ctx.fillRect(cx-Math.max(2,w*.035),base-H*.5,Math.max(4,w*.07),H*.5);
+      ell(cx,base-H*.66,w*.5,H*.32,g(3));
+      for(let i=0;i<10;i++) ell(cx+(R()-.5)*w*.75,base-H*(.5+R()*.35),w*(.12+R()*.1),H*(.08+R()*.08),g(i),.9);
+      if(bloom) dots(cx,base-H*.68,w*.45,H*.28,Math.round(w*.6),fc,Math.max(1.8,w*.02));
+      break;}
+    case "grimpe":{
+      for(let k=0;k<=4;k++){const x=cx-w*.4+k*w*.2;line(x,base,x,base-H,"#8A6A48",1,.5);}
+      for(let k=1;k<=4;k++){const y=base-k*H*.22;line(cx-w*.45,y,cx+w*.45,y,"#8A6A48",1,.5);}
+      for(let v=0;v<3;v++){let x=cx+(v-1)*w*.25,y=base;for(let k=0;k<14;k++){const nx=x+(R()-.5)*w*.18, ny=y-H/14;line(x,y,nx,ny,g(3),1.5);ell(nx+(R()-.5)*6,ny,Math.max(2,w*.035),Math.max(1.5,w*.02),g(k),1,R()*3);x=nx;y=ny;}}
+      if(bloom) dots(cx,base-H*.6,w*.42,H*.38,Math.round(w*.5),fc,Math.max(1.8,w*.028));
+      break;}
+  }
+}
+
+function sizeCanvas(cv){
+  const dpr=window.devicePixelRatio||1, r=cv.getBoundingClientRect();
+  if(!r.width) return null;
+  cv.width=Math.round(r.width*dpr); cv.height=Math.round(r.height*dpr);
+  const ctx=cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,r.width,r.height);
+  return {ctx,w:r.width,h:r.height};
+}
+function drawPreviews(){
+  document.querySelectorAll("canvas[data-pv]").forEach(cv=>{
+    const c=combo[+cv.dataset.pv]; if(!c) return;
+    const s=sizeCanvas(cv); if(!s) return;
+    const p=c.plant, H=p.type==="grimpante"?s.h-14:Math.min(s.h-14, 22+Math.min(p.h,200)/200*(s.h-36));
+    const w=Math.min(s.w*.6, Math.max(70, H*1.3));
+    drawPlant(s.ctx,p,s.w/2,s.h-8,w,H,rng(p.id+3));
+  });
+}
+let lastLayout=null;
+function drawElevation(){
+  const cv=document.getElementById("elev"); if(!cv||!lastLayout) return;
+  const s=sizeCanvas(cv); if(!s) return;
+  const {W,circles,dots,climbers}=lastLayout, ctx=s.ctx;
+  const ground=s.h-18, sx=s.w/W;
+  const maxH=Math.max(100,...circles.map(o=>o.it.c.plant.h));
+
+  const sy=(s.h-60)/maxH;
+  if(climbers.length){ climbers.forEach((it,k)=>{ for(let j=0;j<it.n;j++){ const x=s.w*(j+.5)/it.n+k*20; const ra=ratioAt(it.c.plant,state.age); drawPlant(ctx,it.c.plant,x,ground-34,Math.min(140,s.w/it.n*.8)*Math.max(.35,Math.sqrt(ra)),(s.h-50)*ra,rng(it.c.plant.id+j)); } }); }
+  (lastLayout.trees||[]).forEach((o,j)=>{ const p=o.it.c.plant, ra=ratioAt(p,state.age); drawPlant(ctx,p,o.x*sx,ground-26,Math.min(s.w*.45,o.r*2*sx*1.1)*Math.max(.15,ra),Math.min(p.h*sy,s.h-28)*ra,rng(p.id+99+j)); });
+  const maxY=Math.max(...circles.map(o=>o.y),1);
+  const order=[...circles].sort((a,b)=>a.y-b.y);
+  const bulbs=dots.filter((_,i)=>i%3===0);
+  let bi=0;
+  if(state.age==="0") bulbs.length=0;
+  order.forEach((o,i)=>{
+    const depth=o.y/maxY, base=ground-(1-depth)*30;
+    while(bi<bulbs.length && bulbs[bi].y<o.y){const b=bulbs[bi++], bp=b.it.c.plant;drawPlant(ctx,bp,b.x*sx,ground-(1-b.y/maxY)*30,16,bp.h*sy,rng(bi));}
+    const p=o.it.c.plant;
+    const ra=ratioAt(p,state.age); drawPlant(ctx,p,o.x*sx,base,o.r*2*sx*1.25*Math.max(.3,Math.sqrt(ra)),Math.max(6,p.h*sy*ra),rng(p.id*31+i));
+  });
+  while(bi<bulbs.length){const b=bulbs[bi++], bp=b.it.c.plant;drawPlant(ctx,bp,b.x*sx,ground,16,bp.h*sy,rng(bi));}
+  const css=getComputedStyle(document.documentElement);
+  ctx.fillStyle=css.getPropertyValue("--pollen-soft").trim()||"#F6EBCF";
+  ctx.fillRect(0,ground,s.w,s.h-ground);
+  ctx.strokeStyle=css.getPropertyValue("--line").trim()||"#D5DCCD";ctx.beginPath();ctx.moveTo(0,ground);ctx.lineTo(s.w,ground);ctx.stroke();
+}
+function drawAll(){ drawPreviews(); drawElevation(); }
+let rT; window.addEventListener("resize",()=>{clearTimeout(rT);rT=setTimeout(drawAll,150);});
+try{ matchMedia("(prefers-color-scheme: dark)").addEventListener("change",drawAll); }catch(e){}
+
+function photoUrl(p){
+  const cv = (p.nom.match(/'[^']+'/)||[""])[0];
+  return "https://www.google.com/search?tbm=isch&q="+encodeURIComponent((p.latin+" "+cv).trim());
+}
+// ---------- Photos (Wikimedia Commons, licences libres) ----------
+const PHOTOS = /*PHOTOS*/{"achillee-terracotta": {"page": "https://commons.wikimedia.org/wiki/File:Achillea_Terracotta_2zz.jpg", "artist": "", "license": ""}, "arbre-de-judee": {"page": "https://commons.wikimedia.org/wiki/File:Cercis_siliquastrum_spring.jpg", "artist": "", "license": ""}, "arroche-marine": {"page": "https://commons.wikimedia.org/wiki/File:Atriplex_halimus_kz1.JPG", "artist": "", "license": ""}, "buisson-ardent": {"page": "https://commons.wikimedia.org/wiki/File:Pyracantha.bush.arp.jpg", "artist": "", "license": ""}, "ceanothe-arborescent-trewithen-blue": {"page": "https://commons.wikimedia.org/wiki/File:Blue_blossom_ceanothus_%28Ceanothus_thyrsiflorus%29_on_Point_Reyes_Fire_Lane_Trail.jpg", "artist": "", "license": ""}, "ceanothe-concha": {"page": "https://commons.wikimedia.org/wiki/File:Ceanothus_-_California_lilac.jpg", "artist": "", "license": ""}, "echinops": {"page": "https://commons.wikimedia.org/wiki/File:Echinops_ritro_0010.JPG", "artist": "", "license": ""}, "eleagnus": {"page": "https://commons.wikimedia.org/wiki/File:Elaeagnus_ebbingei.jpg", "artist": "", "license": ""}, "gaura": {"page": "https://commons.wikimedia.org/wiki/File:Gaura_lindheimeri_Whirling_Butterflies_4zz.jpg", "artist": "", "license": ""}, "iris-des-jardins": {"page": "https://commons.wikimedia.org/wiki/File:Lirio_morado_-_Lirio_com%C3%BAn_-_C%C3%A1rdeno_%28Iris_germanica%29_%2814300433695%29.jpg", "artist": "", "license": ""}, "laurier-sauce": {"page": "https://commons.wikimedia.org/wiki/File:Laurus_nobilis_14zz.jpg", "artist": "", "license": ""}, "muhlenbergia": {"page": "https://commons.wikimedia.org/wiki/File:Muhlenbergia_capillaris_10zz.jpg", "artist": "", "license": ""}, "nepeta": {"page": "https://commons.wikimedia.org/wiki/File:Nepeta_x_faasenii_Walkers_Low_2zz.jpg", "artist": "", "license": ""}, "origan": {"page": "https://commons.wikimedia.org/wiki/File:-2019-08-05_Organo_%28Origanum_vulgare%29_flowers%2C_Trimingham.JPG", "artist": "", "license": ""}, "orpin-d-automne": {"page": "https://commons.wikimedia.org/wiki/File:Sedum_Herbstfreude.jpg", "artist": "", "license": ""}, "sauge-arbustive-hot-lips": {"page": "https://commons.wikimedia.org/wiki/File:Salvia_Hot_Lips.jpg", "artist": "", "license": ""}, "sauge-officinale": {"page": "https://commons.wikimedia.org/wiki/File:Salvia_officinalis.jpg", "artist": "", "license": ""}, "savonnier": {"page": "https://commons.wikimedia.org/wiki/File:Koelreuteria_paniculata_B.jpg", "artist": "", "license": ""}, "stipa-cheveux-d-ange": {"page": "https://commons.wikimedia.org/wiki/File:Stipa_tenuissima_Parc_floral.JPG", "artist": "", "license": ""}, "valeriane-rouge": {"page": "https://commons.wikimedia.org/wiki/File:Centranthus_ruber_Prague_2017_1.jpg", "artist": "", "license": ""}, "lavandin-grosso": {"page": "https://commons.wikimedia.org/wiki/File:Lavandula_x_intermedia_2c.JPG", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Lavandula_x_intermedia_2c.JPG/500px-Lavandula_x_intermedia_2c.JPG"}, "romarin": {"page": "https://commons.wikimedia.org/wiki/File:2017-12-06_Rosemary_shrub_in_blossom%2C_Albufeira_%282%29.JPG", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/2017-12-06_Rosemary_shrub_in_blossom%2C_Albufeira_%282%29.JPG/500px-2017-12-06_Rosemary_shrub_in_blossom%2C_Albufeira_%282%29.JPG"}, "ciste-pourpre": {"page": "https://commons.wikimedia.org/wiki/File:Cistus_%C3%97_purpureus_Alan_Fradd_%287258793268%29.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Cistus_%C3%97_purpureus_Alan_Fradd_%287258793268%29.jpg/500px-Cistus_%C3%97_purpureus_Alan_Fradd_%287258793268%29.jpg"}, "sauge-d-afghanistan": {"page": "https://commons.wikimedia.org/wiki/File:Perovskia_atriplicifolia_E.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Perovskia_atriplicifolia_E.jpg/500px-Perovskia_atriplicifolia_E.jpg"}, "abelia": {"page": "https://commons.wikimedia.org/wiki/File:Abelia_x_grandiflora-Fleurs-20200601.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Abelia_x_grandiflora-Fleurs-20200601.jpg/500px-Abelia_x_grandiflora-Fleurs-20200601.jpg"}, "hortensia-panicule-limelight": {"page": "https://commons.wikimedia.org/wiki/File:Hydrangea_paniculata_Limelight_6zz.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Hydrangea_paniculata_Limelight_6zz.jpg/500px-Hydrangea_paniculata_Limelight_6zz.jpg"}, "laurier-tin": {"page": "https://commons.wikimedia.org/wiki/File:Viburnum_tinus.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Viburnum_tinus.jpg/500px-Viburnum_tinus.jpg"}, "oranger-du-mexique": {"page": "https://commons.wikimedia.org/wiki/File:Choisya_ternata.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Choisya_ternata.jpg/500px-Choisya_ternata.jpg"}, "sarcococca": {"page": "https://commons.wikimedia.org/wiki/File:Sarcococca_confusa_kz03.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Sarcococca_confusa_kz03.jpg/500px-Sarcococca_confusa_kz03.jpg"}, "myrte": {"page": "https://commons.wikimedia.org/wiki/File:Myrtus_communis_8zz.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Myrtus_communis_8zz.jpg/500px-Myrtus_communis_8zz.jpg"}, "pittosporum-nain": {"page": "https://commons.wikimedia.org/wiki/File:Pittosporum_tobira_Nana_in_the_garden_of_the_Musee_d%27Histoire_naturelle_in_Nimes.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Pittosporum_tobira_Nana_in_the_garden_of_the_Musee_d%27Histoire_naturelle_in_Nimes.jpg/500px-Pittosporum_tobira_Nana_in_the_garden_of_the_Musee_d%27Histoire_naturelle_in_Nimes.jpg"}, "germandree-arbustive": {"page": "https://commons.wikimedia.org/wiki/File:Teucrium_fruticans.JPG", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Teucrium_fruticans.JPG/500px-Teucrium_fruticans.JPG"}, "spiree-du-japon": {"page": "https://commons.wikimedia.org/wiki/File:Spiraea_japonica_plant.JPG", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Spiraea_japonica_plant.JPG/500px-Spiraea_japonica_plant.JPG"}, "cornouiller-midwinter-fire": {"page": "https://commons.wikimedia.org/wiki/File:Cornus_sanguinea_Midwinter_Fire_4zz.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Cornus_sanguinea_Midwinter_Fire_4zz.jpg/500px-Cornus_sanguinea_Midwinter_Fire_4zz.jpg"}, "miscanthus-morning-light": {"page": "https://commons.wikimedia.org/wiki/File:Chinaschilf_-_Miscanthus_sinensis_03.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Chinaschilf_-_Miscanthus_sinensis_03.jpg/500px-Chinaschilf_-_Miscanthus_sinensis_03.jpg"}, "herbe-aux-ecouvillons-hameln": {"page": "https://commons.wikimedia.org/wiki/File:Pennisetum_alopecuroides_Hameln_2zz.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Pennisetum_alopecuroides_Hameln_2zz.jpg/500px-Pennisetum_alopecuroides_Hameln_2zz.jpg"}, "calamagrostis-karl-foerster": {"page": "https://commons.wikimedia.org/wiki/File:Calamagrostis_x_acutiflora_Karl_Foerster_0zz.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Calamagrostis_x_acutiflora_Karl_Foerster_0zz.jpg/500px-Calamagrostis_x_acutiflora_Karl_Foerster_0zz.jpg"}, "fetuque-bleue": {"page": "https://commons.wikimedia.org/wiki/File:Festuca_glauca.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Festuca_glauca.jpg/500px-Festuca_glauca.jpg"}, "echinacee-pourpre": {"page": "https://commons.wikimedia.org/wiki/File:Echinacea_purpurea.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Echinacea_purpurea.jpg/500px-Echinacea_purpurea.jpg"}, "rudbeckia-goldsturm": {"page": "https://commons.wikimedia.org/wiki/File:Rudbeckia_fulgida_var._sullivantii_Goldsturm_10zz.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Rudbeckia_fulgida_var._sullivantii_Goldsturm_10zz.jpg/500px-Rudbeckia_fulgida_var._sullivantii_Goldsturm_10zz.jpg"}, "sauge-des-bois-caradonna": {"page": "https://commons.wikimedia.org/wiki/File:Salvia_nemorosa_Caradonna_4zz.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Salvia_nemorosa_Caradonna_4zz.jpg/500px-Salvia_nemorosa_Caradonna_4zz.jpg"}, "euphorbe-des-garrigues": {"page": "https://commons.wikimedia.org/wiki/File:Euphorbia-characias-total2.JPG", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Euphorbia-characias-total2.JPG/500px-Euphorbia-characias-total2.JPG"}, "verveine-de-buenos-aires": {"page": "https://commons.wikimedia.org/wiki/File:Verbena_bonariensis_10zz.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Verbena_bonariensis_10zz.jpg/500px-Verbena_bonariensis_10zz.jpg"}, "geranium-rozanne": {"page": "https://commons.wikimedia.org/wiki/File:Geranium_Rozanne_6zz.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Geranium_Rozanne_6zz.jpg/500px-Geranium_Rozanne_6zz.jpg"}, "hellebore-d-orient": {"page": "https://commons.wikimedia.org/wiki/File:Helleborus_orientalis_2zz.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Helleborus_orientalis_2zz.jpg/500px-Helleborus_orientalis_2zz.jpg"}, "anemone-du-japon-honorine-jobert": {"page": "https://commons.wikimedia.org/wiki/File:Japanese_Anemone_Honorine_Jobert.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Japanese_Anemone_Honorine_Jobert.jpg/500px-Japanese_Anemone_Honorine_Jobert.jpg"}, "tritoma": {"page": "https://commons.wikimedia.org/wiki/File:Kniphofia_uvaria.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Kniphofia_uvaria.jpg/500px-Kniphofia_uvaria.jpg"}, "hemerocalle": {"page": "https://commons.wikimedia.org/wiki/File:Hemerocallis_fulva_2012_G1.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Hemerocallis_fulva_2012_G1.jpg/500px-Hemerocallis_fulva_2012_G1.jpg"}, "vergerette": {"page": "https://commons.wikimedia.org/wiki/File:Erigeron_karvinskianus_RF.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Erigeron_karvinskianus_RF.jpg/500px-Erigeron_karvinskianus_RF.jpg"}, "alchemille": {"page": "https://commons.wikimedia.org/wiki/File:Alchemilla_mollis%2C_Lady%27s_Mantle.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Alchemilla_mollis%2C_Lady%27s_Mantle.jpg/500px-Alchemilla_mollis%2C_Lady%27s_Mantle.jpg"}, "thym-serpolet": {"page": "https://commons.wikimedia.org/wiki/File:Thymus_serpyllum_Magic_Carpet_1zz.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Thymus_serpyllum_Magic_Carpet_1zz.jpg/500px-Thymus_serpyllum_Magic_Carpet_1zz.jpg"}, "petite-pervenche": {"page": "https://commons.wikimedia.org/wiki/File:Vinca_minor_RF.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Vinca_minor_RF.jpg/500px-Vinca_minor_RF.jpg"}, "geranium-a-grosses-racines": {"page": "https://commons.wikimedia.org/wiki/File:Geranium_macrorrhizum_Spessart_0zz.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Geranium_macrorrhizum_Spessart_0zz.jpg/500px-Geranium_macrorrhizum_Spessart_0zz.jpg"}, "epimede": {"page": "https://commons.wikimedia.org/wiki/File:Epimedium_x_perralchicum_%27Frohnleiten%27_2013-05-10.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Epimedium_x_perralchicum_%27Frohnleiten%27_2013-05-10.jpg/500px-Epimedium_x_perralchicum_%27Frohnleiten%27_2013-05-10.jpg"}, "oreille-d-ours": {"page": "https://commons.wikimedia.org/wiki/File:Stachys_byzantina_Minsk.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Stachys_byzantina_Minsk.jpg/500px-Stachys_byzantina_Minsk.jpg"}, "ail-d-ornement-purple-sensation": {"page": "https://commons.wikimedia.org/wiki/File:Flowering_Onion_Allium_aflatunense_%27Purple_Sensation%27_Flower_2319px.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Flowering_Onion_Allium_aflatunense_%27Purple_Sensation%27_Flower_2319px.jpg/500px-Flowering_Onion_Allium_aflatunense_%27Purple_Sensation%27_Flower_2319px.jpg"}, "narcisse-thalia": {"page": "https://commons.wikimedia.org/wiki/File:Narcissus_%27Thalia%27.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Narcissus_%27Thalia%27.jpg/500px-Narcissus_%27Thalia%27.jpg"}, "muscari": {"page": "https://commons.wikimedia.org/wiki/File:Muscari_armeniacum_4.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Muscari_armeniacum_4.jpg/500px-Muscari_armeniacum_4.jpg"}, "cyclamen-de-naples": {"page": "https://commons.wikimedia.org/wiki/File:Cyclamen_hederifolium_pink.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Cyclamen_hederifolium_pink.jpg/500px-Cyclamen_hederifolium_pink.jpg"}, "jasmin-etoile": {"page": "https://commons.wikimedia.org/wiki/File:Trachelospermum_jasminoides.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Trachelospermum_jasminoides.jpg/500px-Trachelospermum_jasminoides.jpg"}, "clematite-etoile-violette": {"page": "https://commons.wikimedia.org/wiki/File:%27Clematis_viticella%27_%C3%89toile_Violette_trellis_at_Nuthurst%2C_West_Sussex%2C_England.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/%27Clematis_viticella%27_%C3%89toile_Violette_trellis_at_Nuthurst%2C_West_Sussex%2C_England.jpg/500px-%27Clematis_viticella%27_%C3%89toile_Violette_trellis_at_Nuthurst%2C_West_Sussex%2C_England.jpg"}, "rosier-grimpant-new-dawn": {"page": "https://commons.wikimedia.org/wiki/File:Rosa_New_Dawn.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Rosa_New_Dawn.jpg/500px-Rosa_New_Dawn.jpg"}, "chevrefeuille-des-bois": {"page": "https://commons.wikimedia.org/wiki/File:Lonicera_periclymenum_Luc_Viatour.JPG", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Lonicera_periclymenum_Luc_Viatour.JPG/500px-Lonicera_periclymenum_Luc_Viatour.JPG"}, "rosier-de-banks": {"page": "https://commons.wikimedia.org/wiki/File:Rosa_banksiae_%27Lutea%27.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Rosa_banksiae_%27Lutea%27.jpg/500px-Rosa_banksiae_%27Lutea%27.jpg"}, "bignone-madame-galen": {"page": "https://commons.wikimedia.org/wiki/File:Campsis_x_tagliabuana_HRM1.JPG", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Campsis_x_tagliabuana_HRM1.JPG/500px-Campsis_x_tagliabuana_HRM1.JPG"}, "pin-des-montagnes": {"page": "https://commons.wikimedia.org/wiki/File:Pinus_mugo_plant.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Pinus_mugo_plant.jpg/500px-Pinus_mugo_plant.jpg"}, "laurier-du-portugal": {"page": "https://commons.wikimedia.org/wiki/File:Portugal_laurel_%28Prunus_lusitanica%29.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Portugal_laurel_%28Prunus_lusitanica%29.jpg/500px-Portugal_laurel_%28Prunus_lusitanica%29.jpg"}, "osmanthe": {"page": "https://commons.wikimedia.org/wiki/File:Osmanthus_burkwoodii_B.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Osmanthus_burkwoodii_B.jpg/500px-Osmanthus_burkwoodii_B.jpg"}, "filaire": {"page": "https://commons.wikimedia.org/wiki/File:Phillyrea_angustifolia_1.JPG", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Phillyrea_angustifolia_1.JPG/500px-Phillyrea_angustifolia_1.JPG"}, "escallonia": {"page": "https://commons.wikimedia.org/wiki/File:Escallonia_rubra_var._macrantha-Tige_et_Fleurs-20190422.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Escallonia_rubra_var._macrantha-Tige_et_Fleurs-20190422.jpg/500px-Escallonia_rubra_var._macrantha-Tige_et_Fleurs-20190422.jpg"}, "lilas-des-indes": {"page": "https://commons.wikimedia.org/wiki/File:Lagerstroemia_indica_in_Damyang_1.JPG", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Lagerstroemia_indica_in_Damyang_1.JPG/500px-Lagerstroemia_indica_in_Damyang_1.JPG"}, "chene-vert": {"page": "https://commons.wikimedia.org/wiki/File:Quercus_ilex_in_Piggiola%2C_Corsica.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Quercus_ilex_in_Piggiola%2C_Corsica.jpg/500px-Quercus_ilex_in_Piggiola%2C_Corsica.jpg"}, "pittosporum-a-petites-feuilles": {"page": "https://commons.wikimedia.org/wiki/File:Pittosporum_tenuifolium_%27Silver_Sheen%27_hedge.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Pittosporum_tenuifolium_%27Silver_Sheen%27_hedge.jpg/500px-Pittosporum_tenuifolium_%27Silver_Sheen%27_hedge.jpg"}, "agastache-tutti-frutti": {"page": "https://commons.wikimedia.org/wiki/File:AgastacheTFHVN.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/AgastacheTFHVN.jpg/500px-AgastacheTFHVN.jpg"}, "acanthe": {"page": "https://commons.wikimedia.org/wiki/File:Acanthus_mollis_flower.JPG", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Acanthus_mollis_flower.JPG/500px-Acanthus_mollis_flower.JPG"}, "laurier-rose": {"page": "https://commons.wikimedia.org/wiki/File:Nerium_oleander_pink.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Nerium_oleander_pink.jpg/500px-Nerium_oleander_pink.jpg"}, "ciboulette": {"page": "https://commons.wikimedia.org/wiki/File:Allium_schoenoprasum%2C_flowers.jpg", "artist": "", "license": "", "remote": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Allium_schoenoprasum%2C_flowers.jpg/500px-Allium_schoenoprasum%2C_flowers.jpg"}};
+function slugify(t){
+  return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/œ/g,"oe").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+}
+const photoOf = p => { const e = PHOTOS[slugify(p.nom)]; return e ? {src: e.remote || `/photos/${slugify(p.nom)}.jpg`, ...e} : null; };
+// Si une photo ne charge pas (hors ligne, page intégrée qui bloque les images externes), on revient au dessin.
+function photoFail(img){
+  const fig = img.closest("figure"); if(!fig) return;
+  const link = fig.nextElementSibling;
+  const grid = fig.closest(".bgrid");
+  fig.remove();
+  if(grid && !grid.children.length) grid.closest(".board").remove();
+  if(link && link.classList.contains("pvlink")){ link.hidden = false; requestAnimationFrame(drawPreviews); }
+}
+function creditHTML(ph){
+  return ph.artist ? `Photo : ${ph.artist.replace(/</g,"&lt;")} · ${ph.license||"licence libre"} · <a href="${ph.page}" target="_blank" rel="noopener">Wikimedia Commons</a>`
+    : `Photo libre de droits · <a href="${ph.page}" target="_blank" rel="noopener">auteur et licence sur Wikimedia Commons</a>`;
+}
+function boardHTML(){
+  const withPh = combo.filter(c=>photoOf(c.plant));
+  if(!withPh.length) return "";
+  const order = ["arbre","ecran","grimpante","back","mid","front","bulb"];
+  const sorted = [...withPh].sort((a,b)=>order.indexOf(lay(a))-order.indexOf(lay(b)));
+  return `<section class="board"><h2>La combinaison en photos</h2>
+    <div class="bgrid">${sorted.map(c=>{ const ph=photoOf(c.plant); return `<figure><img src="${ph.src}" alt="${c.plant.nom}" loading="lazy" width="480" height="360" referrerpolicy="no-referrer" onerror="photoFail(this)"><figcaption><b>${c.plant.nom}</b><span>${ROLE_LABEL[c.role]}${c.layer&&c.layer!=="bulb"&&!["ecran","arbre","grimpante"].includes(c.role)?" · "+layerName(c.layer).replace(/^un(e)? /,""):""}</span></figcaption></figure>`; }).join("")}</div>
+    <p class="note">Photos libres de droits issues de Wikimedia Commons ; les crédits figurent sur chaque fiche. Elles montrent la plante adulte en saison, pas forcément la variété exacte.</p></section>`;
+}
+// ---------- Rendu ----------
+function calCells(p){
+  const ms = months(p);
+  return MOIS.map((l,i)=>{
+    const on = ms.includes(i+1);
+    return `<span class="${on?"on":""}" style="${on?`background:${p.hex}`:""}" title="${MOIS_LONG[i]}">${l}</span>`;
+  }).join("");
+}
+function card(c, idx){
+  const p=c.plant;
+  const fl = p.bloom ? `${MOIS_LONG[p.bloom[0]-1]} → ${MOIS_LONG[p.bloom[1]-1]}` : "feuillage";
+  const tags = [woody(p) && growth(p)==="rapide" ? "Pousse rapide" : "", WATER_LBL[water(p)], EVERGREEN.test(p.latin)?"Persistant":"", MELLI.test(p.latin)?"Mellifère":""].filter(Boolean).map(t=>`<span>${t}</span>`).join("");
+  return `<article class="card ${c.locked?"locked":""}">
+    ${photoOf(p) ? `<figure class="cph"><img src="${photoOf(p).src}" alt="${p.nom}" loading="lazy" width="480" height="360" referrerpolicy="no-referrer" onerror="photoFail(this)"><figcaption>${creditHTML(photoOf(p))}</figcaption></figure>` : ""}<a class="pvlink" href="${photoUrl(p)}" target="_blank" rel="noopener" aria-label="Voir des photos de ${p.nom} sur Google Images" ${photoOf(p)?"hidden":""}><canvas class="pv" data-pv="${idx}" role="img" aria-label="Illustration : ${p.nom}"></canvas><span>Voir en photo ↗</span></a>
+    <div class="top"><span class="dot" style="background:${p.hex}"></span>
+      <div class="name"><div class="role">${ROLE_LABEL[c.role]}</div><h3>${p.nom}</h3><i>${p.latin}</i></div></div>
+    <div class="meta"><span>↕ ${p.h>=100?(p.h/100).toLocaleString("fr-FR")+" m":p.h+" cm"}</span><span>❄ ${p.rust} °C</span><span>${density(p,c.role)}</span><span>${woody(p)?`Croissance ${growth(p)} · adulte en ~${yearsTo(p,p.h)} ans`:p.type==="bulbe"?"Fleurit dès le 1er printemps":"Adulte en 2 ans"}</span>${tags}</div>
+    <div class="cal" aria-label="Floraison : ${fl}">${calCells(p)}</div>
+    <p class="note">${p.note}</p>
+    <div class="cardact">
+      <button class="small" type="button" data-lock="${idx}" aria-pressed="${c.locked}">${c.locked?"Verrouillée":"Verrouiller"}</button>
+      <button class="small" type="button" data-rep="${idx}">Remplacer</button>
+      <a class="photo" href="${photoUrl(p)}" target="_blank" rel="noopener">Photos ↗</a>
+    </div>
+  </article>`;
+}
+
+function lay(c){
+  if(["grimpante","ecran","arbre"].includes(c.role)) return c.role;
+  if(c.layer) return c.layer;
+  if(c.role==="bulbe") return "bulb";
+  return c.plant.h>=90 ? "back" : c.plant.h>=35 ? "mid" : "front";
+}
+function renderCurrent(){ render(PLANTS.filter(compatible).length,0); }
+function render(nCompat, missing){
+  document.getElementById("fs-haut").hidden = !goals().hedge;
+  document.getElementById("style-hint").textContent = STYLES[state.style].hint;
+  const RL = rowLayers(), G0 = goals();
+  const parts = [G0.hedge?"la haie":null, G0.wall?"une grimpante sur le support":null, ...RL.map(layerName)].filter(Boolean);
+  document.getElementById("prof-hint").textContent = `Mesure la terre plantable, du fond jusqu'à l'allée ou la pelouse. Ici : ${parts.join(" + ")||"aucune rangée"}.`
+    + (G0.hedge && G0.massif && RL.length===0 ? " Il faut au moins 1,5 m pour ajouter une rangée de vivaces devant la haie." : "");
+  document.getElementById("count").innerHTML = `<b>${nCompat}</b> plantes compatibles sur ${PLANTS.length}`;
+  document.getElementById("clim-hint").textContent = CLIM[state.clim].hint;
+  const out = document.getElementById("out");
+  if(!combo.length){
+    lastBudget = null; storeZone();
+    out.innerHTML = `<div class="summary"><p class="warn">Aucune plante ne correspond à ces conditions. Élargis les types de plantes, la palette de couleurs ou le niveau d'arrosage.</p></div>`;
+    return;
+  }
+  const allM = new Set(combo.flatMap(c=>months(c.plant)));
+  const hs = combo.map(c=>c.plant.h);
+  const ordered = [...allM].sort((a,b)=>a-b);
+  const layers = [
+    ["Arbre","à placer dans l'axe de la vue à masquer",c=>c.role==="arbre"],
+    ["Support","mur, treillage, pergola",c=>c.role==="grimpante"],
+    ["Écran",`haie persistante, ${state.haut} m et plus`,c=>c.role==="ecran"],
+    ["Fond du massif","arbustes et grandes graminées",c=>lay(c)==="back"],
+    ["Rangée de vivaces","le cœur du massif",c=>lay(c)==="mid"],
+    ["Bordure","côté allée ou pelouse",c=>lay(c)==="front"],
+    ["Bulbes","plantés entre les vivaces, sans place en plus",c=>lay(c)==="bulb"]
+  ];
+  const planPart = planHTML();
+  let html = `<div class="summary">
+    <div class="stat"><small>Plantes</small><strong>${combo.length} espèces</strong></div>
+    <div class="stat"><small>Couches</small><strong>${(goals().hedge?1:0)+rowLayers().length} sur ${(+state.prof/100).toLocaleString("fr-FR")} m</strong></div>
+    <div class="stat"><small>Arrosage une fois installé</small><strong>${({1:"Aucun",2:"Occasionnel",3:"Régulier"})[Math.max(...combo.map(c=>water(c.plant)))]}</strong></div>
+    <div class="stat"><small>Fleuri</small><strong>${allM.size} mois sur 12</strong></div>
+    <div class="stat"><small>Hauteurs</small><strong>${Math.min(...hs)} cm à ${(Math.max(...hs)/100).toLocaleString("fr-FR")} m</strong></div>
+    <div class="stat"><small>Budget estimé</small><strong>${eur0(lastBudget.min)} – ${eur0(lastBudget.max)}</strong></div>
+    ${state.style!=="libre" ? `<div class="stat"><small>Style ${STYLES[state.style].label.toLowerCase()}</small><strong>${combo.filter(c=>inStyle(c.plant)).length} plantes sur ${combo.length}</strong></div>` : ""}
+    ${missing?`<p class="warn">${missing} emplacement${missing>1?"s":""} sans plante adaptée. Élargis les critères pour compléter.</p>`:""}
+  </div>`;
+  html += boardHTML();
+  html += planPart;
+  for(const [t,sub,f] of layers){
+    const items = combo.map((c,i)=>[c,i]).filter(([c])=>f(c));
+    if(!items.length) continue;
+    html += `<section class="layer"><h2>${t} <em>${sub}</em></h2><div class="cards">${items.map(([c,i])=>card(c,i)).join("")}</div></section>`;
+  }
+  const now = new Date().getMonth();
+  html += `<section class="calendar"><h2>Calendrier de floraison</h2><div class="cg">
+    <span></span>${MOIS.map((m,i)=>`<span class="m">${m}</span>`).join("")}
+    ${[...combo].sort((a,b)=>(a.plant.bloom?a.plant.bloom[0]:13)-(b.plant.bloom?b.plant.bloom[0]:13)).map(c=>{
+      const ms=months(c.plant);
+      return `<span class="lab" title="${c.plant.nom}">${c.plant.nom}</span>`+MOIS.map((_,i)=>`<span class="c ${i===now?"now":""}" style="${ms.includes(i+1)?`background:${c.plant.hex}`:""}"></span>`).join("");
+    }).join("")}
+  </div></section>`;
+  out.innerHTML = html;
+  requestAnimationFrame(drawAll);
+  storeZone();
+}
+
+document.getElementById("out").addEventListener("click",e=>{
+  const a = e.target.closest("[data-age]");
+  if(a){ state.age = a.dataset.age; const y=window.scrollY; renderCurrent(); window.scrollTo(0,y); return; }
+  const l = e.target.closest("[data-lock]");
+  if(l){ const i=+l.dataset.lock; combo[i].locked=!combo[i].locked; render(PLANTS.filter(compatible).length,0); return; }
+  const r = e.target.closest("[data-rep]");
+  if(r) replace(+r.dataset.rep);
+});
+document.getElementById("gen").addEventListener("click",()=>generate(true));
+
+// ---------- Combinaisons gardées (navigateur local) ----------
+const KEY="app-massifs-saved-v1";
+function loadSaved(){ try{ return JSON.parse(localStorage.getItem(KEY))||[]; }catch(e){ return []; } }
+function storeSaved(list){ try{ localStorage.setItem(KEY, JSON.stringify(list)); }catch(e){} }
+function lbl(key,v){ return (OPT[key].find(o=>o[0]===v)||[,""])[1]; }
+function renderSaved(){
+  const list = loadSaved(), ul=document.getElementById("saved");
+  if(!list.length){ ul.innerHTML = `<li style="border:0;padding:0"><p class="empty">Garde une combinaison pour la retrouver ici.</p></li>`; return; }
+  ul.innerHTML = list.map((s,i)=>`<li><span>${s.ids.length} plantes<small>${s.st.obj?[].concat(s.st.obj).map(o=>lbl("obj",o)).join(" + ")+" · ":""}${lbl("expo",s.st.expo)} · ${lbl("sol",s.st.sol)} · ${lbl("clim",s.st.clim)}</small></span>
+    <span style="display:flex;gap:4px"><button class="small" type="button" data-open="${i}">Ouvrir</button><button class="small" type="button" data-del="${i}" aria-label="Retirer">×</button></span></li>`).join("");
+}
+document.getElementById("save").addEventListener("click",()=>{
+  if(!combo.length) return;
+  const list = loadSaved();
+  list.unshift({st:JSON.parse(JSON.stringify(state)), ids:combo.map(c=>[c.plant.nom,c.role,c.layer||""])});
+  storeSaved(list.slice(0,12)); renderSaved();
+  const b=document.getElementById("save"); b.textContent="Gardée"; setTimeout(()=>b.textContent="Garder",1400);
+});
+document.getElementById("saved").addEventListener("click",e=>{
+  const o=e.target.closest("[data-open]"), d=e.target.closest("[data-del]");
+  const list=loadSaved();
+  if(d){ list.splice(+d.dataset.del,1); storeSaved(list); renderSaved(); return; }
+  if(o){
+    const s=list[+o.dataset.open]; Object.assign(state, s.st);
+    state.obj = [].concat(state.obj || "massif");
+    state.haut = state.haut || "2"; state.fmt = state.fmt || "petit"; state.prof = state.prof || "150"; state.arro = state.arro || "1"; state.vite = state.vite || "rapide"; state.style = state.style || "libre";
+    ["style","vite","arro","prof","haut","fmt","expo","sol","eau","clim","pal","taille"].forEach(k=>chips(k,false)); chips("types",true); chips("obj",true);
+    document.getElementById("obj-hint").textContent = objHint();
+    setZone(null, false);
+    combo = restore(s.ids);
+    renderCurrent();
+  }
+});
+
+// ---------- Mon jardin : zones préréglées ----------
+const BASE_TYPES = ["arbuste","graminee","vivace","couvre-sol","bulbe","aromatique"];
+let ZONES = [];
+let ZKEY = "app-zones";
+let zoneData = {};
+let curZone = null;
+function restore(ids){
+  return ids.map(([k,r,l])=>{
+    const p = typeof k==="number" ? PLANTS[k] : PLANTS.find(x=>x.nom===k);
+    return p ? {plant:p, role:r, layer:l||undefined, locked:false} : null;
+  }).filter(Boolean);
+}
+function storeZone(){
+  if(!curZone) { renderZones(); return; }
+  zoneData[curZone] = {st:JSON.parse(JSON.stringify(state)), ids:combo.map(c=>[c.plant.nom,c.role,c.layer||""]), budget:lastBudget};
+  try{ localStorage.setItem(ZKEY, JSON.stringify(zoneData)); }catch(e){}
+  renderZones();
+}
+function applyState(st){
+  Object.assign(state, JSON.parse(JSON.stringify(st)));
+  state.fmt = state.fmt || "petit"; state.prof = state.prof || "150"; state.arro = state.arro || "1"; state.vite = state.vite || "rapide"; state.style = state.style || "libre";
+  ["style","vite","arro","prof","haut","fmt","expo","sol","eau","clim","pal","taille"].forEach(k=>chips(k,false)); chips("types",true); chips("obj",true);
+  document.getElementById("obj-hint").textContent = objHint();
+}
+function setZone(id, load=true){
+  curZone = id;
+  const z = ZONES.find(z=>z.id===id);
+  renderZoneDetail(z);
+  if(!load){ renderZones(); return; }
+  if(!z){ renderZones(); return; }
+  const saved = zoneData[id];
+  const fmt = state.fmt;
+  applyState(saved ? saved.st : z.st);
+  state.fmt = fmt; chips("fmt",false);
+  if(saved && saved.ids.length){ combo = restore(saved.ids); renderCurrent(); }
+  else { combo = []; generate(false); }
+  if(!window.__quiet){ try{ document.getElementById("zones-t").scrollIntoView({block:"nearest"}); }catch(e){} }
+}
+function zoneBudget(b){
+  if(!b || !b.rows) return b;
+  let min=0, max=0;
+  b.rows.forEach(([nom,r,q])=>{ const p=PLANTS.find(x=>x.nom===nom); if(!p) return; const [a,c]=unitPrice(p,r); min+=a*q; max+=c*q; });
+  return {min,max};
+}
+function renderZones(){
+  const box = document.getElementById("zones");
+  let tmin=0, tmax=0, n=0;
+  box.innerHTML = ZONES.map(z=>{
+    const b = zoneBudget(zoneData[z.id] && zoneData[z.id].budget);
+    if(b){ tmin+=b.min; tmax+=b.max; n++; }
+    return `<button class="zone" type="button" data-zone="${z.id}" aria-pressed="${curZone===z.id}">${z.label}<small>${b?`${eur0(b.min)} – ${eur0(b.max)}`:"pas encore composée"}</small></button>`;
+  }).join("") + `<button class="zone" type="button" data-zone="" aria-pressed="${curZone===null}">Réglage libre<small>tous les critères</small></button>`;
+  document.getElementById("gtotal").innerHTML = n ? `Budget du jardin (${n} zone${n>1?"s":""} sur ${ZONES.length}) : <b>${eur0(tmin)} – ${eur0(tmax)}</b>` : "Choisis une zone pour composer ton jardin";
+}
+document.getElementById("zones").addEventListener("click",e=>{
+  const b = e.target.closest("[data-zone]"); if(!b) return;
+  setZone(b.dataset.zone || null);
+});
+
+renderSaved();

@@ -1,0 +1,198 @@
+// Analyse d'un jardin à partir de photos, avec Claude (API Anthropic).
+// Variables d'environnement à définir dans Vercel :
+//   ANTHROPIC_API_KEY  clé API créée dans la Console Anthropic
+//   ACCESS_CODE        code partagé avec les proches (comparé sans tenir compte des majuscules)
+//   CLAUDE_MODEL       facultatif, "claude-sonnet-5-5" par défaut
+
+const crypto = require("crypto");
+
+const MODEL = process.env.CLAUDE_MODEL || "claude-sonnet-5-5";
+const MAX_PHOTOS = 4;
+const MAX_PHOTO_BYTES = 1_500_000; // une photo redimensionnée côté app pèse ~200 à 400 Ko
+const DIRS = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"];
+const DIR_NAMES = { N: "nord", NE: "nord-est", E: "est", SE: "sud-est", S: "sud", SO: "sud-ouest", O: "ouest", NO: "nord-ouest" };
+const SOLS = { a: "argileux", ac: "argilo-calcaire", c: "calcaire", s: "sableux", h: "humifère", inconnu: "inconnu" };
+const OBJS = { massif: "habiller le jardin", isoler: "s'isoler du voisinage", pollin: "attirer abeilles et papillons", mur: "habiller un mur ou une clôture" };
+const STYLES = { libre: "sans style imposé", med: "méditerranéen sec", nat: "naturaliste", anglais: "jardin anglais", contemporain: "contemporain épuré", sauvage: "refuge pour la biodiversité" };
+const ARRO = { "1": "aucun arrosage une fois les plantes installées", "2": "arrosage occasionnel pendant les canicules", "3": "arrosage régulier en été" };
+
+const str = { type: "string" };
+const strArr = { type: "array", items: { type: "string" } };
+const SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["resume", "climat", "sol", "observations", "zones"],
+  properties: {
+    resume: str,
+    climat: {
+      type: "object", additionalProperties: false, required: ["zone", "explication"],
+      properties: { zone: { enum: ["med", "so", "oc", "co", "mo"] }, explication: str }
+    },
+    sol: {
+      type: "object", additionalProperties: false, required: ["type", "explication"],
+      properties: { type: { enum: ["a", "ac", "c", "s", "h"] }, explication: str }
+    },
+    observations: strArr,
+    zones: {
+      type: "array",
+      items: {
+        type: "object", additionalProperties: false,
+        required: ["nom", "photo", "description", "orientation", "exposition", "ensoleillement", "humidite", "profondeur", "longueur", "objectifs", "hauteur_masquer", "a_garder", "attention"],
+        properties: {
+          nom: str,
+          photo: { type: "integer" },
+          description: str,
+          orientation: { enum: DIRS },
+          exposition: { enum: ["s", "m", "o"] },
+          ensoleillement: str,
+          humidite: { enum: ["d", "f", "w"] },
+          profondeur: { enum: ["60", "100", "150", "200"] },
+          longueur: { enum: ["p", "m", "g"] },
+          objectifs: { type: "array", items: { enum: Object.keys(OBJS) } },
+          hauteur_masquer: { enum: ["aucune", "2", "3", "4"] },
+          a_garder: strArr,
+          attention: strArr
+        }
+      }
+    }
+  }
+};
+
+const SYSTEM = `Tu es paysagiste-conseil. À partir de photos d'un jardin, tu identifies les zones à planter et leurs conditions de culture, pour qu'un outil compose ensuite des associations de plantes. Tu ne proposes pas de plantes toi-même.
+
+Règles :
+- Hémisphère nord. Une bande de terre plantée au pied d'une limite (clôture, mur, haie) située dans la direction X est tournée vers la direction opposée à X. Exemple : la photo regarde vers le nord-est et la clôture du fond est au nord-est ; la bande au pied de cette clôture est tournée vers le sud-ouest, donc en plein soleil l'après-midi.
+- Exposition : "s" plein soleil (6 h ou plus de soleil direct), "m" mi-ombre (soleil du matin seulement, ou ombre légère), "o" ombre. Tiens compte des arbres, de la maison et des bâtiments visibles qui font de l'ombre.
+- Humidité du sol en été : "d" sec, "f" frais, "w" humide. Une pelouse grillée, des plantes méditerranéennes en forme ou un sol craquelé indiquent un sol sec ; la proximité de racines d'arbres assèche aussi le sol.
+- Profondeur : largeur de terre plantable que la zone peut raisonnablement recevoir sans supprimer d'élément à garder, en cm : "60", "100", "150" ou "200" (200 et plus). Sois réaliste : allées et passages restent libres.
+- Longueur : "p" environ 3 à 5 m, "m" environ 4 à 10 m, "g" plus de 10 m.
+- Objectifs : choisis parmi les envies de la personne celles qui ont du sens pour la zone. "isoler" seulement s'il y a un vis-à-vis réel (rue, fenêtre, balcon, jardin voisin visible). Hauteur à masquer : "4" si la vue vient d'un étage ou d'un balcon, sinon "2" ou "3" ; "aucune" si la zone n'a pas besoin d'écran.
+- Climat : déduis la zone de la ville indiquée. "med" méditerranéen, "so" Sud-Ouest (Toulouse, Bordeaux, Pau...), "oc" océanique (Bretagne, Normandie, Nantes...), "co" continental (Strasbourg, Lyon, Dijon), "mo" montagnard. Paris et le centre de la France sont "oc".
+- Sol : si la personne l'indique, garde son choix ; sinon déduis-le de la région et des indices visibles, et dis que c'est une estimation.
+- 2 à 6 zones au total. Chaque zone correspond à une bande ou un massif précis, visible sur une photo (numéro de photo à partir de 1). Une photo peut contenir plusieurs zones (par exemple les deux côtés d'une allée).
+- "a_garder" : arbres, arbustes ou éléments existants à conserver. "attention" : points à traiter avant de planter (plante envahissante comme le bambou traçant ou le liseron, racines, réseaux, ombre d'un grand arbre, sol tassé).
+- Écris en français, en tutoyant, avec des phrases courtes et concrètes. Le nom d'une zone fait 2 à 5 mots et se repère facilement ("Côté rue, le long de la canisse").
+- N'invente rien que les photos ne montrent pas. Si un élément est incertain, dis-le simplement.`;
+
+function opposite(d) { return DIRS[(DIRS.indexOf(d) + 4) % 8]; }
+function rot(d, n) { return DIRS[(DIRS.indexOf(d) + n + 8) % 8]; }
+function clean(s, n) { return String(s || "").replace(/[\u0000-\u001f]/g, " ").slice(0, n).trim(); }
+
+function safeEqual(a, b) {
+  const x = Buffer.from(String(a).trim().toLowerCase());
+  const y = Buffer.from(String(b).trim().toLowerCase());
+  if (x.length !== y.length) return false;
+  return crypto.timingSafeEqual(x, y);
+}
+
+function buildContent(body) {
+  const objectifs = (body.objectifs || []).filter(o => OBJS[o]).map(o => OBJS[o]);
+  const intro = [
+    `Ville : ${clean(body.ville, 80) || "non précisée"}.`,
+    `Type de sol indiqué : ${SOLS[body.sol] || "inconnu"}.`,
+    `Arrosage possible en été : ${ARRO[body.arrosage] || ARRO["1"]}.`,
+    `Envies : ${objectifs.length ? objectifs.join(", ") : "habiller le jardin"}.`,
+    `Style souhaité : ${STYLES[body.style] || STYLES.libre}.`,
+    `Voici ${body.photos.length} photo${body.photos.length > 1 ? "s" : ""} du jardin.`
+  ].join("\n");
+  const content = [{ type: "text", text: intro }];
+  body.photos.forEach((ph, i) => {
+    const d = DIRS.includes(ph.direction) ? ph.direction : null;
+    let label = `Photo ${i + 1}`;
+    if (d) label += ` : on regarde vers le ${DIR_NAMES[d]}. À gauche se trouve le ${DIR_NAMES[rot(d, -2)]}, à droite le ${DIR_NAMES[rot(d, 2)]}, derrière le photographe le ${DIR_NAMES[opposite(d)]}.`;
+    else label += " : direction inconnue, estime l'orientation si possible et signale l'incertitude.";
+    const note = clean(ph.note, 300);
+    if (note) label += ` Précision de la personne : « ${note} »`;
+    content.push({ type: "text", text: label });
+    content.push({ type: "image", source: { type: "base64", media_type: "image/jpeg", data: ph.data } });
+  });
+  content.push({ type: "text", text: "Analyse ce jardin selon les règles et renvoie le rapport." });
+  return content;
+}
+
+function sanitize(r, nPhotos) {
+  const low = v => String(v || "").toLowerCase();
+  const pick = (v, list, def) => (list.includes(low(v)) ? low(v) : def);
+  const arr = (a, n) => (Array.isArray(a) ? a.map(x => clean(x, 240)).filter(Boolean).slice(0, n) : []);
+  const zones = (Array.isArray(r.zones) ? r.zones : []).slice(0, 6).map((z, i) => ({
+    id: "z" + (i + 1),
+    nom: clean(z.nom, 60) || `Zone ${i + 1}`,
+    photo: Math.min(Math.max(parseInt(z.photo, 10) || 1, 1), nPhotos),
+    description: clean(z.description, 500),
+    orientation: DIRS.includes(String(z.orientation).toUpperCase()) ? String(z.orientation).toUpperCase() : null,
+    exposition: pick(z.exposition, ["s", "m", "o"], "s"),
+    ensoleillement: clean(z.ensoleillement, 200),
+    humidite: pick(z.humidite, ["d", "f", "w"], "d"),
+    profondeur: ["60", "100", "150", "200"].includes(String(z.profondeur)) ? String(z.profondeur) : "100",
+    longueur: pick(z.longueur, ["p", "m", "g"], "m"),
+    objectifs: [...new Set((z.objectifs || []).map(low).filter(o => OBJS[o]))],
+    hauteur_masquer: ["2", "3", "4"].includes(String(z.hauteur_masquer)) ? String(z.hauteur_masquer) : null,
+    a_garder: arr(z.a_garder, 6),
+    attention: arr(z.attention, 6)
+  }));
+  zones.forEach(z => { if (!z.objectifs.length) z.objectifs = ["massif"]; if (z.hauteur_masquer && !z.objectifs.includes("isoler")) z.objectifs.push("isoler"); });
+  return {
+    resume: clean(r.resume, 800),
+    climat: { zone: pick(r.climat && r.climat.zone, ["med", "so", "oc", "co", "mo"], "oc"), explication: clean(r.climat && r.climat.explication, 300) },
+    sol: { type: pick(r.sol && r.sol.type, ["a", "ac", "c", "s", "h"], "ac"), explication: clean(r.sol && r.sol.explication, 300) },
+    observations: arr(r.observations, 8),
+    zones
+  };
+}
+
+module.exports = async (req, res) => {
+  res.setHeader("Cache-Control", "no-store");
+  if (req.method !== "POST") return res.status(405).json({ erreur: "Méthode non autorisée." });
+
+  const key = process.env.ANTHROPIC_API_KEY, code = process.env.ACCESS_CODE;
+  if (!key || !code) return res.status(503).json({ erreur: "L'analyse n'est pas encore configurée : il manque la clé API ou le code d'accès dans Vercel." });
+
+  const body = typeof req.body === "string" ? (() => { try { return JSON.parse(req.body); } catch (e) { return {}; } })() : (req.body || {});
+  if (!safeEqual(body.code || "", code)) return res.status(401).json({ erreur: "Code d'accès incorrect." });
+  if (body.check === true) return res.status(200).json({ ok: true });
+
+  const photos = Array.isArray(body.photos) ? body.photos : [];
+  if (!photos.length) return res.status(400).json({ erreur: "Ajoute au moins une photo de ton jardin." });
+  if (photos.length > MAX_PHOTOS) return res.status(400).json({ erreur: `${MAX_PHOTOS} photos au maximum.` });
+  for (const ph of photos) {
+    if (typeof ph.data !== "string" || !/^[A-Za-z0-9+/=]+$/.test(ph.data.slice(0, 200))) return res.status(400).json({ erreur: "Une photo est illisible. Réessaie avec une photo JPEG ou PNG." });
+    if (ph.data.length * 0.75 > MAX_PHOTO_BYTES) return res.status(413).json({ erreur: "Une photo est trop lourde. Réessaie avec une photo plus petite." });
+  }
+
+  let r;
+  try {
+    r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 4000,
+        system: SYSTEM,
+        messages: [{ role: "user", content: buildContent({ ...body, photos }) }],
+        output_config: { format: { type: "json_schema", schema: SCHEMA } }
+      })
+    });
+  } catch (e) {
+    return res.status(502).json({ erreur: "Le service d'analyse ne répond pas. Réessaie dans quelques minutes." });
+  }
+
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    console.error("Anthropic", r.status, data && data.error);
+    const msg = r.status === 429 ? "Trop d'analyses en même temps. Réessaie dans une minute."
+      : r.status === 401 ? "La clé API configurée dans Vercel est refusée."
+      : r.status === 400 && /credit|billing/i.test(JSON.stringify(data)) ? "Le crédit du compte Anthropic est épuisé."
+      : "L'analyse a échoué. Réessaie dans quelques minutes.";
+    return res.status(502).json({ erreur: msg });
+  }
+  if (data.stop_reason === "refusal") return res.status(422).json({ erreur: "Ces photos n'ont pas pu être analysées. Essaie avec d'autres photos du jardin." });
+
+  const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("");
+  let report;
+  try { report = JSON.parse(text); } catch (e) {
+    return res.status(502).json({ erreur: data.stop_reason === "max_tokens" ? "L'analyse était trop longue. Réessaie avec moins de photos." : "La réponse de l'analyse est illisible. Réessaie." });
+  }
+  const out = sanitize(report, photos.length);
+  if (!out.zones.length) return res.status(422).json({ erreur: "Aucune zone à planter n'a été repérée. Essaie avec des photos plus larges du jardin." });
+  return res.status(200).json({ ...out, modele: MODEL });
+};

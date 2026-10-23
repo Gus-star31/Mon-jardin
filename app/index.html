@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Atelier des massifs</title>
+<meta name="description" content="Photographie ton jardin : l'app repère les zones à planter et compose des associations de plantes adaptées, avec plan et budget.">
+<meta name="theme-color" content="#F2F4EE" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#131712" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="/app/manifest.webmanifest">
+<link rel="icon" href="/app/icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="/app/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Massifs">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Karla:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/app/atelier.css">
+<link rel="stylesheet" href="/app/app.css">
+</head>
+<body>
+<div class="app">
+  <div class="bar">
+    <span class="brand">Atelier des massifs</span>
+    <button class="ghost small" type="button" id="restart" hidden>Nouvelle analyse</button>
+  </div>
+
+  <!-- Accueil -->
+  <section class="screen" id="s-accueil">
+    <h1>Ton jardin, planté sur mesure</h1>
+    <p class="lede">Prends 1 à 4 photos de ton jardin. Claude repère les zones à planter, leur exposition et la place disponible. L'app compose ensuite des associations de plantes adaptées, avec un plan, la croissance année après année et un budget.</p>
+    <ol class="how">
+      <li><b>Photos</b><span>et direction de chaque prise de vue</span></li>
+      <li><b>Ton jardin</b><span>ville, sol, arrosage</span></li>
+      <li><b>Tes envies</b><span>objectifs et style</span></li>
+      <li><b>Propositions</b><span>zone par zone</span></li>
+    </ol>
+    <div class="field">
+      <label for="code">Code d'accès</label>
+      <input id="code" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Ton code">
+      <p class="hint">Demande-le à la personne qui t'a envoyé le lien.</p>
+    </div>
+    <p class="err" id="code-err" hidden></p>
+    <div class="actions">
+      <button class="primary" type="button" id="start">Commencer</button>
+      <button class="ghost" type="button" id="demo">Voir un exemple</button>
+    </div>
+    <div class="last" id="last" hidden></div>
+    <p class="install" id="install" hidden></p>
+  </section>
+
+  <!-- Étape 1 : photos -->
+  <section class="screen" id="s-photos" hidden>
+    <p class="step">Étape 1 sur 3</p>
+    <h2>Photos de ton jardin</h2>
+    <p class="lede">Une photo par zone à planter, prise en largeur, en montrant aussi ce qui l'entoure : clôture, maison, arbres, vis-à-vis. 4 photos au maximum.</p>
+    <div class="phlist" id="ph-list"></div>
+    <label class="addph" for="ph-input" id="ph-add">
+      <input type="file" id="ph-input" accept="image/*" multiple>
+      <span>Ajouter des photos</span>
+    </label>
+    <p class="err" id="ph-err" hidden></p>
+    <div class="nav">
+      <button class="ghost" type="button" data-go="s-accueil">Retour</button>
+      <button class="primary" type="button" id="to-jardin" disabled>Continuer</button>
+    </div>
+  </section>
+
+  <!-- Étape 2 : jardin -->
+  <section class="screen" id="s-jardin" hidden>
+    <p class="step">Étape 2 sur 3</p>
+    <h2>Ton jardin</h2>
+    <div class="field">
+      <label for="ville">Ville ou code postal</label>
+      <input id="ville" type="text" autocomplete="address-level2" placeholder="Par exemple Toulouse">
+      <p class="hint">Sert à connaître le climat : froid en hiver, chaleur et sécheresse en été.</p>
+    </div>
+    <fieldset>
+      <legend>Type de sol</legend>
+      <div class="chips" id="a-sol"></div>
+      <p class="hint">Si tu ne sais pas, Claude l'estime d'après ta région et tes photos.</p>
+    </fieldset>
+    <fieldset>
+      <legend>Arrosage possible en été</legend>
+      <div class="chips" id="a-arro"></div>
+    </fieldset>
+    <div class="nav">
+      <button class="ghost" type="button" data-go="s-photos">Retour</button>
+      <button class="primary" type="button" id="to-envies">Continuer</button>
+    </div>
+  </section>
+
+  <!-- Étape 3 : envies -->
+  <section class="screen" id="s-envies" hidden>
+    <p class="step">Étape 3 sur 3</p>
+    <h2>Tes envies</h2>
+    <fieldset>
+      <legend>Que souhaites-tu faire ?</legend>
+      <div class="chips" id="a-obj"></div>
+    </fieldset>
+    <fieldset>
+      <legend>Style de jardin</legend>
+      <div class="chips" id="a-style"></div>
+      <p class="hint" id="a-style-hint"></p>
+    </fieldset>
+    <p class="privacy">Tes photos sont envoyées à Claude, l'IA d'Anthropic, le temps de l'analyse. L'app ne les enregistre sur aucun serveur : seules des miniatures restent sur ton téléphone.</p>
+    <p class="err" id="an-err" hidden></p>
+    <div class="nav">
+      <button class="ghost" type="button" data-go="s-jardin">Retour</button>
+      <button class="primary" type="button" id="analyse">Analyser mon jardin</button>
+    </div>
+  </section>
+
+  <!-- Analyse en cours -->
+  <section class="screen" id="s-analyse" hidden>
+    <div class="loading" role="status" aria-live="polite">
+      <div class="sprout" aria-hidden="true"><i></i><i></i><i></i></div>
+      <h2>Analyse de ton jardin</h2>
+      <p id="an-step">Lecture des photos…</p>
+      <p class="hint">Compte 20 à 40 secondes.</p>
+    </div>
+  </section>
+
+  <!-- Résultats -->
+  <section class="results" id="s-resultats" hidden>
+    <div class="report" id="report"></div>
+
+    <div class="wrap">
+      <section class="zonesbar" aria-labelledby="zones-t">
+        <div class="zhead"><h2 id="zones-t">Tes zones</h2><span class="gtotal" id="gtotal"></span></div>
+        <div class="zones" id="zones"></div>
+        <div class="znote" id="znote"></div>
+      </section>
+
+      <button class="ghost crit-toggle" type="button" id="crit-toggle" aria-expanded="false" aria-controls="crit">Ajuster les critères de cette zone</button>
+      <div class="grid" id="crit-grid">
+        <aside id="crit">
+<fieldset>
+        <legend>Que souhaites-tu faire ?</legend>
+        <div class="chips" id="f-obj"></div>
+        <p class="hint" id="obj-hint"></p>
+      </fieldset>
+      <fieldset>
+        <legend>Style de jardin</legend>
+        <div class="chips" id="f-style"></div>
+        <p class="hint" id="style-hint"></p>
+      </fieldset>
+      <fieldset id="fs-haut">
+        <legend>Hauteur à masquer</legend>
+        <div class="chips" id="f-haut"></div>
+        <legend style="margin-top:10px">Vitesse de pousse de la haie</legend>
+        <div class="chips" id="f-vite"></div>
+        <p class="hint">À partir de 4 m, l'outil ajoute un arbre à placer dans l'axe de la vue.</p>
+      </fieldset>
+      <fieldset>
+        <legend>Exposition</legend>
+        <div class="chips" id="f-expo"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Type de sol</legend>
+        <div class="chips" id="f-sol"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Humidité du sol en été</legend>
+        <div class="chips" id="f-eau"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Arrosage en été</legend>
+        <div class="chips" id="f-arro"></div>
+        <p class="hint">Même les plantes les plus résistantes demandent un arrosage la première année. En plantant en octobre ou novembre, elles s'installent avec les pluies d'hiver et en ont moins besoin.</p>
+      </fieldset>
+      <fieldset>
+        <legend>Climat</legend>
+        <div class="chips" id="f-clim"></div>
+        <p class="hint" id="clim-hint"></p>
+      </fieldset>
+      <fieldset>
+        <legend>Types de plantes</legend>
+        <div class="chips" id="f-types"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Couleurs</legend>
+        <div class="chips" id="f-pal"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Profondeur disponible</legend>
+        <div class="chips" id="f-prof"></div>
+        <p class="hint" id="prof-hint"></p>
+      </fieldset>
+      <fieldset>
+        <legend>Longueur</legend>
+        <div class="chips" id="f-taille"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Format des plantes</legend>
+        <div class="chips" id="f-fmt"></div>
+        <p class="hint">Les petits formats coûtent moins cher mais mettent 2 à 3 ans de plus à remplir l'espace.</p>
+      </fieldset>
+      <div class="actions">
+        <button class="primary" id="gen" type="button">Nouvelle combinaison</button>
+        <button class="ghost" id="save" type="button">Garder</button>
+      </div>
+      <p class="hint">Verrouille une plante pour la conserver quand tu relances.</p>
+      <section class="saved" aria-labelledby="saved-t">
+        <h2 id="saved-t">Combinaisons gardées</h2>
+        <ul id="saved"></ul>
+      </section>
+        </aside>
+        <main id="out" aria-live="polite"></main>
+      </div>
+      <p class="count" id="count"></p>
+      <footer>Analyse automatique à partir de photos : vérifie l'exposition et les mesures sur place avant d'acheter. Rusticité, croissance, besoins en eau et prix sont des ordres de grandeur.</footer>
+    </div>
+  </section>
+</div>
+
+<script src="/app/engine.js"></script>
+<script src="/app/app.js"></script>
+</body>
+</html>
