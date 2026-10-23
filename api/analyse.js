@@ -144,8 +144,15 @@ module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
   if (req.method !== "POST") return res.status(405).json({ erreur: "Méthode non autorisée." });
 
-  const key = process.env.ANTHROPIC_API_KEY, code = process.env.ACCESS_CODE;
-  if (!key || !code) return res.status(503).json({ erreur: "L'analyse n'est pas encore configurée : il manque la clé API ou le code d'accès dans Vercel." });
+  const key = (process.env.ANTHROPIC_API_KEY || "").trim(), code = (process.env.ACCESS_CODE || "").trim();
+  if (!key || !code) {
+    // Seuls les noms des variables manquantes sont indiqués, jamais leurs valeurs.
+    const missing = [!key && "ANTHROPIC_API_KEY", !code && "ACCESS_CODE"].filter(Boolean);
+    const similar = Object.keys(process.env).filter(k => /anthropic|access|code|api.?key/i.test(k) && !missing.includes(k));
+    console.error("Variables manquantes :", missing.join(", "), "| noms proches trouvés :", similar.join(", ") || "aucun");
+    return res.status(503).json({ erreur: `L'analyse n'est pas encore configurée : Vercel ne transmet pas ${missing.join(" ni ")}. ` +
+      (similar.length ? `Variable${similar.length > 1 ? "s" : ""} au nom proche trouvée${similar.length > 1 ? "s" : ""} : ${similar.join(", ")}. Vérifie l'orthographe exacte.` : "Vérifie qu'elle est enregistrée pour l'environnement Production, puis redéploie la production.") });
+  }
 
   const body = typeof req.body === "string" ? (() => { try { return JSON.parse(req.body); } catch (e) { return {}; } })() : (req.body || {});
   if (!safeEqual(body.code || "", code)) return res.status(401).json({ erreur: "Code d'accès incorrect." });
