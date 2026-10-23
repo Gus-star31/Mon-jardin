@@ -282,3 +282,6 @@ body:has(#s-ouverture:not([hidden])), html:has(#s-ouverture:not([hidden])){backg
 .ba div.ba-after{clip-path:inset(0 0 0 var(--pos))}
 .ba-empty{display:grid;place-items:center;min-height:140px;color:var(--encre-douce);font-size:14px}
 .ap-actions .linkish{font-size:13px}
+
+.plinks{display:flex;gap:14px;margin:6px 0 2px;font-size:13px}
+.plinks a{color:inherit;text-underline-offset:2px}

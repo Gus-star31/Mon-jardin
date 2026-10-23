@@ -38,7 +38,7 @@ aside = between(src, "<aside>", "</aside>", "panneau de critères")
 
 # 3. Moteur : le script principal de l'atelier, adapté à l'app.
 js = between(src, "<script>", "</script>", "script")
-js = js.replace("`photos/${slugify(p.nom)}.jpg`", "`/photos/${slugify(p.nom)}.jpg`")
+js = js.replace("`photos/${slugify(p.nom)}.jpg`", "`/photos/${slugify(p.nom)}.jpg`").replace("`photos/style-${k}.jpg`", "`/photos/style-${k}.jpg`")
 js = sub(r"const ZONES = \[.*?\n\];", "let ZONES = [];", js, "zones préréglées")
 js = sub(r'const ZKEY = "[^"]+";\nlet zoneData = [^\n]*\n', 'let ZKEY = "app-zones";\nlet zoneData = {};\n', js, "stockage des zones")
 js = sub(r'const KEY="[^"]+";', 'const KEY="app-massifs-saved-v1";', js, "combinaisons gardées")
