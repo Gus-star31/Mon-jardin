@@ -148,7 +148,12 @@ module.exports = async (req, res) => {
   if (!key || !code) {
     // Seuls les noms des variables manquantes sont indiqués, jamais leurs valeurs.
     const missing = [!key && "ANTHROPIC_API_KEY", !code && "ACCESS_CODE"].filter(Boolean);
-    const similar = Object.keys(process.env).filter(k => /anthropic|access|code|api.?key/i.test(k) && !missing.includes(k));
+    // Repère une faute de frappe sur le nom (espace, tiret, minuscules) en comparant les noms simplifiés.
+    const norm = k => k.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    const targets = missing.map(norm);
+    const similar = Object.keys(process.env)
+      .filter(k => !missing.includes(k) && !/^(VERCEL|AWS|NOW|LAMBDA|NODE)_/i.test(k) && targets.some(t => norm(k) === t || norm(k).includes(t)))
+      .slice(0, 3);
     console.error("Variables manquantes :", missing.join(", "), "| noms proches trouvés :", similar.join(", ") || "aucun");
     return res.status(503).json({ erreur: `L'analyse n'est pas encore configurée : Vercel ne transmet pas ${missing.join(" ni ")}. ` +
       (similar.length ? `Variable${similar.length > 1 ? "s" : ""} au nom proche trouvée${similar.length > 1 ? "s" : ""} : ${similar.join(", ")}. Vérifie l'orthographe exacte.` : "Vérifie qu'elle est enregistrée pour l'environnement Production, puis redéploie la production.") });
