@@ -391,7 +391,7 @@ window.renderZoneDetail = function(z){
   $("esp-tags").innerHTML = tags.map(([t, c]) => `<span class="tag ${c}">${esc(t)}</span>`).join("");
   const warn = [d.attention && d.attention.length ? `<b>Avant de planter :</b> ${esc(d.attention.join(" "))}` : "", d.a_garder && d.a_garder.length ? `<b>À garder :</b> ${esc(d.a_garder.join(", "))}.` : ""].filter(Boolean).join(" ");
   $("esp-warn").innerHTML = warn ? `<p class="warnl">${warn}</p>` : "";
-  const before = z.thumb ? `<img class="ba-before" id="ba-before" src="${z.thumb}" alt="Ta photo de cet espace">` : (current && current.demo ? ILLU.avant : `<div class="ba-empty">Pas de photo pour cet espace</div>`);
+  const before = z.thumb ? `<img class="ba-before" id="ba-before" src="${z.thumb}" alt="Ta photo de cet espace">` : `<div class="ba-empty">Pas de photo pour cet espace</div>`;
   $("esp-apercu").innerHTML = `<div class="ba" id="ba">${before}</div><div class="ap-row"><p class="ap-note" id="ap-note"></p><div class="ap-actions" id="ap-actions"></div></div>`;
 };
 // Proposition : cartes plantes et budget, reconstruites après chaque composition du moteur.
@@ -459,35 +459,48 @@ const AP_NOTE = "Image créée par IA (Gemini, de Google) à partir de ta photo 
 function curZoneObj(){ return ZONES.find(z => z.id === curZone); }
 function sigOf(){ return combo.map(c => c.plant.nom).sort().join("|") + "#" + state.age + "#" + state.prof; }
 function scheduleApercu(){ clearTimeout(apTimer); apTimer = setTimeout(refreshApercu, 60); }
-function baHTML(before, after){
-  return `<img class="ba-before" src="${before}" alt="Ta photo avant les plantations">
-    <img class="ba-after" src="${after}" alt="Aperçu de l’espace planté">
+function baHTML(before, after, illus){
+  const b = illus ? `<div class="ba-ill">${ILLU.avant}</div>` : `<img class="ba-before" src="${before}" alt="Ta photo avant les plantations">`;
+  const a = illus ? `<div class="ba-after ba-ill" role="img" aria-label="Le même coin une fois planté">${ILLU.apres}</div>` : `<img class="ba-after" src="${after}" alt="Aperçu de l’espace planté">`;
+  return `${b}${a}
     <span class="ba-line" aria-hidden="true"></span>
     <span class="ba-lbl l">Avant</span><span class="ba-lbl r">Après</span>
-    <input class="ba-range" type="range" min="0" max="100" value="12" aria-label="Faire glisser pour comparer avant et après">`;
+    <input class="ba-range" type="range" min="0" max="100" value="${illus ? 45 : 12}" aria-label="Faire glisser pour comparer avant et après">`;
 }
 const apBtn = (label, cls) => `<button class="btn ${cls} sm" type="button" id="ap-go">${cls === "ink" ? SPARK : ""}${label}</button>`;
+// L'image « après » se crée d'office à la première ouverture d'un espace qui a une photo, puis reste en cache.
+const autoTried = new Set();
 async function refreshApercu(){
   const tk = ++apTok, z = curZoneObj(), rec = current;
   const actions = $("ap-actions"), note = $("ap-note"), ba = $("ba");
   if(!z || !rec || !actions || apBusy) return;
-  const ph = z.z && !rec.demo ? await idb.get(`photo-${rec.id}-${(z.z.photo || 1) - 1}`) : null;
-  const cached = rec.demo ? null : await idb.get(`apercu-${rec.id}-${z.id}`);
+  if(rec.demo){
+    if(!ba.classList.contains("has-after")){ ba.innerHTML = baHTML(null, null, true); ba.classList.add("has-after"); ba.style.setProperty("--pos", "45%"); }
+    actions.innerHTML = ""; note.classList.remove("err");
+    note.textContent = "Exemple illustré. Avec ta photo, l’image « après » est créée par IA : l’aspect réel variera.";
+    return;
+  }
+  const ph = z.z ? await idb.get(`photo-${rec.id}-${(z.z.photo || 1) - 1}`) : null;
+  const cached = await idb.get(`apercu-${rec.id}-${z.id}`);
   if(tk !== apTok || !$("ap-actions")) return;
   const before = ph ? `data:image/jpeg;base64,${ph.data}` : z.thumb;
+  note.classList.remove("err");
   if(cached && before){
     if(!ba.classList.contains("has-after") || ba.dataset.img !== cached.date){
       ba.innerHTML = baHTML(before, cached.image); ba.classList.add("has-after"); ba.dataset.img = cached.date; ba.style.setProperty("--pos", "12%");
     }
     const stale = cached.sig !== sigOf();
-    actions.innerHTML = ph ? (stale ? apBtn("Mettre à jour l’image", "ink") : apBtn("Créer une autre version", "secondary")) : "";
+    actions.innerHTML = ph && stale ? `<button class="linkish" type="button" id="ap-go">Mettre à jour l’image</button>` : "";
     note.textContent = stale ? "Les plantes ont changé depuis cette image." : AP_NOTE;
-    note.classList.remove("err");
+  } else if(ph){
+    if($("ba-before")) $("ba-before").src = before;
+    const key = `${rec.id}-${z.id}`;
+    if(!autoTried.has(key) && store.get("app-code", "")){ autoTried.add(key); actions.innerHTML = ""; note.textContent = AP_NOTE; generateApercu(z, rec, ph); return; }
+    actions.innerHTML = `<button class="linkish" type="button" id="ap-go">Créer l’image</button>`;
+    note.textContent = AP_NOTE;
   } else {
-    if(ph && $("ba-before")) $("ba-before").src = before;
-    actions.innerHTML = ph ? apBtn("Voir dans mon jardin", "ink") : "";
-    note.classList.remove("err");
-    note.textContent = ph ? AP_NOTE : rec.demo ? "Dans l’exemple, il n’y a pas de photo : l’aperçu est disponible pour ton propre jardin." : "Refais une analyse de ce coin pour voir les plantations dessinées sur ta photo.";
+    actions.innerHTML = "";
+    note.textContent = "Refais une analyse de ce coin pour voir les plantations dessinées sur ta photo.";
   }
   const go = $("ap-go"); if(go) go.addEventListener("click", () => generateApercu(z, rec, ph));
 }
@@ -530,7 +543,8 @@ async function generateApercu(z, rec, ph){
   }catch(e){
     apBusy = false; load.remove();
     await refreshApercu();
-    const n = $("ap-note"); if(n){ n.textContent = e.name === "AbortError" ? "La création de l’image a pris trop de temps. Réessaie." : e.message === "Failed to fetch" ? "Pas de connexion. Vérifie ton réseau puis réessaie." : e.message; n.classList.add("err"); }
+    const n = $("ap-note"); if(n){ n.textContent = e.name === "AbortError" ? "La création de l’image a pris trop de temps." : e.message === "Failed to fetch" ? "Pas de connexion : l’image n’a pas pu être créée." : e.message; n.classList.add("err"); }
+    const a = $("ap-actions"); if(a && ph){ a.innerHTML = `<button class="linkish" type="button" id="ap-go">Réessayer</button>`; $("ap-go").addEventListener("click", () => generateApercu(z, rec, ph)); }
     return;
   }finally{ clearTimeout(to); }
   apBusy = false; load.remove();

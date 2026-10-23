@@ -277,3 +277,8 @@ body:has(#s-ouverture:not([hidden])), html:has(#s-ouverture:not([hidden])){backg
 .plan-card .legend small{display:block;color:var(--encre-douce);font-size:12px}
 .plan-card .legend a{color:var(--encre);text-decoration:none;font-weight:500}
 .plan-card svg text{font-family:var(--f-sans)}
+.ba .ba-ill{display:block}
+.ba .ba-ill svg{display:block;width:100%;height:auto}
+.ba div.ba-after{clip-path:inset(0 0 0 var(--pos))}
+.ba-empty{display:grid;place-items:center;min-height:140px;color:var(--encre-douce);font-size:14px}
+.ap-actions .linkish{font-size:13px}
