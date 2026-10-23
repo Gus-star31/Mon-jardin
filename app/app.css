@@ -103,3 +103,26 @@ button.small{min-height:34px}
   .bgrid figcaption{font-size:12px}
   .znote img{max-height:220px}
 }
+
+/* Parcours raccourci */
+.ph-top{position:relative}
+.ph-side{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
+.ph-side select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
+.ph-side select:focus-visible{outline:2px solid var(--pollen);outline-offset:1px}
+.ph-q{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ph-live:empty{display:none}
+.ph-del{position:absolute;top:-6px;right:-6px;min-height:0;width:32px;height:32px;padding:0;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:18px;line-height:1}
+.ph-top{padding-right:22px}
+.linkish{min-height:32px;align-self:flex-start;padding:4px 0;border:0;background:none;color:var(--moss);font-weight:700;font-size:14px;text-decoration:underline;text-underline-offset:3px}
+.ph textarea{min-height:56px}
+.more{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:0 14px}
+.more summary{cursor:pointer;min-height:48px;display:flex;align-items:center;gap:8px;font-weight:700;color:var(--moss);list-style:none}
+.more summary::-webkit-details-marker{display:none}
+.more summary::before{content:"+";font-family:var(--f-data);width:16px}
+.more[open] summary::before{content:"–"}
+.more summary span{font-weight:400;color:var(--muted);font-size:13px}
+.more[open]{padding-bottom:14px}
+.more fieldset{margin-top:12px}
+.how{grid-template-columns:minmax(0,1fr)}
+.how li{flex-direction:row;align-items:baseline;gap:10px;flex-wrap:wrap}
+.how li::before{width:16px}

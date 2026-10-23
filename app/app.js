@@ -20,7 +20,7 @@ let photos = [];
 let current = null;
 
 // ---------- Navigation ----------
-const SCREENS = ["s-accueil","s-photos","s-jardin","s-envies","s-analyse","s-resultats"];
+const SCREENS = ["s-accueil","s-photos","s-jardin","s-analyse","s-resultats"];
 function show(id, push = true){
   SCREENS.forEach(s => { $(s).hidden = s !== id; });
   $("restart").hidden = id !== "s-resultats";
@@ -138,33 +138,38 @@ $("ph-input").addEventListener("change", async e => {
   }
   renderPhotos();
 });
-function compassHTML(p, i){
-  const order = ["NO","N","NE","O",null,"E","SO","S","SE"];
-  return `<div class="compass" role="group" aria-label="Direction de la photo ${i+1}">${order.map(d => d
-    ? `<button type="button" data-dir="${d}" data-ph="${i}" aria-pressed="${p.direction===d}" aria-label="${DIR_LONG[d]}">${d}</button>`
-    : `<button type="button" class="c" data-dir="" data-ph="${i}" aria-pressed="${p.direction===""}">Je ne sais pas</button>`).join("")}</div>`;
-}
 function renderPhotos(){
+  const canMeasure = "DeviceOrientationEvent" in window;
   $("ph-list").innerHTML = photos.map((p, i) => `<article class="ph">
     <div class="ph-top"><img src="${p.thumb}" alt="Photo ${i+1} de ton jardin">
-      <div><b>Photo ${i+1}</b><span class="ph-q">Sur cette photo, tu regardes vers :</span>
-      <span class="ph-live" id="live-${i}">${p.direction ? DIR_LONG[p.direction] : p.direction === "" ? "direction inconnue" : "choisis une direction"}</span></div></div>
-    ${compassHTML(p, i)}
-    <div class="ph-row">${"DeviceOrientationEvent" in window ? `<button class="small" type="button" data-measure="${i}">Je suis sur place : mesurer</button>` : ""}
-      <button class="small" type="button" data-del-ph="${i}">Retirer la photo</button></div>
-    <div class="field"><label for="note-${i}">Précision (facultatif)</label>
-      <textarea id="note-${i}" data-note="${i}" maxlength="300" placeholder="Par exemple : je veux cacher le balcon du voisin">${esc(p.note)}</textarea></div>
+      <div class="ph-side">
+        <label class="ph-q" for="dir-${i}">Tu regardes vers</label>
+        <select id="dir-${i}" data-dir-sel="${i}">
+          <option value="" ${!p.direction?"selected":""}>Je ne sais pas</option>
+          ${DIRS.map(d => `<option value="${d}" ${p.direction===d?"selected":""}>${DIR_LONG[d].charAt(0).toUpperCase()+DIR_LONG[d].slice(1)}</option>`).join("")}
+        </select>
+        ${canMeasure ? `<button class="linkish" type="button" data-measure="${i}">Mesurer avec la boussole</button>` : ""}
+        <span class="ph-live" id="live-${i}"></span>
+      </div>
+      <button class="ph-del" type="button" data-del-ph="${i}" aria-label="Retirer la photo ${i+1}">×</button>
+    </div>
+    ${p.note || p.showNote ? `<textarea id="note-${i}" data-note="${i}" maxlength="300" aria-label="Précision sur la photo ${i+1}" placeholder="Par exemple : je veux cacher le balcon du voisin">${esc(p.note)}</textarea>`
+      : `<button class="linkish" type="button" data-add-note="${i}">Ajouter une précision</button>`}
   </article>`).join("");
   $("ph-add").hidden = photos.length >= MAX_PHOTOS;
+  $("ph-add").querySelector("span").textContent = photos.length ? "Ajouter une autre photo" : "Prendre ou choisir des photos";
   $("to-jardin").disabled = !photos.length;
 }
 $("ph-list").addEventListener("click", e => {
-  const d = e.target.closest("[data-dir]");
-  if(d){ photos[+d.dataset.ph].direction = d.dataset.dir; renderPhotos(); return; }
+  const n = e.target.closest("[data-add-note]");
+  if(n){ photos[+n.dataset.addNote].showNote = true; renderPhotos(); const t = $("note-" + n.dataset.addNote); if(t) t.focus(); return; }
   const x = e.target.closest("[data-del-ph]");
   if(x){ photos.splice(+x.dataset.delPh, 1); renderPhotos(); return; }
   const m = e.target.closest("[data-measure]");
   if(m) measure(+m.dataset.measure, m);
+});
+$("ph-list").addEventListener("change", e => {
+  const sel = e.target.closest("[data-dir-sel]"); if(sel) photos[+sel.dataset.dirSel].direction = sel.value || null;
 });
 $("ph-list").addEventListener("input", e => {
   const t = e.target.closest("[data-note]"); if(t) photos[+t.dataset.note].note = t.value;
@@ -179,7 +184,7 @@ async function measure(i, btn){
       if(r !== "granted"){ live.textContent = "Accès à la boussole refusé : choisis la direction à la main."; return; }
     }
   }catch(e){ live.textContent = "Boussole indisponible : choisis la direction à la main."; return; }
-  live.textContent = "Tiens le téléphone à plat, le haut tourné vers la zone photographiée…";
+  live.textContent = "Place-toi là où tu as pris la photo, téléphone à plat, le haut tourné vers le coin photographié.";
   let dir = null, got = false;
   const onOri = ev => {
     let h = typeof ev.webkitCompassHeading === "number" ? ev.webkitCompassHeading : (ev.absolute && ev.alpha != null ? (360 - ev.alpha) % 360 : null);
@@ -191,7 +196,7 @@ async function measure(i, btn){
   window.addEventListener("deviceorientation", onOri);
   btn.textContent = "Valider cette direction";
   const stop = () => { window.removeEventListener("deviceorientationabsolute", onOri); window.removeEventListener("deviceorientation", onOri); };
-  setTimeout(() => { if(!got){ stop(); live.textContent = "Pas de boussole disponible sur cet appareil : choisis la direction à la main."; btn.textContent = "Je suis sur place : mesurer"; } }, 4000);
+  setTimeout(() => { if(!got){ stop(); live.textContent = "Pas de boussole disponible sur cet appareil : choisis la direction à la main."; btn.textContent = "Mesurer avec la boussole"; } }, 4000);
   btn.addEventListener("click", function once(ev){
     ev.stopPropagation(); btn.removeEventListener("click", once, true); stop();
     if(dir){ photos[i].direction = dir; renderPhotos(); }
@@ -199,16 +204,14 @@ async function measure(i, btn){
 }
 
 $("to-jardin").addEventListener("click", () => show("s-jardin"));
-$("to-envies").addEventListener("click", () => {
-  if(!$("ville").value.trim()){ $("ville").focus(); $("ville").setAttribute("aria-invalid","true"); $("ville").placeholder = "Indique ta ville pour connaître le climat"; return; }
-  $("ville").removeAttribute("aria-invalid"); show("s-envies");
-});
+$("ville").addEventListener("input", () => { $("ville-err").hidden = true; $("ville").removeAttribute("aria-invalid"); });
 
 // ---------- Analyse ----------
 const STEPS = ["Lecture des photos…","Repérage des zones à planter…","Calcul de l'exposition de chaque zone…","Estimation de la place disponible…","Préparation des propositions…"];
 function anErr(msg){ $("an-err").textContent = msg; $("an-err").hidden = !msg; }
 $("analyse").addEventListener("click", async () => {
   anErr("");
+  if(!$("ville").value.trim()){ $("ville-err").hidden = false; $("ville").setAttribute("aria-invalid","true"); $("ville").focus(); return; }
   const code = store.get("app-code", "");
   if(!code){ show("s-accueil"); codeErr("Saisis le code d'accès pour lancer l'analyse."); return; }
   show("s-analyse");
@@ -230,7 +233,7 @@ $("analyse").addEventListener("click", async () => {
         else msg = `L'analyse a échoué (erreur ${r.status}).`;
       }
       const code = (raw.match(/[A-Z_]{8,}/) || [""])[0];
-      show("s-envies"); anErr(msg + (d.detail ? ` Détail technique : ${d.detail}` : code ? ` Code Vercel : ${code}` : ""));
+      show("s-jardin"); anErr(msg + (d.detail ? ` Détail technique : ${d.detail}` : code ? ` Code Vercel : ${code}` : ""));
       return;
     }
     const rec = {id: Date.now().toString(36), date: new Date().toISOString(), ville: prefs.ville.trim(), prefs: {...prefs}, analysis: d, thumbs: photos.map(p => p.thumb)};
@@ -241,7 +244,7 @@ $("analyse").addEventListener("click", async () => {
     renderLast();
     openRecord(rec);
   }catch(e){
-    show("s-envies");
+    show("s-jardin");
     anErr(e.name === "AbortError" ? "L'analyse prend trop de temps. Réessaie avec moins de photos." : "Pas de connexion. Vérifie ton réseau puis réessaie.");
   }finally{ clearInterval(tick); clearTimeout(to); }
 });

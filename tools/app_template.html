@@ -28,12 +28,11 @@
   <!-- Accueil -->
   <section class="screen" id="s-accueil">
     <h1>Ton jardin, planté sur mesure</h1>
-    <p class="lede">Prends 1 à 4 photos de ton jardin. Claude repère les zones à planter, leur exposition et la place disponible. L'app compose ensuite des associations de plantes adaptées, avec un plan, la croissance année après année et un budget.</p>
+    <p class="lede">Prends ton jardin en photo. L'app repère les coins à planter et te propose des plantes qui s'y plairont, avec un budget.</p>
     <ol class="how">
-      <li><b>Photos</b><span>et direction de chaque prise de vue</span></li>
-      <li><b>Ton jardin</b><span>ville, sol, arrosage</span></li>
-      <li><b>Tes envies</b><span>objectifs et style</span></li>
-      <li><b>Propositions</b><span>zone par zone</span></li>
+      <li><b>Tes photos</b><span>une par coin à planter</span></li>
+      <li><b>Ta ville et tes envies</b><span>en une minute</span></li>
+      <li><b>Tes propositions</b><span>zone par zone, avec un budget</span></li>
     </ol>
     <div class="field">
       <label for="code">Code d'accès</label>
@@ -51,9 +50,9 @@
 
   <!-- Étape 1 : photos -->
   <section class="screen" id="s-photos" hidden>
-    <p class="step">Étape 1 sur 3</p>
-    <h2>Photos de ton jardin</h2>
-    <p class="lede">Une photo par zone à planter, prise en largeur, en montrant aussi ce qui l'entoure : clôture, maison, arbres, vis-à-vis. 4 photos au maximum.</p>
+    <p class="step">Étape 1 sur 2</p>
+    <h2>Tes photos</h2>
+    <p class="lede">Une photo par coin à planter, prise en largeur. Jusqu'à 4 photos.</p>
     <div class="phlist" id="ph-list"></div>
     <label class="addph" for="ph-input" id="ph-add">
       <input type="file" id="ph-input" accept="image/*" multiple>
@@ -66,52 +65,44 @@
     </div>
   </section>
 
-  <!-- Étape 2 : jardin -->
+  <!-- Étape 2 : ville et envies -->
   <section class="screen" id="s-jardin" hidden>
-    <p class="step">Étape 2 sur 3</p>
-    <h2>Ton jardin</h2>
+    <p class="step">Étape 2 sur 2</p>
+    <h2>Ta ville et tes envies</h2>
     <div class="field">
       <label for="ville">Ville ou code postal</label>
       <input id="ville" type="text" autocomplete="address-level2" placeholder="Par exemple Toulouse">
-      <p class="hint">Sert à connaître le climat : froid en hiver, chaleur et sécheresse en été.</p>
+      <p class="err" id="ville-err" hidden>Indique ta ville : elle sert à connaître le climat.</p>
     </div>
-    <fieldset>
-      <legend>Type de sol</legend>
-      <div class="chips" id="a-sol"></div>
-      <p class="hint">Si tu ne sais pas, Claude l'estime d'après ta région et tes photos.</p>
-    </fieldset>
-    <fieldset>
-      <legend>Arrosage possible en été</legend>
-      <div class="chips" id="a-arro"></div>
-    </fieldset>
-    <div class="nav">
-      <button class="ghost" type="button" data-go="s-photos">Retour</button>
-      <button class="primary" type="button" id="to-envies">Continuer</button>
-    </div>
-  </section>
-
-  <!-- Étape 3 : envies -->
-  <section class="screen" id="s-envies" hidden>
-    <p class="step">Étape 3 sur 3</p>
-    <h2>Tes envies</h2>
     <fieldset>
       <legend>Que souhaites-tu faire ?</legend>
       <div class="chips" id="a-obj"></div>
     </fieldset>
-    <fieldset>
-      <legend>Style de jardin</legend>
-      <div class="chips" id="a-style"></div>
-      <p class="hint" id="a-style-hint"></p>
-    </fieldset>
-    <p class="privacy">Tes photos sont envoyées à Claude, l'IA d'Anthropic, le temps de l'analyse. L'app ne les enregistre sur aucun serveur : seules des miniatures restent sur ton téléphone.</p>
+    <details class="more" id="more">
+      <summary>Sol, arrosage et style <span>facultatif</span></summary>
+      <fieldset>
+        <legend>Type de sol</legend>
+        <div class="chips" id="a-sol"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Arrosage possible en été</legend>
+        <div class="chips" id="a-arro"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Style de jardin</legend>
+        <div class="chips" id="a-style"></div>
+        <p class="hint" id="a-style-hint"></p>
+      </fieldset>
+    </details>
+    <p class="privacy">Tes photos sont envoyées à Claude, l'IA d'Anthropic, le temps de l'analyse. Elles ne sont enregistrées sur aucun serveur.</p>
     <p class="err" id="an-err" hidden></p>
     <div class="nav">
-      <button class="ghost" type="button" data-go="s-jardin">Retour</button>
-      <button class="primary" type="button" id="analyse">Analyser mon jardin</button>
+      <button class="ghost" type="button" data-go="s-photos">Retour</button>
+      <button class="primary" type="button" id="analyse">Voir mes propositions</button>
     </div>
   </section>
 
-  <!-- Analyse en cours -->
+
   <section class="screen" id="s-analyse" hidden>
     <div class="loading" role="status" aria-live="polite">
       <div class="sprout" aria-hidden="true"><i></i><i></i><i></i></div>
