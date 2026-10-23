@@ -25,6 +25,7 @@ Dans *Settings > Environment Variables* du projet :
 | `ANTHROPIC_API_KEY` | clé API créée dans la Console Anthropic |
 | `ACCESS_CODE` | code à partager avec les proches (majuscules indifférentes) |
 | `CLAUDE_MODEL` | facultatif, `claude-sonnet-5-5` par défaut |
+| `ANTHROPIC_WORKSPACE_ID` | facultatif, identifiant `wrkspc_…` de l'espace de travail, nécessaire si la clé n'est rattachée à aucun espace de travail |
 
 Redéployer après avoir ajouté les variables. Fixer une limite de dépense mensuelle dans la Console Anthropic.
 
