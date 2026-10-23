@@ -12,6 +12,7 @@ Deux outils pour composer les massifs et les haies d'un jardin selon l'expositio
 Web app installable sur téléphone. La personne prend 1 à 4 photos de son jardin, indique la direction de chaque prise de vue, sa ville, son sol, l'arrosage possible, ses envies et son style. Claude analyse les photos et repère les zones à planter ; l'app compose ensuite une proposition par zone avec le moteur de l'atelier.
 
 - `api/analyse.js` : fonction serveur Vercel qui vérifie le code d'accès et appelle l'API Claude.
+- `api/apercu.js` : fonction serveur qui dessine la zone plantée sur la photo avec un modèle d'image Gemini (Google). L'aperçu est créé à la demande, zone par zone, et gardé sur le téléphone.
 - `app/app.js`, `app/app.css` : le parcours de l'app.
 - `app/engine.js`, `app/atelier.css`, `app/index.html` : générés à partir de l'atelier par `python3 tools/build_app.py`. Après une modification de `index.html` ou de `tools/app_template.html`, relancer ce script.
 - `app/manifest.webmanifest`, `app/sw.js`, `app/icons/` : installation sur l'écran d'accueil et fonctionnement hors connexion (sauf l'analyse).
@@ -25,11 +26,13 @@ Dans *Settings > Environment Variables* du projet :
 | `ANTHROPIC_API_KEY` | clé API créée dans la Console Anthropic |
 | `ACCESS_CODE` | code à partager avec les proches (majuscules indifférentes) |
 | `CLAUDE_MODEL` | facultatif, `claude-sonnet-5-5` par défaut |
+| `GEMINI_API_KEY` | clé créée dans Google AI Studio, sur un projet avec la facturation activée (les modèles d'image n'ont pas d'offre gratuite) |
+| `GEMINI_IMAGE_MODEL` | facultatif, `gemini-nano-banana-2.1` par défaut |
 | `ANTHROPIC_WORKSPACE_ID` | facultatif, identifiant `wrkspc_…` de l'espace de travail, nécessaire si la clé n'est rattachée à aucun espace de travail |
 
 Redéployer après avoir ajouté les variables. Fixer une limite de dépense mensuelle dans la Console Anthropic.
 
-Une analyse de 4 photos coûte environ 4 centimes avec Claude Sonnet 5.5. Les photos sont envoyées à l'API Claude le temps de l'analyse ; l'app ne les enregistre sur aucun serveur.
+Une analyse de 4 photos coûte environ 4 centimes avec Claude Sonnet 5.5, et un aperçu environ 3 centimes avec Gemini Nano Banana 2.1 en 1K. Les photos sont envoyées à l'API Claude le temps de l'analyse, puis à l'API Gemini pour chaque aperçu demandé ; l'app ne les enregistre sur aucun serveur.
 
 Les données sur les plantes (rusticité, besoins en eau, croissance, prix) sont des ordres de grandeur indicatifs.
 

@@ -7,6 +7,24 @@ const store = {
   set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } },
   del(k){ try{ localStorage.removeItem(k); }catch(e){} }
 };
+// Photos en taille d'analyse et aperçus : trop lourds pour localStorage, rangés dans IndexedDB.
+const idb = (() => {
+  let dbp = null;
+  const db = () => dbp || (dbp = new Promise((res, rej) => {
+    const r = indexedDB.open("atelier-massifs", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("kv");
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  }));
+  const op = async (mode, fn) => {
+    const d = await db();
+    return new Promise((res, rej) => { const tx = d.transaction("kv", mode); const rq = fn(tx.objectStore("kv")); tx.oncomplete = () => res(rq && rq.result); tx.onerror = () => rej(tx.error); });
+  };
+  return {
+    get: k => op("readonly", st => st.get(k)).catch(() => null),
+    set: (k, v) => op("readwrite", st => st.put(v, k)).then(() => true).catch(() => false),
+    delPrefix: p => op("readwrite", st => { const rq = st.openCursor(); rq.onsuccess = () => { const c = rq.result; if(!c) return; if(String(c.key).startsWith(p)) c.delete(); c.continue(); }; return null; }).catch(() => null)
+  };
+})();
 const esc = t => String(t ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const MAX_PHOTOS = 4;
 const DIRS = ["N","NE","E","SE","S","SO","O","NO"];
@@ -103,7 +121,7 @@ $("last").addEventListener("click", e => {
   const list = store.get("app-analyses", []);
   const o = e.target.closest("[data-open]"), d = e.target.closest("[data-del]");
   if(o) openRecord(list[+o.dataset.open]);
-  if(d){ const r = list.splice(+d.dataset.del, 1)[0]; store.set("app-analyses", list); if(r) store.del("app-zones-" + r.id); renderLast(); }
+  if(d){ const r = list.splice(+d.dataset.del, 1)[0]; store.set("app-analyses", list); if(r){ store.del("app-zones-" + r.id); idb.delPrefix("photo-" + r.id + "-"); idb.delPrefix("apercu-" + r.id + "-"); } renderLast(); }
 });
 renderLast();
 
@@ -131,7 +149,8 @@ $("ph-input").addEventListener("change", async e => {
   for(const f of files.slice(0, room)){
     try{
       const img = await loadImage(f);
-      photos.push({id: Math.random().toString(36).slice(2), data: toJpeg(img, 1024, .78).split(",")[1], thumb: toJpeg(img, 360, .7), direction: null, note: ""});
+      const w0 = img.width || img.naturalWidth, h0 = img.height || img.naturalHeight, k = Math.min(1, 1024 / Math.max(w0, h0));
+      photos.push({id: Math.random().toString(36).slice(2), data: toJpeg(img, 1024, .78).split(",")[1], w: Math.round(w0*k), h: Math.round(h0*k), thumb: toJpeg(img, 360, .7), direction: null, note: ""});
     }catch(err){
       phErr("Une photo n'a pas pu être lue. Choisis une photo au format JPEG ou PNG, ou fais une capture d'écran de la photo.");
     }
@@ -239,7 +258,8 @@ $("analyse").addEventListener("click", async () => {
     const rec = {id: Date.now().toString(36), date: new Date().toISOString(), ville: prefs.ville.trim(), prefs: {...prefs}, analysis: d, thumbs: photos.map(p => p.thumb)};
     const list = store.get("app-analyses", []);
     list.unshift(rec);
-    while(list.length > 3){ const old = list.pop(); store.del("app-zones-" + old.id); }
+    while(list.length > 3){ const old = list.pop(); store.del("app-zones-" + old.id); idb.delPrefix("photo-" + old.id + "-"); idb.delPrefix("apercu-" + old.id + "-"); }
+    await Promise.all(photos.map((p, i) => idb.set(`photo-${rec.id}-${i}`, {data: p.data, w: p.w, h: p.h})));
     if(!store.set("app-analyses", list)){ list.forEach(x => { if(x !== rec) x.thumbs = []; }); store.set("app-analyses", list); }
     renderLast();
     openRecord(rec);
@@ -278,7 +298,11 @@ window.renderZoneDetail = function(z){
   const d = z.z || {};
   const tags = [d.orientation ? `Tournée vers le ${DIR_LONG[d.orientation]}` : "", EXPO_LBL[d.exposition], EAU_LBL[d.humidite],
     d.profondeur ? `${(+d.profondeur/100).toLocaleString("fr-FR")} m de profondeur` : "", d.hauteur_masquer ? `Écran de ${d.hauteur_masquer} m${d.hauteur_masquer==="4"?" et plus":""}` : ""].filter(Boolean);
-  box.innerHTML = `${z.thumb ? `<img src="${z.thumb}" alt="Photo de la zone ${esc(z.label)}">` : ""}
+  box.innerHTML = `<div class="apercu">
+      <div class="ba" id="ba">${z.thumb ? `<img class="ba-before" id="ba-before" src="${z.thumb}" alt="Ta photo de la zone ${esc(z.label)}">` : `<div class="ba-empty">Pas de photo pour cette zone</div>`}</div>
+      <div class="ap-actions" id="ap-actions"></div>
+      <p class="hint ap-note" id="ap-note"></p>
+    </div>
     <div class="zinfo"><p>${esc(z.note)}</p>
       <div class="ztags">${tags.map(t => `<span>${esc(t)}</span>`).join("")}</div>
       ${d.ensoleillement ? `<p class="hint">${esc(d.ensoleillement)}</p>` : ""}
@@ -286,6 +310,97 @@ window.renderZoneDetail = function(z){
       ${d.attention && d.attention.length ? `<p class="warnl"><b>Avant de planter :</b> ${esc(d.attention.join(" "))}</p>` : ""}
     </div>`;
 };
+// ---------- Aperçu sur la photo (Gemini) ----------
+let apTok = 0, apTimer = null, apBusy = false;
+const AP_NOTE = "Image créée par IA (Gemini, de Google) à partir de ta photo et des plantes proposées : l'aspect réel variera. Ta photo est envoyée à Google le temps de créer l'image.";
+function curZoneObj(){ return ZONES.find(z => z.id === curZone); }
+function sigOf(){ return combo.map(c => c.plant.nom).sort().join("|") + "#" + state.age + "#" + state.prof; }
+function scheduleApercu(){ clearTimeout(apTimer); apTimer = setTimeout(refreshApercu, 60); }
+function baHTML(before, after){
+  return `<img class="ba-before" src="${before}" alt="Ta photo avant les plantations">
+    <img class="ba-after" src="${after}" alt="Aperçu de la zone plantée">
+    <span class="ba-line" aria-hidden="true"></span>
+    <span class="ba-lbl l">Avant</span><span class="ba-lbl r">Après</span>
+    <input class="ba-range" type="range" min="0" max="100" value="12" aria-label="Faire glisser pour comparer avant et après">`;
+}
+async function refreshApercu(){
+  const tk = ++apTok, z = curZoneObj(), rec = current;
+  const actions = $("ap-actions"), note = $("ap-note"), ba = $("ba");
+  if(!z || !rec || !actions || apBusy) return;
+  const ph = z.z ? await idb.get(`photo-${rec.id}-${(z.z.photo || 1) - 1}`) : null;
+  const cached = await idb.get(`apercu-${rec.id}-${z.id}`);
+  if(tk !== apTok || !$("ap-actions")) return;
+  const before = ph ? `data:image/jpeg;base64,${ph.data}` : z.thumb;
+  if(cached && before){
+    if(!ba.classList.contains("has-after") || ba.dataset.img !== cached.date){
+      ba.innerHTML = baHTML(before, cached.image); ba.classList.add("has-after"); ba.dataset.img = cached.date; ba.style.setProperty("--pos", "12%");
+    }
+    const stale = cached.sig !== sigOf();
+    actions.innerHTML = ph ? (stale
+      ? `<button class="primary" type="button" id="ap-go">Mettre à jour l'image avec ces plantes</button>`
+      : `<button class="ghost small" type="button" id="ap-go">Créer une autre version</button>`) : "";
+    note.textContent = stale ? "Les plantes ont changé depuis cette image." : AP_NOTE;
+    note.classList.remove("err");
+  } else {
+    if(ph && $("ba-before")) $("ba-before").src = before;
+    actions.innerHTML = ph ? `<button class="primary" type="button" id="ap-go">Voir dans mon jardin</button>` : "";
+    note.classList.remove("err");
+    note.textContent = ph ? AP_NOTE : rec.demo ? "Dans l'exemple, il n'y a pas de photo : l'aperçu sur photo est disponible pour ton propre jardin." : "Refais une analyse pour voir les plantations dessinées sur tes photos.";
+  }
+  const go = $("ap-go"); if(go) go.addEventListener("click", () => generateApercu(z, rec, ph));
+}
+function shrinkImage(src){
+  return new Promise(res => {
+    const im = new Image();
+    im.onload = () => { const k = Math.min(1, 1280 / Math.max(im.width, im.height)); const c = document.createElement("canvas");
+      c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+      res(c.toDataURL("image/jpeg", .85)); };
+    im.onerror = () => res(src); im.src = src;
+  });
+}
+async function generateApercu(z, rec, ph){
+  const code = store.get("app-code", "");
+  const note = $("ap-note"), actions = $("ap-actions"), ba = $("ba");
+  if(!code){ note.textContent = "Saisis ton code d'accès sur l'écran d'accueil pour créer l'aperçu."; note.classList.add("err"); return; }
+  const qty = {}; ((lastBudget && lastBudget.rows) || []).forEach(([nom, r, n]) => { qty[nom] = n; });
+  const payload = {
+    code, photo: ph.data, largeur: ph.w, hauteurPhoto: ph.h,
+    emplacement: z.z.emplacement || `${z.z.nom}. ${z.z.description}`,
+    profondeur: state.prof, age: state.age, a_garder: z.z.a_garder || [],
+    plantes: combo.map(c => ({nom: c.plant.nom, latin: c.plant.latin, type: c.plant.type, couche: lay(c), hauteur: Math.round(heightAt(c.plant, state.age)),
+      forme: form(c.plant), fleur: c.plant.bloom ? c.plant.fam : null, argente: leafCols(c.plant) === SILVER, persistant: EVERGREEN.test(c.plant.latin), quantite: qty[c.plant.nom] || 1}))
+  };
+  const sig = sigOf();
+  apBusy = true; actions.innerHTML = ""; note.classList.remove("err"); note.textContent = "";
+  const load = document.createElement("div"); load.className = "ba-load";
+  load.innerHTML = `<div class="sprout" aria-hidden="true"><i></i><i></i><i></i></div><p>Création de l'image…</p><small>Compte 15 à 40 secondes.</small>`;
+  ba.appendChild(load);
+  const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 80000);
+  try{
+    const r = await fetch("/api/apercu", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(payload), signal: ctrl.signal});
+    const raw = await r.text(); let d = {}; try{ d = JSON.parse(raw); }catch(e){}
+    if(!r.ok || !d.image){
+      let msg = d.erreur || (r.status === 504 || /TIMEOUT/i.test(raw) ? "La création de l'image a pris trop de temps. Réessaie." : `La création de l'image a échoué (erreur ${r.status}).`);
+      throw new Error(msg + (d.detail ? ` Détail technique : ${d.detail}` : ""));
+    }
+    const image = await shrinkImage(`data:${d.mime || "image/png"};base64,${d.image}`);
+    await idb.set(`apercu-${rec.id}-${z.id}`, {sig, image, date: new Date().toISOString()});
+  }catch(e){
+    apBusy = false; load.remove();
+    await refreshApercu();
+    const n = $("ap-note"); if(n){ n.textContent = e.name === "AbortError" ? "La création de l'image a pris trop de temps. Réessaie." : e.message === "Failed to fetch" ? "Pas de connexion. Vérifie ton réseau puis réessaie." : e.message; n.classList.add("err"); }
+    return;
+  }finally{ clearTimeout(to); }
+  apBusy = false; load.remove();
+  if(curZone === z.id) refreshApercu();
+}
+// Après chaque recomposition par le moteur, on met à jour l'état du bouton d'aperçu.
+const _engineRender = window.render;
+window.render = function(){ const out = _engineRender.apply(this, arguments); scheduleApercu(); return out; };
+document.addEventListener("input", e => {
+  const r = e.target.closest(".ba-range"); if(r) r.closest(".ba").style.setProperty("--pos", r.value + "%");
+});
+
 function openRecord(rec){
   if(!rec || !rec.analysis || !rec.analysis.zones.length) return;
   current = rec;

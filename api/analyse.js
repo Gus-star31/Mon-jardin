@@ -39,10 +39,11 @@ const SCHEMA = {
       type: "array",
       items: {
         type: "object", additionalProperties: false,
-        required: ["nom", "photo", "description", "orientation", "exposition", "ensoleillement", "humidite", "profondeur", "longueur", "objectifs", "hauteur_masquer", "a_garder", "attention"],
+        required: ["nom", "photo", "emplacement", "description", "orientation", "exposition", "ensoleillement", "humidite", "profondeur", "longueur", "objectifs", "hauteur_masquer", "a_garder", "attention"],
         properties: {
           nom: str,
           photo: { type: "integer" },
+          emplacement: str,
           description: str,
           orientation: { enum: DIRS },
           exposition: { enum: ["s", "m", "o"] },
@@ -72,6 +73,7 @@ Règles :
 - Climat : déduis la zone de la ville indiquée. "med" méditerranéen, "so" Sud-Ouest (Toulouse, Bordeaux, Pau...), "oc" océanique (Bretagne, Normandie, Nantes...), "co" continental (Strasbourg, Lyon, Dijon), "mo" montagnard. Paris et le centre de la France sont "oc".
 - Sol : si la personne l'indique, garde son choix ; sinon déduis-le de la région et des indices visibles, et dis que c'est une estimation.
 - 2 à 6 zones au total. Chaque zone correspond à une bande ou un massif précis, visible sur une photo (numéro de photo à partir de 1). Une photo peut contenir plusieurs zones (par exemple les deux côtés d'une allée).
+- "emplacement" : où se trouve exactement la zone sur la photo, en anglais, pour un logiciel de retouche d'image qui devra y dessiner les plantations. Donne la position dans le cadre (left, right, background, foreground, centre), les repères visibles (fence, palm tree, house wall, gate…) et l'étendue ("the strip of lawn along the reed fence in the background, from the white gate pillar on the left to the right edge of the photo, in front of the palm tree"). Une phrase, 40 mots au plus.
 - "a_garder" : arbres, arbustes ou éléments existants à conserver. "attention" : points à traiter avant de planter (plante envahissante comme le bambou traçant ou le liseron, racines, réseaux, ombre d'un grand arbre, sol tassé).
 - Écris en français, en tutoyant, avec des phrases courtes et concrètes. Le nom d'une zone fait 2 à 5 mots et se repère facilement ("Côté rue, le long de la canisse").
 - N'invente rien que les photos ne montrent pas. Si un élément est incertain, dis-le simplement.`;
@@ -120,6 +122,7 @@ function sanitize(r, nPhotos) {
     id: "z" + (i + 1),
     nom: clean(z.nom, 60) || `Zone ${i + 1}`,
     photo: Math.min(Math.max(parseInt(z.photo, 10) || 1, 1), nPhotos),
+    emplacement: clean(z.emplacement, 400),
     description: clean(z.description, 500),
     orientation: DIRS.includes(String(z.orientation).toUpperCase()) ? String(z.orientation).toUpperCase() : null,
     exposition: pick(z.exposition, ["s", "m", "o"], "s"),
