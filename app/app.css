@@ -208,6 +208,9 @@ body:has(#s-ouverture:not([hidden])), html:has(#s-ouverture:not([hidden])){backg
 .budget-card li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid rgba(188,198,219,.4);font-size:14px;font-variant-numeric:tabular-nums}
 .budget-card li > span:last-child{white-space:nowrap}
 .budget-card li small{display:block;color:var(--prusse-pale);font-size:12px}
+.budget-card .nurs{font-size:13px}
+.budget-card .nurs span{color:var(--prusse-pale)}
+.budget-card .nurs a{color:var(--papier);min-height:32px;display:inline-flex;align-items:center}
 .budget-card .bnote{margin:0;font-size:12px;line-height:16px;color:var(--prusse-pale)}
 .crit{display:flex;flex-direction:column;gap:16px;padding-top:4px}
 .crit .grid{display:grid;grid-template-columns:minmax(0,1fr);gap:24px}

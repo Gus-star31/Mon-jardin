@@ -426,6 +426,7 @@ function renderProposal(){
   $("esp-budget").hidden = !b;
   if(b) $("esp-budget").innerHTML = `<div class="bh"><div><span class="eyebrow">Budget estimé</span><strong>${eur0(b.min)} – ${eur0(b.max)}</strong></div>
       <button class="link" type="button" id="buy-toggle" aria-expanded="${listOpen}">${listOpen ? "Masquer la liste" : "Ma liste d’achats"}</button></div>
+    ${nurseriesHTML(combo.map(c => c.plant))}
     ${listOpen ? `<ul>${b.rows.map(([nom, r, q]) => { const p = PLANTS.find(x => x.nom === nom); const [x, y] = p ? unitPrice(p, r) : [0, 0];
       return `<li><span>${p ? `<a href="${shopUrl(p)}" target="_blank" rel="noopener">${esc(nom)} ↗</a>` : esc(nom)}<small>${r === "bulbe" ? q + " bulbes" : q + (q > 1 ? " pieds" : " pied")}</small></span><span>${eur0(x * q)} – ${eur0(y * q)}</span></li>`; }).join("")}</ul>
       <p class="bnote">Prix indicatifs de jardinerie et de pépinière, en ${FMT_DESC[state.fmt]}. Hors terre, paillage, livraison et main-d’œuvre.</p>` : ""}`;
