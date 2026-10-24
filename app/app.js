@@ -109,11 +109,12 @@ document.addEventListener("click", e => {
 function homeScreen(){ return demo || espaces().length ? "s-jardin" : "s-login"; }
 
 // ---------- Aide du premier coin ----------
-// Une carte par étape (photo, envies, diagnostic), affichée une fois, le temps du premier coin d'un nouveau compte.
+// Une carte par étape (photo, envies, jardin, diagnostic), affichée une fois, le temps du premier coin d'un nouveau compte.
 const COACH = {
   "s-photo": [1, "Ajoute <em>une photo</em>", "Prends de face le coin à planter. L’app y repère les zones, l’exposition et la place disponible.", `<svg class="illu" aria-hidden="true" width="44" height="32" viewBox="0 0 40.3333 29.3333" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M25.6667 24.75C30.7293 24.75 34.8333 20.6459 34.8333 15.5833C34.8333 10.5207 30.7293 6.41667 25.6667 6.41667C20.6041 6.41667 16.5 10.5207 16.5 15.5833C16.5 20.6459 20.6041 24.75 25.6667 24.75Z" fill="#F3D35B"/><path d="M3.66667 6.41667H11L14.6667 0.916667H25.6667L29.3333 6.41667H36.6667C37.396 6.41667 38.0955 6.7064 38.6112 7.22212C39.1269 7.73785 39.4167 8.43732 39.4167 9.16667V25.6667C39.4167 26.396 39.1269 27.0955 38.6112 27.6112C38.0955 28.1269 37.396 28.4167 36.6667 28.4167H3.66667C2.93732 28.4167 2.23785 28.1269 1.72212 27.6112C1.2064 27.0955 0.916667 26.396 0.916667 25.6667V9.16667C0.916667 8.43732 1.2064 7.73785 1.72212 7.22212C2.23785 6.7064 2.93732 6.41667 3.66667 6.41667Z" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M26.5833 16.5C26.5833 20.0438 23.7105 22.9167 20.1667 22.9167C16.6228 22.9167 13.75 20.0438 13.75 16.5C13.75 12.9562 16.6228 10.0833 20.1667 10.0833C23.7105 10.0833 26.5833 12.9562 26.5833 16.5Z" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M33 10.0833H33.9167" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/></svg>`],
-  "s-envies": [2, "Donne <em>tes critères</em>", "Massif fleuri, haie pour t’isoler, style de jardin : tes envies guident le choix des plantes.", `<svg class="illu" aria-hidden="true" width="24" height="32" viewBox="0 0 27.5 36.6667" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.4167 23.8333C22.9855 23.8333 27.5 19.3189 27.5 13.75C27.5 8.18113 22.9855 3.66667 17.4167 3.66667C11.8478 3.66667 7.33333 8.18113 7.33333 13.75C7.33333 19.3189 11.8478 23.8333 17.4167 23.8333Z" fill="#D5E3CF"/><path d="M13.75 35.75C4.58333 24.75 0.916667 19.25 0.916667 13.75C0.916667 10.3464 2.26875 7.08218 4.67546 4.67546C7.08218 2.26875 10.3464 0.916667 13.75 0.916667C17.1536 0.916667 20.4178 2.26875 22.8245 4.67546C25.2313 7.08218 26.5833 10.3464 26.5833 13.75C26.5833 19.25 22.9167 24.75 13.75 35.75Z" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M8.25 15.5833C10.0833 8.25 17.4167 6.41667 20.1667 8.25C20.1667 13.75 13.75 19.25 8.25 15.5833ZM8.25 15.5833L16.5 10.0833" stroke-width="1.375" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/></svg>`],
-  "s-espace": [3, "Consulte <em>ton diagnostic</em>", "Les plantes adaptées à ce coin, leur plan de plantation et le budget. Remplace une plante ou ajuste les critères si besoin.", `<svg class="illu" aria-hidden="true" width="26" height="32" viewBox="0 0 28.4167 34.8333" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M26.5833 4.58333H8.25C7.23748 4.58333 6.41667 5.40414 6.41667 6.41667V30.25C6.41667 31.2625 7.23748 32.0833 8.25 32.0833H26.5833C27.5959 32.0833 28.4167 31.2625 28.4167 30.25V6.41667C28.4167 5.40414 27.5959 4.58333 26.5833 4.58333Z" fill="#F5CDB0"/><path d="M26.5833 6.41667L21.0833 0.916667H0.916667V33.9167H26.5833V6.41667ZM21.0833 0.916667V6.41667H26.5833" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M6.41667 15.5833H13.75M6.41667 21.0833H19.25M6.41667 26.5833H15.5833" stroke-width="1.375" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M18.3333 17.4167C19.8521 17.4167 21.0833 16.1854 21.0833 14.6667C21.0833 13.1479 19.8521 11.9167 18.3333 11.9167C16.8146 11.9167 15.5833 13.1479 15.5833 14.6667C15.5833 16.1854 16.8146 17.4167 18.3333 17.4167Z" fill="#F2C4C4" stroke-width="1.375" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/></svg>`]
+  "s-envies": [2, "Donne <em>tes critères</em>", "Massif fleuri, haie pour t’isoler, style de jardin : tes envies guident le choix des plantes.", `<svg class="illu" aria-hidden="true" width="32" height="32" viewBox="0 0 18.6 18.6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.05 17.55C1.05 7.05 8.55 1.05 17.55 1.05C17.55 11.55 11.55 17.55 1.05 17.55Z" fill="#D5E3CF" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M1.05 17.55L11.55 7.05" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/></svg>`],
+  "s-garden": [3, "Décris <em>ton jardin</em>", "Ton département donne le climat, le sol et l’arrosage affinent le choix des plantes.", `<svg class="illu" aria-hidden="true" width="24" height="32" viewBox="0 0 27.5 36.6667" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.4167 23.8333C22.9855 23.8333 27.5 19.3189 27.5 13.75C27.5 8.18113 22.9855 3.66667 17.4167 3.66667C11.8478 3.66667 7.33333 8.18113 7.33333 13.75C7.33333 19.3189 11.8478 23.8333 17.4167 23.8333Z" fill="#D5E3CF"/><path d="M13.75 35.75C4.58333 24.75 0.916667 19.25 0.916667 13.75C0.916667 10.3464 2.26875 7.08218 4.67546 4.67546C7.08218 2.26875 10.3464 0.916667 13.75 0.916667C17.1536 0.916667 20.4178 2.26875 22.8245 4.67546C25.2313 7.08218 26.5833 10.3464 26.5833 13.75C26.5833 19.25 22.9167 24.75 13.75 35.75Z" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M8.25 15.5833C10.0833 8.25 17.4167 6.41667 20.1667 8.25C20.1667 13.75 13.75 19.25 8.25 15.5833ZM8.25 15.5833L16.5 10.0833" stroke-width="1.375" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/></svg>`],
+  "s-espace": [4, "Consulte <em>ton diagnostic</em>", "Les plantes adaptées à ce coin, leur plan de plantation et le budget. Remplace une plante ou ajuste les critères si besoin.", `<svg class="illu" aria-hidden="true" width="26" height="32" viewBox="0 0 28.4167 34.8333" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M26.5833 4.58333H8.25C7.23748 4.58333 6.41667 5.40414 6.41667 6.41667V30.25C6.41667 31.2625 7.23748 32.0833 8.25 32.0833H26.5833C27.5959 32.0833 28.4167 31.2625 28.4167 30.25V6.41667C28.4167 5.40414 27.5959 4.58333 26.5833 4.58333Z" fill="#F5CDB0"/><path d="M26.5833 6.41667L21.0833 0.916667H0.916667V33.9167H26.5833V6.41667ZM21.0833 0.916667V6.41667H26.5833" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M6.41667 15.5833H13.75M6.41667 21.0833H19.25M6.41667 26.5833H15.5833" stroke-width="1.375" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M18.3333 17.4167C19.8521 17.4167 21.0833 16.1854 21.0833 14.6667C21.0833 13.1479 19.8521 11.9167 18.3333 11.9167C16.8146 11.9167 15.5833 13.1479 15.5833 14.6667C15.5833 16.1854 16.8146 17.4167 18.3333 17.4167Z" fill="#F2C4C4" stroke-width="1.375" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/></svg>`]
 };
 let coach = store.get("app-coach", null);
 function startCoach(){ coach = {seen: []}; store.set("app-coach", coach); }
@@ -124,11 +125,12 @@ function drawCoach(id){
   const [n, title, text, picto] = c;
   const el = document.createElement("div");
   el.className = "coach"; el.setAttribute("role", "note");
-  el.innerHTML = `${picto}<div><p class="eyebrow">Ton premier coin · ${n} sur 3</p><h3>${title}</h3><p>${text}</p><button class="link" type="button">Compris</button></div>`;
+  el.innerHTML = `${picto}<div><p class="eyebrow">Ton premier coin · ${n} sur ${Object.keys(COACH).length}</p><h3>${title}</h3><p>${text}</p><button class="link" type="button">Compris</button></div>`;
   el.querySelector("button").addEventListener("click", () => el.remove());
   ($(id).querySelector(".head") || $("esp-title")).after(el);
   coach.seen.push(id);
-  if(coach.seen.length === Object.keys(COACH).length){ coach = null; store.del("app-coach"); } else store.set("app-coach", coach);
+  // Le diagnostic clôt l'aide, même si l'étape jardin a été sautée (réglages déjà connus).
+  if(id === "s-espace" || coach.seen.length === Object.keys(COACH).length){ coach = null; store.del("app-coach"); } else store.set("app-coach", coach);
 }
 
 // ---------- Pastilles ----------
@@ -211,9 +213,14 @@ $("login-form").addEventListener("submit", e => {
 
 // ---------- Nouveau parcours : 02 photo → 03 envies → 03 jardin (la première fois) → 04 analyse ----------
 const steps = () => garden ? 2 : 3;
+// Étapes nommées : faites (coche), en cours, à venir. L'étape Jardin n'existe que la première fois.
+const STEP_NAMES = ["Photo", "Envies", "Jardin"];
+const STEP_DONE = `<svg aria-hidden="true" width="14" height="14" viewBox="0 0 19.3333 19.3333" fill="none"><path d="M9.66667 18.5556C14.5759 18.5556 18.5556 14.5759 18.5556 9.66667C18.5556 4.75747 14.5759 0.777778 9.66667 0.777778C4.75747 0.777778 0.777778 4.75747 0.777778 9.66667C0.777778 14.5759 4.75747 18.5556 9.66667 18.5556Z" fill="#D5E3CF" stroke-width="1.55556" stroke="#1C1C1A"/><path d="M5.77778 9.88889L8.55556 12.5556L13.6667 7" stroke-width="1.77778" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/></svg>`;
 function setProgress(id, n){
-  const total = steps();
-  $(id).innerHTML = Array.from({length: total}, (_, i) => `<b class="${i < n ? "on" : ""} ${i === n - 1 ? "cur" : ""}"></b>`).join("");
+  $(id).innerHTML = STEP_NAMES.slice(0, steps()).map((name, i) => {
+    const st = i < n - 1 ? "done" : i === n - 1 ? "cur" : "todo";
+    return `<li class="${st}"${st === "cur" ? ' aria-current="step"' : ""}>${st === "done" ? STEP_DONE : '<i aria-hidden="true"></i>'}${name}${st === "done" ? '<span class="sr"> (faite)</span>' : ""}</li>`;
+  }).join("");
 }
 function startSpace(){
   demo = false; photo = null; renderPhoto();
@@ -253,7 +260,6 @@ $("ph-input").addEventListener("change", async e => {
 });
 function renderPhoto(){
   setProgress("pg-photo", 1);
-  $("step-photo").textContent = `Étape 1 sur ${steps()}`;
   const canMeasure = "DeviceOrientationEvent" in window;
   const p = photo;
   $("ph-card").innerHTML = p ? `<article class="ph">
@@ -339,15 +345,28 @@ $("to-envies").addEventListener("click", () => { renderEnvies(); show("s-envies"
 
 // 03 · Envies
 appChips("a-obj", OBJ_OPT, "multi", () => envies.objectifs, v => { envies.objectifs = v; store.set("app-envies", envies); });
-appChips("a-style", STYLE_OPT, "single", () => envies.style, v => { envies.style = v; store.set("app-envies", envies); styleHint(); });
-function styleHint(){ $("a-style-hint").textContent = (STYLES[envies.style] || STYLES.libre).hint; $("a-style-ph").innerHTML = styleFigure(envies.style); }
+const drawStyle = appChips("a-style", STYLE_OPT, "single", () => envies.style, v => { envies.style = v; store.set("app-envies", envies); styleHint(); });
+function styleHint(){ $("a-style-hint").textContent = (STYLES[envies.style] || STYLES.libre).hint; $("a-style-ph").innerHTML = styleFigure(envies.style); styleWarn(); }
+// Rappel de cohérence : le style du premier espace (hors « sans style ») fait référence pour les suivants.
+function gardenStyle(){
+  const r = records.find(r => r.prefs && r.prefs.style && r.prefs.style !== "libre" && r.analysis.zones.some(z => !(r.removed || []).includes(z.id)));
+  return r ? r.prefs.style : null;
+}
+function styleWarn(){
+  const ref = gardenStyle(), box = $("a-style-warn");
+  box.hidden = !ref || ref === envies.style;
+  if(box.hidden) return;
+  const name = STYLE_OPT.find(o => o[0] === ref)[1].toLowerCase();
+  box.innerHTML = `<b>Ton jardin a commencé en ${esc(name)}.</b> Pour un ensemble cohérent, garde le même style d’un espace à l’autre. <button class="linkish" type="button" id="a-style-back">Revenir au ${esc(name)}</button>`;
+  $("a-style-back").addEventListener("click", () => { envies.style = ref; store.set("app-envies", envies); drawStyle(); styleHint(); });
+}
 styleHint();
 function renderEnvies(){
   setProgress("pg-envies", 2);
-  $("step-envies").textContent = `Étape 2 sur ${steps()}`;
   $("env-photo").hidden = !photo; if(photo) $("env-img").src = photo.thumb;
   $("env-next").textContent = garden ? "Voir mes propositions" : "Continuer";
   $("env-err").hidden = true;
+  styleWarn();
 }
 $("env-next").addEventListener("click", () => {
   if(garden) return runAnalyse("env-err", "s-envies");
@@ -364,13 +383,15 @@ function deptHelp(){
   $("dept-help").textContent = d ? `Climat : ${CLIM_LBL[d[2]]}` : "";
   return d;
 }
-$("dept").addEventListener("input", () => { deptHelp(); $("dept-err").hidden = true; $("dept").removeAttribute("aria-invalid"); });
+// Bouton inactif tant que le département (seul champ obligatoire de l'étape) est vide.
+const gardenReady = () => { $("garden-next").disabled = !$("dept").value.trim(); };
+$("dept").addEventListener("input", () => { deptHelp(); gardenReady(); $("dept-err").hidden = true; $("dept").removeAttribute("aria-invalid"); });
 $("dept").addEventListener("change", () => { const d = deptHelp(); if(d) $("dept").value = `${d[0]} · ${d[1]}`; });
 function renderGarden(){
   gdraft = Object.assign({sol: null, arrosage: "1"}, garden || {});
   $("dept").value = garden ? (garden.dept ? `${garden.dept} · ${garden.label}` : garden.label) : "";
   deptHelp(); drawSol(); drawArro();
-  $("step-garden").textContent = gardenEdit ? "Réglages du jardin" : `Étape 3 sur 3`;
+  $("step-garden").hidden = !gardenEdit;
   $("pg-garden").hidden = gardenEdit; if(!gardenEdit) setProgress("pg-garden", 3);
   $("garden-back").dataset.go = gardenEdit ? "s-jardin" : "s-envies";
   $("garden-back").querySelector("span").textContent = gardenEdit ? "Ton jardin" : "Tes envies";
@@ -378,6 +399,7 @@ function renderGarden(){
   $("garden-privacy").hidden = gardenEdit;
   $("garden-next").textContent = gardenEdit ? "Enregistrer" : "Voir mes propositions";
   $("dept-err").hidden = true; $("gar-err").hidden = true;
+  gardenReady();
 }
 $("garden-next").addEventListener("click", () => {
   const raw = $("dept").value.trim(), d = findDept(raw);
@@ -722,17 +744,34 @@ function closeSheet(){
 }
 $("sheet").addEventListener("click", e => { if(e.target.closest("[data-close]")) closeSheet(); });
 document.addEventListener("keydown", e => { if(e.key === "Escape" && !$("sheet").hidden) closeSheet(); });
+// Le retrait masque l'espace tout de suite ; ses données ne sont effacées qu'à la fermeture du toast, pour qu'« Annuler » rende tout.
+let toastTimer = null, toastDone = null;
+function hideToast(){ clearTimeout(toastTimer); $("toast").hidden = true; const d = toastDone; toastDone = null; if(d) d(); }
+function showToast(msg, undo, done){
+  hideToast();
+  $("toast-msg").textContent = msg;
+  $("toast-undo").hidden = !undo;
+  $("toast-undo").onclick = () => { toastDone = null; hideToast(); undo(); };
+  toastDone = done; $("toast").hidden = false;
+  toastTimer = setTimeout(hideToast, 5000);
+}
+window.addEventListener("pagehide", () => { if(toastDone) hideToast(); });
 $("sheet-ok").addEventListener("click", () => {
   const sp = pendingRemove; if(!sp) return;
-  const r = sp.rec;
-  r.removed = [...new Set([...(r.removed || []), sp.z.id])];
-  const zd = store.get("app-zones-" + r.id, {}); delete zd[sp.z.id]; store.set("app-zones-" + r.id, zd);
-  idb.delPrefix(`apercu-${r.id}-${sp.z.id}`);
-  if(r.analysis.zones.every(z => r.removed.includes(z.id))) dropRecord(r);
+  const r = sp.rec, zid = sp.z.id;
+  r.removed = [...new Set([...(r.removed || []), zid])];
   saveRecords();
   sheetReturn = null; closeSheet();
   renderJardin();
   const f = $("j-spaces").querySelector(".rm") || $("edit-toggle"); if(f && !f.hidden) f.focus();
+  showToast(`« ${sp.z.nom} » est retiré de ton jardin.`, () => {
+    r.removed = r.removed.filter(id => id !== zid);
+    saveRecords(); renderJardin();
+  }, () => {
+    const zd = store.get("app-zones-" + r.id, {}); delete zd[zid]; store.set("app-zones-" + r.id, zd);
+    idb.delPrefix(`apercu-${r.id}-${zid}`);
+    if(r.analysis.zones.every(z => r.removed.includes(z.id))){ dropRecord(r); saveRecords(); renderJardin(); }
+  });
 });
 
 function openDemo(){
