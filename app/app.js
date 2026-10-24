@@ -560,8 +560,8 @@ $("crit-toggle").addEventListener("click", () => {
 });
 
 // ---------- Aperçu sur la photo (Gemini) ----------
-// En pause : aucune image n'est demandée à Gemini, l'espace montre seulement la photo d'origine.
-const APERCU_PAUSE = true;
+// true : aucune image n'est demandée à Gemini, l'espace montre seulement la photo d'origine.
+const APERCU_PAUSE = false;
 let apTok = 0, apTimer = null, apBusy = false;
 const AP_NOTE = "Image créée par IA (Gemini, de Google) à partir de ta photo : l’aspect réel variera. Ta photo est envoyée à Google le temps de créer l’image.";
 function curZoneObj(){ return ZONES.find(z => z.id === curZone); }

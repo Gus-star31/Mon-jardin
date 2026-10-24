@@ -27,7 +27,7 @@ Dans *Settings > Environment Variables* du projet :
 | `CLAUDE_MODEL` | facultatif, `claude-sonnet-5-5` par défaut |
 | `GEMINI_API_KEY` | clé créée dans Google AI Studio, sur un projet avec la facturation activée (les modèles d'image n'ont pas d'offre gratuite) |
 | `GEMINI_IMAGE_MODEL` | facultatif, `gemini-nano-banana-2.1` par défaut |
-| `APERCU_ACTIF` | `1` pour activer l’aperçu sur photo. Sans cette variable, l’aperçu est en pause et Gemini n’est jamais appelé (remettre aussi `APERCU_PAUSE` à `false` dans `app/app.js`) |
+| `APERCU_PAUSE` | facultatif, `1` pour couper l’aperçu sur photo : Gemini n’est plus appelé |
 | `ANTHROPIC_WORKSPACE_ID` | facultatif, identifiant `wrkspc_…` de l'espace de travail, nécessaire si la clé n'est rattachée à aucun espace de travail |
 
 Redéployer après avoir ajouté les variables. Fixer une limite de dépense mensuelle dans la Console Anthropic.
