@@ -1,11 +1,8 @@
 // Analyse d'un jardin à partir de photos, avec Claude (API Anthropic).
 // Variables d'environnement à définir dans Vercel :
 //   ANTHROPIC_API_KEY  clé API créée dans la Console Anthropic
-//   ACCESS_CODE        code partagé avec les proches (comparé sans tenir compte des majuscules)
 //   CLAUDE_MODEL       facultatif, "claude-sonnet-5-5" par défaut
 //   ANTHROPIC_WORKSPACE_ID  facultatif, identifiant wrkspc_… à fournir si la clé n'est rattachée à aucun espace de travail
-
-const crypto = require("crypto");
 
 const MODEL = process.env.CLAUDE_MODEL || "claude-sonnet-5-5";
 const WORKSPACE = (process.env.ANTHROPIC_WORKSPACE_ID || "").trim();
@@ -82,13 +79,6 @@ function opposite(d) { return DIRS[(DIRS.indexOf(d) + 4) % 8]; }
 function rot(d, n) { return DIRS[(DIRS.indexOf(d) + n + 8) % 8]; }
 function clean(s, n) { return String(s || "").replace(/[\u0000-\u001f]/g, " ").slice(0, n).trim(); }
 
-function safeEqual(a, b) {
-  const x = Buffer.from(String(a).trim().toLowerCase());
-  const y = Buffer.from(String(b).trim().toLowerCase());
-  if (x.length !== y.length) return false;
-  return crypto.timingSafeEqual(x, y);
-}
-
 function buildContent(body) {
   const objectifs = (body.objectifs || []).filter(o => OBJS[o]).map(o => OBJS[o]);
   const intro = [
@@ -149,10 +139,10 @@ async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   if (req.method !== "POST") return res.status(405).json({ erreur: "Méthode non autorisée." });
 
-  const key = (process.env.ANTHROPIC_API_KEY || "").trim(), code = (process.env.ACCESS_CODE || "").trim();
-  if (!key || !code) {
+  const key = (process.env.ANTHROPIC_API_KEY || "").trim();
+  if (!key) {
     // Seuls les noms des variables manquantes sont indiqués, jamais leurs valeurs.
-    const missing = [!key && "ANTHROPIC_API_KEY", !code && "ACCESS_CODE"].filter(Boolean);
+    const missing = ["ANTHROPIC_API_KEY"];
     // Repère une faute de frappe sur le nom (espace, tiret, minuscules) en comparant les noms simplifiés.
     const norm = k => k.toUpperCase().replace(/[^A-Z0-9]/g, "");
     const targets = missing.map(norm);
@@ -165,8 +155,6 @@ async function handler(req, res) {
   }
 
   const body = typeof req.body === "string" ? (() => { try { return JSON.parse(req.body); } catch (e) { return {}; } })() : (req.body || {});
-  if (!safeEqual(body.code || "", code)) return res.status(401).json({ erreur: "Code d'accès incorrect." });
-  if (body.check === true) return res.status(200).json({ ok: true });
 
   const photos = Array.isArray(body.photos) ? body.photos : [];
   if (!photos.length) return res.status(400).json({ erreur: "Ajoute au moins une photo de ton jardin." });

@@ -1,10 +1,7 @@
 // Aperçu d'une zone plantée, dessiné sur la photo du jardin par un modèle d'image Gemini (Google).
 // Variables d'environnement à définir dans Vercel :
 //   GEMINI_API_KEY      clé créée dans Google AI Studio
-//   ACCESS_CODE         même code d'accès que pour l'analyse
 //   GEMINI_IMAGE_MODEL  facultatif, "gemini-nano-banana-2.1" par défaut
-
-const crypto = require("crypto");
 
 const MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-nano-banana-2.1";
 const MAX_PHOTO_BYTES = 1_500_000;
@@ -30,10 +27,6 @@ const AGES = {
 };
 
 function clean(s, n) { return String(s || "").replace(/[\u0000-\u001f]/g, " ").slice(0, n).trim(); }
-function safeEqual(a, b) {
-  const x = Buffer.from(String(a).trim().toLowerCase()), y = Buffer.from(String(b).trim().toLowerCase());
-  return x.length === y.length && crypto.timingSafeEqual(x, y);
-}
 function ratio(w, h) {
   const r = w && h ? w / h : 4 / 3;
   const opts = [["1:1", 1], ["4:3", 4 / 3], ["3:4", 3 / 4], ["16:9", 16 / 9], ["9:16", 9 / 16], ["3:2", 1.5], ["2:3", 2 / 3]];
@@ -90,10 +83,8 @@ function findText(node, depth = 0) {
 async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   if (req.method !== "POST") return res.status(405).json({ erreur: "Méthode non autorisée." });
-  const key = (process.env.GEMINI_API_KEY || "").trim(), code = (process.env.ACCESS_CODE || "").trim();
-  if (!code) return res.status(503).json({ erreur: "L'aperçu n'est pas encore configuré : Vercel ne transmet pas ACCESS_CODE." });
+  const key = (process.env.GEMINI_API_KEY || "").trim();
   const body = typeof req.body === "string" ? (() => { try { return JSON.parse(req.body); } catch (e) { return {}; } })() : (req.body || {});
-  if (!safeEqual(body.code || "", code)) return res.status(401).json({ erreur: "Code d'accès incorrect." });
   if (!key) return res.status(503).json({ erreur: "L'aperçu n'est pas encore configuré : ajoute GEMINI_API_KEY dans Vercel, puis redéploie." });
 
   const photo = String(body.photo || "");

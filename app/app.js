@@ -104,7 +104,7 @@ document.addEventListener("click", e => {
   if(b.dataset.go === "s-jardin") renderJardin();
   show(b.dataset.go);
 });
-function homeScreen(){ return demo || espaces().length ? "s-jardin" : store.get("app-code", "") ? "s-accueil" : "s-ouverture"; }
+function homeScreen(){ return demo || espaces().length ? "s-jardin" : "s-ouverture"; }
 
 // ---------- Pastilles ----------
 function appChips(boxId, options, mode, get, set){
@@ -130,25 +130,9 @@ function appChips(boxId, options, mode, get, set){
   return draw;
 }
 
-// ---------- 00 et 01 · Ouverture, accueil, code d'accès ----------
-$("code").value = store.get("app-code", "");
-function codeErr(msg){ $("code-err").textContent = msg; $("code-err").hidden = !msg; }
+// ---------- 00 et 01 · Ouverture, accueil ----------
 $("o-demo").addEventListener("click", openDemo);
-$("a-demo").addEventListener("click", openDemo);
-$("start").addEventListener("click", async () => {
-  const code = $("code").value.trim();
-  if(!code){ codeErr("Saisis le code d’accès pour lancer une analyse. Tu peux aussi voir un exemple sans code."); $("code").focus(); return; }
-  const btn = $("start"), label = btn.innerHTML; btn.disabled = true; btn.textContent = "Vérification…";
-  try{
-    const r = await fetch("/api/analyse", {method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({code, check:true})});
-    const d = await r.json().catch(() => ({}));
-    if(r.status === 401){ codeErr("Ce code ne fonctionne pas. Vérifie-le auprès de la personne qui te l’a donné."); return; }
-    if(!r.ok){ codeErr(d.erreur || "Le service ne répond pas. Réessaie dans quelques minutes."); return; }
-    store.set("app-code", code); codeErr(""); startSpace();
-  }catch(e){
-    codeErr("Pas de connexion. Vérifie ton réseau puis réessaie.");
-  }finally{ btn.disabled = false; btn.innerHTML = label; }
-});
+$("start").addEventListener("click", startSpace);
 
 // ---------- Nouveau parcours : 02 photo → 03 envies → 03 jardin (la première fois) → 04 analyse ----------
 const steps = () => garden ? 2 : 3;
@@ -309,8 +293,6 @@ function drawSteps(k){ $("an-steps").innerHTML = STEPS.map((s, i) => `<li class=
 async function runAnalyse(errId, back){
   const err = msg => { $(errId).textContent = msg; $(errId).hidden = !msg; };
   err("");
-  const code = store.get("app-code", "");
-  if(!code){ show("s-accueil"); codeErr("Saisis le code d’accès pour lancer l’analyse."); return; }
   if(!photo){ show("s-photo"); return; }
   show("s-analyse");
   let k = 0; drawSteps(0);
@@ -320,10 +302,9 @@ async function runAnalyse(errId, back){
   const ville = garden.dept ? `${garden.label} (${garden.dept})` : garden.label;
   try{
     const r = await fetch("/api/analyse", {method:"POST", headers:{"content-type":"application/json"}, signal: ctrl.signal,
-      body: JSON.stringify({code, ville, sol: garden.sol || "inconnu", arrosage: garden.arrosage || "1", objectifs, style: envies.style,
+      body: JSON.stringify({ville, sol: garden.sol || "inconnu", arrosage: garden.arrosage || "1", objectifs, style: envies.style,
         photos: [{data: photo.data, direction: photo.direction || null, note: photo.note}]})});
     const raw = await r.text(); let d = {}; try{ d = JSON.parse(raw); }catch(e){}
-    if(r.status === 401){ show("s-accueil"); codeErr("Ce code ne fonctionne plus. Vérifie-le auprès de la personne qui te l’a donné."); return; }
     if(!r.ok){
       let msg = d.erreur;
       if(!msg){
@@ -505,7 +486,7 @@ async function refreshApercu(){
   } else if(ph){
     if($("ba-before")) $("ba-before").src = before;
     const key = `${rec.id}-${z.id}`;
-    if(!autoTried.has(key) && store.get("app-code", "")){ autoTried.add(key); actions.innerHTML = ""; note.textContent = AP_NOTE; generateApercu(z, rec, ph); return; }
+    if(!autoTried.has(key)){ autoTried.add(key); actions.innerHTML = ""; note.textContent = AP_NOTE; generateApercu(z, rec, ph); return; }
     actions.innerHTML = `<button class="linkish" type="button" id="ap-go">Créer l’image</button>`;
     note.textContent = AP_NOTE;
   } else {
@@ -524,12 +505,10 @@ function shrinkImage(src){
   });
 }
 async function generateApercu(z, rec, ph){
-  const code = store.get("app-code", "");
   const note = $("ap-note"), actions = $("ap-actions"), ba = $("ba");
-  if(!code){ note.textContent = "Saisis ton code d’accès sur l’écran d’accueil pour créer l’aperçu."; note.classList.add("err"); return; }
   const qty = {}; ((lastBudget && lastBudget.rows) || []).forEach(([nom, r, n]) => { qty[nom] = n; });
   const payload = {
-    code, photo: ph.data, largeur: ph.w, hauteurPhoto: ph.h,
+    photo: ph.data, largeur: ph.w, hauteurPhoto: ph.h,
     emplacement: z.z.emplacement || `${z.z.nom}. ${z.z.description}`,
     profondeur: state.prof, age: state.age, a_garder: z.z.a_garder || [],
     plantes: combo.map(c => ({nom: c.plant.nom, latin: c.plant.latin, type: c.plant.type, couche: lay(c), hauteur: Math.round(heightAt(c.plant, state.age)),
@@ -612,7 +591,7 @@ function renderJardin(){
   const cond = [g.clim ? CLIM_LBL[g.clim] : null, g.sol ? `sol ${SOL_LBL[g.sol].toLowerCase()}` : "sol estimé à l’analyse", ARRO_LBL[g.arrosage || "1"]].filter(Boolean).join(" · ");
   $("j-cond").innerHTML = esc(cond) + (demo ? "" : ` · <button class="link" type="button" id="garden-edit">Changer</button>`);
   $("j-add").querySelector("b").textContent = demo ? "Créer ton jardin" : "Ajouter un espace";
-  $("j-add").querySelector("small").textContent = demo ? "Avec le code d’accès reçu" : "Une photo du coin à planter suffit";
+  $("j-add").querySelector("small").textContent = "Une photo du coin à planter suffit";
 }
 $("j-spaces").addEventListener("click", e => {
   const rm = e.target.closest("[data-rm]");
@@ -623,8 +602,7 @@ $("j-spaces").addEventListener("click", e => {
 $("j-cond").addEventListener("click", e => { if(e.target.closest("#garden-edit")){ gardenEdit = true; renderGarden(); show("s-garden"); } });
 $("edit-toggle").addEventListener("click", () => { editing = !editing; renderJardin(); const f = editing ? $("j-spaces").querySelector(".rm") : $("edit-toggle"); if(f) f.focus(); });
 $("j-add").addEventListener("click", () => {
-  if(demo){ demo = false; show(store.get("app-code", "") ? "s-accueil" : "s-accueil"); return; }
-  if(!store.get("app-code", "")){ show("s-accueil"); return; }
+  if(demo){ demo = false; show("s-accueil"); return; }
   startSpace();
 });
 // Feuille de confirmation

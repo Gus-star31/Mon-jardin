@@ -11,7 +11,7 @@ Deux outils pour composer les massifs et les haies d'un jardin selon l'expositio
 
 Web app installable sur téléphone, en DA « Carnet d'atelier » (papier crème, trait d'encre, bleu de Prusse ; design system dans Figma). L'accueil « Ton jardin » liste les espaces analysés : on les consulte, on en ajoute ou on en retire. Pour ajouter un espace, la personne prend une photo du coin à planter et indique ses envies ; la première fois, elle donne aussi son département, son sol et l'arrosage possible. Claude analyse la photo ; l'app compose ensuite la proposition de l'espace avec le moteur de l'atelier : plantes, plan de plantation, aperçu avant / après et budget.
 
-- `api/analyse.js` : fonction serveur Vercel qui vérifie le code d'accès et appelle l'API Claude.
+- `api/analyse.js` : fonction serveur Vercel qui appelle l'API Claude.
 - `api/apercu.js` : fonction serveur qui dessine la zone plantée sur la photo avec un modèle d'image Gemini (Google). L'aperçu est créé à la demande, zone par zone, et gardé sur le téléphone.
 - `app/app.js`, `app/app.css` : le parcours de l'app.
 - `app/engine.js`, `app/atelier.css`, `app/index.html` : générés à partir de l'atelier par `python3 tools/build_app.py`. Après une modification de `index.html` ou de `tools/app_template.html`, relancer ce script.
@@ -24,7 +24,6 @@ Dans *Settings > Environment Variables* du projet :
 | Variable | Valeur |
 |---|---|
 | `ANTHROPIC_API_KEY` | clé API créée dans la Console Anthropic |
-| `ACCESS_CODE` | code à partager avec les proches (majuscules indifférentes) |
 | `CLAUDE_MODEL` | facultatif, `claude-sonnet-5-5` par défaut |
 | `GEMINI_API_KEY` | clé créée dans Google AI Studio, sur un projet avec la facturation activée (les modèles d'image n'ont pas d'offre gratuite) |
 | `GEMINI_IMAGE_MODEL` | facultatif, `gemini-nano-banana-2.1` par défaut |
