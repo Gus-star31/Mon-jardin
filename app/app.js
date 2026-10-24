@@ -82,7 +82,7 @@ const espaces = () => {
 };
 
 // ---------- Navigation ----------
-const SCREENS = ["s-ouverture","s-accueil","s-photo","s-envies","s-garden","s-analyse","s-espace","s-jardin"];
+const SCREENS = ["s-ouverture","s-login","s-photo","s-envies","s-garden","s-analyse","s-espace","s-jardin"];
 function show(id, push = true){
   SCREENS.forEach(s => { $(s).hidden = s !== id; });
   closeSheet();
@@ -90,6 +90,8 @@ function show(id, push = true){
   if(push && id !== "s-analyse"){ try{ history.pushState({s:id}, ""); }catch(e){} }
   if(id === "s-espace") requestAnimationFrame(() => { if(typeof drawAll === "function") drawAll(); });
   const f = $(id).querySelector("h1, h2"); if(f){ f.setAttribute("tabindex", "-1"); }
+  drawCoach(id);
+  if(id !== "s-photo") stopCompass();
 }
 window.addEventListener("popstate", e => {
   const s = e.state && e.state.s;
@@ -104,7 +106,30 @@ document.addEventListener("click", e => {
   if(b.dataset.go === "s-jardin") renderJardin();
   show(b.dataset.go);
 });
-function homeScreen(){ return demo || espaces().length ? "s-jardin" : "s-ouverture"; }
+function homeScreen(){ return demo || espaces().length ? "s-jardin" : "s-login"; }
+
+// ---------- Aide du premier coin ----------
+// Une carte par étape (photo, envies, diagnostic), affichée une fois, le temps du premier coin d'un nouveau compte.
+const COACH = {
+  "s-photo": [1, "Ajoute <em>une photo</em>", "Prends de face le coin à planter. L’app y repère les zones, l’exposition et la place disponible.", `<svg class="illu" aria-hidden="true" width="44" height="32" viewBox="0 0 40.3333 29.3333" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M25.6667 24.75C30.7293 24.75 34.8333 20.6459 34.8333 15.5833C34.8333 10.5207 30.7293 6.41667 25.6667 6.41667C20.6041 6.41667 16.5 10.5207 16.5 15.5833C16.5 20.6459 20.6041 24.75 25.6667 24.75Z" fill="#F3D35B"/><path d="M3.66667 6.41667H11L14.6667 0.916667H25.6667L29.3333 6.41667H36.6667C37.396 6.41667 38.0955 6.7064 38.6112 7.22212C39.1269 7.73785 39.4167 8.43732 39.4167 9.16667V25.6667C39.4167 26.396 39.1269 27.0955 38.6112 27.6112C38.0955 28.1269 37.396 28.4167 36.6667 28.4167H3.66667C2.93732 28.4167 2.23785 28.1269 1.72212 27.6112C1.2064 27.0955 0.916667 26.396 0.916667 25.6667V9.16667C0.916667 8.43732 1.2064 7.73785 1.72212 7.22212C2.23785 6.7064 2.93732 6.41667 3.66667 6.41667Z" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M26.5833 16.5C26.5833 20.0438 23.7105 22.9167 20.1667 22.9167C16.6228 22.9167 13.75 20.0438 13.75 16.5C13.75 12.9562 16.6228 10.0833 20.1667 10.0833C23.7105 10.0833 26.5833 12.9562 26.5833 16.5Z" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M33 10.0833H33.9167" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/></svg>`],
+  "s-envies": [2, "Donne <em>tes critères</em>", "Massif fleuri, haie pour t’isoler, style de jardin : tes envies guident le choix des plantes.", `<svg class="illu" aria-hidden="true" width="24" height="32" viewBox="0 0 27.5 36.6667" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.4167 23.8333C22.9855 23.8333 27.5 19.3189 27.5 13.75C27.5 8.18113 22.9855 3.66667 17.4167 3.66667C11.8478 3.66667 7.33333 8.18113 7.33333 13.75C7.33333 19.3189 11.8478 23.8333 17.4167 23.8333Z" fill="#D5E3CF"/><path d="M13.75 35.75C4.58333 24.75 0.916667 19.25 0.916667 13.75C0.916667 10.3464 2.26875 7.08218 4.67546 4.67546C7.08218 2.26875 10.3464 0.916667 13.75 0.916667C17.1536 0.916667 20.4178 2.26875 22.8245 4.67546C25.2313 7.08218 26.5833 10.3464 26.5833 13.75C26.5833 19.25 22.9167 24.75 13.75 35.75Z" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M8.25 15.5833C10.0833 8.25 17.4167 6.41667 20.1667 8.25C20.1667 13.75 13.75 19.25 8.25 15.5833ZM8.25 15.5833L16.5 10.0833" stroke-width="1.375" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/></svg>`],
+  "s-espace": [3, "Consulte <em>ton diagnostic</em>", "Les plantes adaptées à ce coin, leur plan de plantation et le budget. Remplace une plante ou ajuste les critères si besoin.", `<svg class="illu" aria-hidden="true" width="26" height="32" viewBox="0 0 28.4167 34.8333" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M26.5833 4.58333H8.25C7.23748 4.58333 6.41667 5.40414 6.41667 6.41667V30.25C6.41667 31.2625 7.23748 32.0833 8.25 32.0833H26.5833C27.5959 32.0833 28.4167 31.2625 28.4167 30.25V6.41667C28.4167 5.40414 27.5959 4.58333 26.5833 4.58333Z" fill="#F5CDB0"/><path d="M26.5833 6.41667L21.0833 0.916667H0.916667V33.9167H26.5833V6.41667ZM21.0833 0.916667V6.41667H26.5833" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M6.41667 15.5833H13.75M6.41667 21.0833H19.25M6.41667 26.5833H15.5833" stroke-width="1.375" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M18.3333 17.4167C19.8521 17.4167 21.0833 16.1854 21.0833 14.6667C21.0833 13.1479 19.8521 11.9167 18.3333 11.9167C16.8146 11.9167 15.5833 13.1479 15.5833 14.6667C15.5833 16.1854 16.8146 17.4167 18.3333 17.4167Z" fill="#F2C4C4" stroke-width="1.375" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/></svg>`]
+};
+let coach = store.get("app-coach", null);
+function startCoach(){ coach = {seen: []}; store.set("app-coach", coach); }
+function drawCoach(id){
+  document.querySelectorAll(".coach").forEach(c => c.remove());
+  const c = COACH[id];
+  if(!coach || !c || coach.seen.includes(id)) return;
+  const [n, title, text, picto] = c;
+  const el = document.createElement("div");
+  el.className = "coach"; el.setAttribute("role", "note");
+  el.innerHTML = `${picto}<div><p class="eyebrow">Ton premier coin · ${n} sur 3</p><h3>${title}</h3><p>${text}</p><button class="link" type="button">Compris</button></div>`;
+  el.querySelector("button").addEventListener("click", () => el.remove());
+  ($(id).querySelector(".head") || $("esp-title")).after(el);
+  coach.seen.push(id);
+  if(coach.seen.length === Object.keys(COACH).length){ coach = null; store.del("app-coach"); } else store.set("app-coach", coach);
+}
 
 // ---------- Pastilles ----------
 function appChips(boxId, options, mode, get, set){
@@ -131,8 +156,58 @@ function appChips(boxId, options, mode, get, set){
 }
 
 // ---------- 00 et 01 · Ouverture, accueil ----------
-$("o-demo").addEventListener("click", openDemo);
-$("start").addEventListener("click", startSpace);
+// Connexion : maquette de l'écran, sans service branché. Toute connexion valide mène à l'accueil.
+// Le temps des tests : « Se connecter » laisse passer même avec les champs vides. Repasser à false pour retrouver les contrôles.
+const LOGIN_LIBRE = true;
+let signup = false;
+const loginErr = msg => { $("login-err").textContent = msg; $("login-err").hidden = !msg; };
+function drawLogin(){
+  $("login-submit").textContent = signup ? "Créer mon compte" : "Se connecter";
+  $("login-pass").autocomplete = signup ? "new-password" : "current-password";
+  $("login-pass").placeholder = signup ? "Choisis un mot de passe" : "Ton mot de passe";
+  $("login-pass-help").hidden = !signup;
+  $("login-forgot").hidden = signup;
+  $("login-switch-q").textContent = signup ? "Déjà un compte ?" : "Pas encore de compte ?";
+  $("login-switch").textContent = signup ? "Se connecter" : "Créer un compte";
+  loginErr("");
+}
+// Deux choix d'abord (Google, e-mail) ; le formulaire ne s'ouvre qu'au choix de l'e-mail.
+function loginForm(open){
+  $("login-form").hidden = !open;
+  $("login-google").hidden = open; $("login-email-go").hidden = open;
+  loginErr("");
+  if(open) $("login-email").focus(); else $("login-email-go").focus();
+}
+$("login-email-go").addEventListener("click", () => loginForm(true));
+$("login-back").addEventListener("click", () => loginForm(false));
+$("login-switch").addEventListener("click", () => { signup = !signup; drawLogin(); if($("login-form").hidden) loginForm(true); });
+$("login-show").addEventListener("click", () => {
+  const on = $("login-pass").type === "password";
+  $("login-pass").type = on ? "text" : "password";
+  $("login-show").textContent = on ? "Masquer" : "Afficher";
+  $("login-show").setAttribute("aria-pressed", on);
+});
+// Compte existant : sa page Ton jardin, même vide. Nouveau compte : son premier coin, guidé par les cartes d'aide.
+function afterLogin(isNew){
+  loginErr("");
+  if(isNew){ startCoach(); startSpace(); } else { renderJardin(); show("s-jardin"); }
+}
+// Maquette : sans service branché, Google vaut création de compte tant qu'aucun espace n'existe.
+$("login-google").addEventListener("click", () => afterLogin(!espaces().length));
+$("login-forgot").addEventListener("click", () => {
+  const ok = /^\S+@\S+\.\S+$/.test($("login-email").value.trim());
+  loginErr(ok ? "" : "Saisis ton e-mail, on t’enverra un lien pour choisir un nouveau mot de passe.");
+  if(!ok) $("login-email").focus();
+});
+$("login-form").addEventListener("submit", e => {
+  e.preventDefault();
+  if(LOGIN_LIBRE) return afterLogin(signup);
+  const email = $("login-email").value.trim(), pass = $("login-pass").value;
+  $("login-email").removeAttribute("aria-invalid"); $("login-pass").removeAttribute("aria-invalid");
+  if(!/^\S+@\S+\.\S+$/.test(email)){ loginErr("Saisis une adresse e-mail valide, par exemple toi@exemple.fr."); $("login-email").setAttribute("aria-invalid", "true"); $("login-email").focus(); return; }
+  if(signup ? pass.length < 8 : !pass){ loginErr(signup ? "Choisis un mot de passe d’au moins 8 caractères." : "Saisis ton mot de passe."); $("login-pass").setAttribute("aria-invalid", "true"); $("login-pass").focus(); return; }
+  afterLogin(signup);
+});
 
 // ---------- Nouveau parcours : 02 photo → 03 envies → 03 jardin (la première fois) → 04 analyse ----------
 const steps = () => garden ? 2 : 3;
@@ -142,7 +217,7 @@ function setProgress(id, n){
 }
 function startSpace(){
   demo = false; photo = null; renderPhoto();
-  $("photo-back").dataset.go = espaces().length ? "s-jardin" : "s-accueil";
+  $("photo-back").dataset.go = espaces().length ? "s-jardin" : "s-login";
   $("photo-back").querySelector("span").textContent = espaces().length ? "Ton jardin" : "Accueil";
   show("s-photo");
 }
@@ -184,55 +259,81 @@ function renderPhoto(){
   $("ph-card").innerHTML = p ? `<article class="ph">
     <div class="ph-top"><img src="${p.thumb}" alt="Ta photo du coin à planter">
       <div class="ph-side">
-        <label class="ph-q" for="dir">Tu regardes vers</label>
+        <label class="ph-q" for="dir">Orientation</label>
         <select id="dir">
           <option value="" ${!p.direction ? "selected" : ""}>Je ne sais pas</option>
           ${DIRS.map(d => `<option value="${d}" ${p.direction === d ? "selected" : ""}>${DIR_LONG[d].charAt(0).toUpperCase() + DIR_LONG[d].slice(1)}</option>`).join("")}
         </select>
-        ${canMeasure ? `<button class="linkish" type="button" id="measure">Mesurer avec la boussole</button>` : ""}
-        <span class="ph-live" id="live" aria-live="polite"></span>
       </div>
       <button class="ph-del" type="button" id="ph-del" aria-label="Retirer la photo">×</button>
     </div>
+    ${canMeasure ? `<div class="compass" id="compass" ${p.direction ? "hidden" : ""}>${COMPASS}<div class="cp-txt"><b>Utilise la boussole pour t’aider</b>
+      <span class="ph-live" id="live">Mets-toi face au coin à planter, comme pour le prendre en photo.</span>
+      <p class="cp-read" id="cp-read" aria-live="polite" hidden><span class="cp-dir" id="cp-dir"></span><span class="cp-deg" id="cp-deg"></span></p>
+      <button class="linkish" type="button" id="measure" hidden></button></div></div>` : ""}
     ${p.note || p.showNote ? `<textarea id="note" maxlength="300" aria-label="Précision sur ce coin" placeholder="Par exemple : je veux cacher le balcon du voisin">${esc(p.note)}</textarea>`
       : `<button class="linkish add" type="button" id="add-note">+ Ajouter une précision</button>`}
   </article>` : "";
   $("ph-add").hidden = !!p;
   $("to-envies").disabled = !p;
+  startCompass();
 }
 $("ph-card").addEventListener("click", e => {
   if(e.target.closest("#add-note")){ photo.showNote = true; renderPhoto(); $("note").focus(); return; }
   if(e.target.closest("#ph-del")){ photo = null; renderPhoto(); return; }
-  const m = e.target.closest("#measure"); if(m) measure(m);
 });
-$("ph-card").addEventListener("change", e => { if(e.target.id === "dir") photo.direction = e.target.value || null; });
+// La boussole ne sert que tant que l'orientation est « Je ne sais pas ».
+$("ph-card").addEventListener("change", e => {
+  if(e.target.id !== "dir") return;
+  photo.direction = e.target.value || null;
+  if($("compass")){ $("compass").hidden = !!photo.direction; startCompass(); }
+});
 $("ph-card").addEventListener("input", e => { if(e.target.id === "note") photo.note = e.target.value; });
-// Boussole : téléphone à plat, le haut tourné vers le coin photographié.
-async function measure(btn){
-  const live = $("live");
-  try{
-    if(typeof DeviceOrientationEvent.requestPermission === "function"){
-      const r = await DeviceOrientationEvent.requestPermission();
-      if(r !== "granted"){ live.textContent = "Accès à la boussole refusé : choisis la direction à la main."; return; }
-    }
-  }catch(e){ live.textContent = "Boussole indisponible : choisis la direction à la main."; return; }
-  live.textContent = "Place-toi là où tu as pris la photo, téléphone à plat, le haut tourné vers le coin photographié.";
-  let dir = null, got = false;
+// Boussole : téléphone à plat, le haut tourné vers le coin photographié. La rose tourne, le repère du haut montre l'orientation.
+const COMPASS = `<svg class="dial" aria-hidden="true" width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g id="rose" stroke="#1C1C1A" stroke-width="2" stroke-linecap="round"><circle cx="36" cy="38" r="27" fill="#FBF9F3"/><path d="M36 13 V17 M36 59 V63 M11 38 H15 M57 38 H61" stroke-width="1.5"/>
+  <g fill="#1C1C1A" stroke="none" font-family="Instrument Sans, sans-serif" font-size="9" font-weight="600" text-anchor="middle"><text x="36" y="26">N</text><text x="36" y="56">S</text><text x="51" y="41">E</text><text x="21" y="41">O</text></g></g>
+  <path d="M36 2 L41 10 H31 Z" fill="#1F3B78"/><circle cx="36" cy="38" r="3" fill="#F3D35B" stroke="#1C1C1A" stroke-width="1.5"/></svg>`;
+// Elle démarre seule dès que l'orientation est « Je ne sais pas ». Sur iPhone, Safari n'ouvre la boussole qu'après un toucher.
+let compassOff = null;
+function stopCompass(){ if(compassOff){ compassOff(); compassOff = null; } }
+function noCompass(msg){
+  stopCompass();
+  $("live").textContent = msg; $("cp-read").hidden = true; $("measure").hidden = true;
+}
+function startCompass(){
+  stopCompass();
+  if(!$("compass") || $("compass").hidden) return;
+  if(typeof DeviceOrientationEvent.requestPermission === "function"){
+    const b = $("measure"); b.textContent = "Activer la boussole"; b.hidden = false;
+    b.onclick = async () => {
+      try{ if(await DeviceOrientationEvent.requestPermission() !== "granted") return noCompass("Accès à la boussole refusé : choisis l’orientation dans la liste."); }
+      catch(e){ return noCompass("Boussole indisponible : choisis l’orientation dans la liste."); }
+      listenCompass();
+    };
+    return;
+  }
+  listenCompass();
+}
+function listenCompass(){
+  const b = $("measure");
+  let dir = null;
+  b.hidden = true;
+  b.onclick = () => { if(!dir) return; stopCompass(); photo.direction = dir; renderPhoto(); };
   const onOri = ev => {
     const h = typeof ev.webkitCompassHeading === "number" ? ev.webkitCompassHeading : (ev.absolute && ev.alpha != null ? (360 - ev.alpha) % 360 : null);
-    if(h == null) return;
-    got = true; dir = DIRS[Math.round(h / 45) % 8];
-    live.textContent = `Direction mesurée : ${DIR_LONG[dir]} (${Math.round(h)}°)`;
+    if(h == null || !$("rose")) return;
+    dir = DIRS[Math.round(h / 45) % 8];
+    $("rose").style.transform = `rotate(${-h}deg)`;
+    $("cp-dir").textContent = DIR_LONG[dir].charAt(0).toUpperCase() + DIR_LONG[dir].slice(1);
+    $("cp-deg").textContent = `${Math.round(h)}°`;
+    $("cp-read").hidden = false;
+    b.textContent = `Choisir ${DIR_LONG[dir]}`; b.hidden = false;
   };
   window.addEventListener("deviceorientationabsolute", onOri);
   window.addEventListener("deviceorientation", onOri);
-  btn.textContent = "Valider cette direction";
-  const stop = () => { window.removeEventListener("deviceorientationabsolute", onOri); window.removeEventListener("deviceorientation", onOri); };
-  setTimeout(() => { if(!got){ stop(); live.textContent = "Pas de boussole disponible sur cet appareil : choisis la direction à la main."; btn.textContent = "Mesurer avec la boussole"; } }, 4000);
-  btn.addEventListener("click", function once(ev){
-    ev.stopPropagation(); stop();
-    if(dir){ photo.direction = dir; renderPhoto(); }
-  }, {capture:true, once:true});
+  const t = setTimeout(() => { if(!dir) noCompass("Pas de boussole sur cet appareil : choisis l’orientation dans la liste."); }, 4000);
+  compassOff = () => { window.removeEventListener("deviceorientationabsolute", onOri); window.removeEventListener("deviceorientation", onOri); clearTimeout(t); };
 }
 $("to-envies").addEventListener("click", () => { renderEnvies(); show("s-envies"); });
 
@@ -602,7 +703,7 @@ $("j-spaces").addEventListener("click", e => {
 $("j-cond").addEventListener("click", e => { if(e.target.closest("#garden-edit")){ gardenEdit = true; renderGarden(); show("s-garden"); } });
 $("edit-toggle").addEventListener("click", () => { editing = !editing; renderJardin(); const f = editing ? $("j-spaces").querySelector(".rm") : $("edit-toggle"); if(f) f.focus(); });
 $("j-add").addEventListener("click", () => {
-  if(demo){ demo = false; show("s-accueil"); return; }
+  if(demo){ demo = false; show("s-login"); return; }
   startSpace();
 });
 // Feuille de confirmation
@@ -690,8 +791,24 @@ function warmDemo(){
 }
 
 // ---------- Démarrage ----------
+// Splash à chaque ouverture, puis l'écran de départ. Un toucher le passe.
 const first = homeScreen();
 if(first === "s-jardin") renderJardin();
-SCREENS.forEach(s => { $(s).hidden = s !== first; });
-try{ history.replaceState({s:first}, ""); }catch(e){}
+const splash = $("s-ouverture");
+splash.querySelectorAll(".illu path, .illu circle").forEach((el, i, all) => {
+  if(el.getAttribute("stroke") === "none") return;
+  el.setAttribute("pathLength", "1");
+  el.style.setProperty("--d", `${(.5 + i / all.length * .9).toFixed(2)}s`);
+});
+SCREENS.forEach(s => { $(s).hidden = s !== "s-ouverture"; });
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let splashDone = false;
+function endSplash(){
+  if(splashDone) return; splashDone = true;
+  const go = () => { splash.classList.remove("out"); show(first, false); try{ history.replaceState({s:first}, ""); }catch(e){} };
+  if(still) return go();
+  splash.classList.add("out"); setTimeout(go, 450);
+}
+const splashTimer = setTimeout(endSplash, still ? 900 : 2900);
+splash.addEventListener("click", () => { clearTimeout(splashTimer); endSplash(); });
 })();

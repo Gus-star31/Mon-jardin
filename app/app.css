@@ -107,14 +107,56 @@ legend{padding:0;margin-bottom:10px}
 body:has(#s-ouverture:not([hidden])), html:has(#s-ouverture:not([hidden])){background:var(--prusse)}
 .ouverture{color:var(--papier);text-align:center;gap:22px;padding-top:6px}
 .ouverture .rule{border-color:var(--papier);color:var(--papier);text-align:left}
-.ouverture .display{font-size:clamp(54px,17vw,66px);line-height:.88;letter-spacing:-1.5px;color:var(--papier);margin-top:18px}
+.ouverture .display{font-size:clamp(54px,17vw,66px);line-height:.88;letter-spacing:-1.5px;color:var(--papier);margin-top:auto}
 .ouverture .display em{font-size:inherit}
-.ouverture .hand{color:var(--papier);font-size:24px;line-height:24px;margin:0}
+.ouverture .hand{color:var(--papier);font-size:24px;line-height:24px;margin:0 0 auto}
 .ill-wrap{display:flex;justify-content:center;position:relative}
 .ill-wrap svg{max-width:100%;height:auto}
-.ouverture .nav{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)}
+.ouverture{cursor:pointer}
 
-/* ---------- 01 · Accueil ---------- */
+/* Splash : le titre monte, le dessin se trace, la note s'écrit, puis l'écran s'efface. */
+.ouverture .rule{animation:sp-fade .5s ease-out both}
+.ouverture .display{animation:sp-rise .7s .15s cubic-bezier(.2,.7,.2,1) both}
+.ouverture .display em{display:inline-block;animation:sp-rise .7s .35s cubic-bezier(.2,.7,.2,1) both}
+.ouverture .illu [pathLength]{stroke-dasharray:1;stroke-dashoffset:1;animation:sp-draw .9s var(--d,.6s) ease-in-out forwards}
+.ouverture .illu [fill]:not([fill="none"]){fill-opacity:0;animation:sp-fill .4s var(--f,1.4s) ease-out forwards}
+.ouverture .hand{clip-path:inset(0 100% 0 0);animation:sp-write .9s 1.6s steps(24) forwards}
+.ouverture.out{animation:sp-out .45s ease-in forwards}
+@keyframes sp-fade{from{opacity:0}}
+@keyframes sp-rise{from{opacity:0;transform:translateY(18px)}}
+@keyframes sp-draw{to{stroke-dashoffset:0}}
+@keyframes sp-fill{to{fill-opacity:1}}
+@keyframes sp-write{to{clip-path:inset(0 0 0 0)}}
+@keyframes sp-out{to{opacity:0;transform:scale(1.03)}}
+@media (prefers-reduced-motion: reduce){
+  .ouverture *,.ouverture.out{animation:none!important}
+  .ouverture .illu [pathLength]{stroke-dashoffset:0}
+  .ouverture .illu [fill]{fill-opacity:1}
+  .ouverture .hand{clip-path:none}
+}
+
+/* ---------- 00 bis · Connexion ---------- */
+/* La présentation en tête, dessin réduit pour garder le formulaire en vue. */
+.login-screen h1{margin-top:auto}
+.login{display:flex;flex-direction:column;gap:12px;margin-top:auto;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)}
+.login form{display:flex;flex-direction:column;gap:16px}
+.login .show{border:0;background:none;color:var(--encre-douce);font-size:13px;font-weight:500;padding:8px 0;min-height:44px;cursor:pointer}
+/* Même ligne sous le mot de passe dans les deux formulaires : lien d'oubli à la connexion, consigne à la création. */
+.login .pass-row{display:flex;justify-content:flex-end;align-items:center;min-height:32px;margin:-8px 0 0;font-size:13px;line-height:18px;color:var(--encre-douce)}
+.login .pass-row .link{font-size:13px;min-height:32px;padding:0}
+.login .back-choices{align-self:center;font-size:14px;min-height:32px;padding:0}
+.login .switch{margin:8px 0 0;text-align:center;font-size:14px;color:var(--encre-douce)}
+.login .switch .link{font-size:14px;min-height:32px;padding:0}
+
+/* ---------- Aide du premier coin ---------- */
+.coach{display:flex;flex-direction:row;gap:14px;align-items:flex-start;background:var(--carte);border:1px solid var(--filet);border-radius:14px;padding:16px}
+.coach svg{flex:none;margin-top:2px}
+.coach div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.coach h3{font-size:20px;line-height:22px}
+.coach p:not(.eyebrow){margin:0;font-size:13px;line-height:18px;color:var(--encre-douce)}
+.coach .link{align-self:flex-start;font-size:13px;min-height:32px;padding:0;margin-top:2px}
+
+/* ---------- 01 · Présentation (écran de connexion) ---------- */
 .hero{position:relative}
 .hero svg{width:100%;height:auto;display:block}
 .hero-note{position:absolute;right:4%;top:8%;transform:rotate(-6deg)}
@@ -130,8 +172,17 @@ body:has(#s-ouverture:not([hidden])), html:has(#s-ouverture:not([hidden])){backg
 .linkish{align-self:flex-start;min-height:32px;padding:2px 0;border:0;background:none;color:var(--prusse);font-size:12px;font-weight:500;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .ph .linkish.add{font-size:13px}
 .ph textarea{font:inherit;font-size:14px;min-height:56px;border:0;border-radius:10px;background:var(--papier);padding:10px 12px;resize:vertical;color:var(--encre)}
-.ph-live{font-size:13px;color:var(--prusse)}
+.compass{display:flex;gap:14px;align-items:center;border-top:1px solid var(--filet);padding-top:12px}
+.compass .dial{flex:none}
+.compass #rose{transform-origin:36px 38px;transition:transform .2s linear}
+.cp-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.cp-txt b{font-size:15px;font-weight:600;line-height:20px}
+.ph-live{font-size:13px;line-height:18px;color:var(--encre-douce)}
 .ph-live:empty{display:none}
+.cp-txt .linkish{font-size:13px;margin-top:2px}
+.cp-read{display:flex;align-items:baseline;gap:8px;margin:4px 0 0}
+.cp-dir{font-family:var(--f-serif);font-size:24px;line-height:28px}
+.cp-deg{font-size:13px;color:var(--encre-douce);font-variant-numeric:tabular-nums}
 .addph{position:relative;display:flex;align-items:center;gap:14px;padding:16px;border:1.5px dashed var(--encre);border-radius:14px;background:transparent;cursor:pointer;text-align:left;font:inherit;color:var(--encre);width:100%}
 .addph input{position:absolute;inset:0;opacity:0;cursor:pointer}
 .addph span{display:flex;flex-direction:column;gap:2px}
