@@ -85,7 +85,7 @@ const espaces = () => {
 };
 
 // ---------- Navigation ----------
-const SCREENS = ["s-ouverture","s-login","s-prenom","s-conseils","s-liste","s-compte","s-photo","s-envies","s-garden","s-analyse","s-espace","s-jardin"];
+const SCREENS = ["s-ouverture","s-login","s-prenom","s-conseils","s-liste","s-compte","s-sources","s-photo","s-envies","s-garden","s-analyse","s-espace","s-jardin"];
 function show(id, push = true){
   SCREENS.forEach(s => { $(s).hidden = s !== id; });
   closeSheet();
@@ -612,7 +612,6 @@ function renderProposal(){
         <div class="row"><span class="tag ${col}">${esc(role)}</span><span class="qp">${n} × ${euro((a + b) / 2)}</span></div>
         <h4>${esc(p.nom)}</h4><i>${esc(p.latin)}</i>
         <p>${esc(p.note)}</p>
-        ${ph ? `<small class="credit">${creditHTML(ph)}</small>` : ""}
         <p class="plinks"><a href="${photoUrl(p)}" target="_blank" rel="noopener">Photos ↗</a><a href="${shopUrl(p)}" target="_blank" rel="noopener">Où l’acheter ↗</a></p>
         ${c.locked ? "" : `<button class="linkish" type="button" data-rep="${i}">Remplacer cette plante</button>`}
       </div></article>`;
@@ -980,15 +979,29 @@ function renderCompte(){
     <section class="acct-sec"><h3>Ton jardin</h3><p>${esc(cond)}</p><button class="btn secondary sm" type="button" data-act="reglages">Modifier les réglages du jardin</button></section>
     <section class="acct-sec"><h3>Besoin d’aide ?</h3><p>Pour te guider quand tu ajoutes un coin.</p><button class="link" type="button" data-act="aide">Revoir les cartes d’aide</button></section>
     <section class="acct-sec"><h3>Tes données</h3><p>Ton jardin reste sur ce téléphone. Tes photos ne servent qu’à l’analyse, on ne les garde pas.</p></section>
+    <section class="acct-sec"><h3>Les sources</h3><p>Photos, données des plantes et IA.</p><button class="link" type="button" data-act="sources">Voir les sources</button></section>
     <button class="btn secondary" type="button" data-act="logout">Se déconnecter</button>`;
 }
 $("a-body").addEventListener("click", e => {
   const b = e.target.closest("[data-act]"); if(!b) return;
   if(b.dataset.act === "reglages"){ gardenEdit = true; renderGarden(); show("s-garden"); }
   if(b.dataset.act === "prenom") openPrenom(true);
+  if(b.dataset.act === "sources"){ renderSources(); show("s-sources"); }
   if(b.dataset.act === "aide"){ startCoach(); showToast("Les cartes d’aide reviendront quand tu ajouteras un coin."); }
   if(b.dataset.act === "logout"){ store.set("app-out", true); setLoginMode(false); loginForm(true); show("s-login"); }
 });
+
+// Les sources : toutes les photos (auteur, licence, page d'origine), l'IA et les données des plantes, réunies en un seul écran.
+function renderSources(){
+  const plantes = PLANTS.map(p => [p, photoOf(p)]).filter(([, ph]) => ph).sort(([a], [b]) => a.nom.localeCompare(b.nom, "fr"))
+    .map(([p, ph]) => `<li><a href="${ph.page}" target="_blank" rel="noopener">${esc(p.nom)} ↗</a><small>${ph.artist ? `${esc(ph.artist)} · ${esc(ph.license || "licence libre")}` : "Auteur et licence sur la page de la photo"}</small></li>`).join("");
+  const ambiances = Object.values(STYLE_PHOTOS).map(s => `<li><a href="${s.page}" target="_blank" rel="noopener">${esc(s.cap)} ↗</a></li>`).join("");
+  $("src-body").innerHTML = `
+    <section class="src-sec"><h3>Analyse et dessin</h3><p>Tes photos sont lues par Claude, l’IA d’Anthropic. Les aperçus sont dessinés par Gemini, de Google.</p></section>
+    <section class="src-sec"><h3>Données des plantes</h3><p>Hauteurs, arrosage, froid supporté et prix : des ordres de grandeur, à vérifier en jardinerie.</p></section>
+    <section class="src-sec"><h3>Photos d’ambiance</h3><ul>${ambiances}</ul></section>
+    <section class="src-sec"><h3>Photos des plantes</h3><p>Toutes viennent de Wikimedia Commons, sous licence libre.</p><ul>${plantes}</ul></section>`;
+}
 
 function openDemo(){
   warmDemo();
