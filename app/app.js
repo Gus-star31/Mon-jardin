@@ -36,7 +36,7 @@ const EAU_LBL = {d:"Sol sec en été", f:"Sol frais", w:"Sol humide"};
 const SOL_OPT = [["a","Argileux"],["ac","Argilo-calcaire"],["c","Calcaire"],["s","Sableux"],["h","Humifère"]];
 const SOL_LBL = Object.fromEntries(SOL_OPT);
 // L'entretien prévu ; le moteur s'en sert comme besoin en arrosage des plantes.
-const ARRO_OPT = [["1","Très peu","Des plantes qui se débrouillent seules, une fois bien installées (compte un an)."],["2","Un peu","Un arrosage de temps en temps pendant l’été."],["3","Volontiers","Arroser régulièrement l’été ne te fait pas peur."],["nsp","Je ne sais pas encore","On part sur des plantes peu exigeantes ; tu pourras changer plus tard."]];
+const ARRO_OPT = [["1","Très peu","Des plantes qui se débrouillent seules après un an."],["2","Un peu","Un arrosage de temps en temps l’été."],["3","Volontiers","Arroser régulièrement l’été ne te fait pas peur."],["nsp","Je ne sais pas encore","On part sur des plantes peu exigeantes."]];
 const ARRO_LBL = {"1":"entretien minimal","2":"un peu d’entretien","3":"entretien régulier","nsp":"entretien à préciser"};
 // « Je ne sais pas encore » : le moteur part sur des plantes sans arrosage.
 const arroOf = a => a === "nsp" ? "1" : (a || "1");
@@ -115,10 +115,10 @@ function homeScreen(){ return store.get("app-out", false) ? "s-login" : demo || 
 // ---------- Aide du premier coin ----------
 // Une carte par étape (jardin, photo, envies, diagnostic), affichée une fois, le temps du premier coin d'un nouveau compte.
 const COACH = {
-  "s-garden": [1, "Décris <em>ton jardin</em>", "Ton projet, ton climat, ton sol et l’entretien que tu veux prévoir orientent le choix des plantes.", `<svg class="illu" aria-hidden="true" width="24" height="32" viewBox="0 0 27.5 36.6667" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.4167 23.8333C22.9855 23.8333 27.5 19.3189 27.5 13.75C27.5 8.18113 22.9855 3.66667 17.4167 3.66667C11.8478 3.66667 7.33333 8.18113 7.33333 13.75C7.33333 19.3189 11.8478 23.8333 17.4167 23.8333Z" fill="#D5E3CF"/><path d="M13.75 35.75C4.58333 24.75 0.916667 19.25 0.916667 13.75C0.916667 10.3464 2.26875 7.08218 4.67546 4.67546C7.08218 2.26875 10.3464 0.916667 13.75 0.916667C17.1536 0.916667 20.4178 2.26875 22.8245 4.67546C25.2313 7.08218 26.5833 10.3464 26.5833 13.75C26.5833 19.25 22.9167 24.75 13.75 35.75Z" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M8.25 15.5833C10.0833 8.25 17.4167 6.41667 20.1667 8.25C20.1667 13.75 13.75 19.25 8.25 15.5833ZM8.25 15.5833L16.5 10.0833" stroke-width="1.375" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/></svg>`],
-  "s-photo": [2, "Ajoute <em>une photo</em>", "Prends de face le coin à planter. On y repère le soleil qu’il reçoit et la place disponible.", `<svg class="illu" aria-hidden="true" width="44" height="32" viewBox="0 0 40.3333 29.3333" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M25.6667 24.75C30.7293 24.75 34.8333 20.6459 34.8333 15.5833C34.8333 10.5207 30.7293 6.41667 25.6667 6.41667C20.6041 6.41667 16.5 10.5207 16.5 15.5833C16.5 20.6459 20.6041 24.75 25.6667 24.75Z" fill="#F3D35B"/><path d="M3.66667 6.41667H11L14.6667 0.916667H25.6667L29.3333 6.41667H36.6667C37.396 6.41667 38.0955 6.7064 38.6112 7.22212C39.1269 7.73785 39.4167 8.43732 39.4167 9.16667V25.6667C39.4167 26.396 39.1269 27.0955 38.6112 27.6112C38.0955 28.1269 37.396 28.4167 36.6667 28.4167H3.66667C2.93732 28.4167 2.23785 28.1269 1.72212 27.6112C1.2064 27.0955 0.916667 26.396 0.916667 25.6667V9.16667C0.916667 8.43732 1.2064 7.73785 1.72212 7.22212C2.23785 6.7064 2.93732 6.41667 3.66667 6.41667Z" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M26.5833 16.5C26.5833 20.0438 23.7105 22.9167 20.1667 22.9167C16.6228 22.9167 13.75 20.0438 13.75 16.5C13.75 12.9562 16.6228 10.0833 20.1667 10.0833C23.7105 10.0833 26.5833 12.9562 26.5833 16.5Z" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M33 10.0833H33.9167" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/></svg>`],
-  "s-envies": [3, "Donne <em>tes critères</em>", "Dis-nous ce dont tu rêves pour ce coin : des fleurs, de l’intimité, des abeilles… On choisit les plantes en fonction.", `<svg class="illu" aria-hidden="true" width="32" height="32" viewBox="0 0 18.6 18.6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.05 17.55C1.05 7.05 8.55 1.05 17.55 1.05C17.55 11.55 11.55 17.55 1.05 17.55Z" fill="#D5E3CF" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M1.05 17.55L11.55 7.05" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/></svg>`],
-  "s-espace": [4, "Consulte <em>ton diagnostic</em>", "Voici tes plantes, où les planter et ce que ça coûte. Une plante ne te plaît pas ? Remplace-la d’un geste.", `<svg class="illu" aria-hidden="true" width="26" height="32" viewBox="0 0 28.4167 34.8333" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M26.5833 4.58333H8.25C7.23748 4.58333 6.41667 5.40414 6.41667 6.41667V30.25C6.41667 31.2625 7.23748 32.0833 8.25 32.0833H26.5833C27.5959 32.0833 28.4167 31.2625 28.4167 30.25V6.41667C28.4167 5.40414 27.5959 4.58333 26.5833 4.58333Z" fill="#F5CDB0"/><path d="M26.5833 6.41667L21.0833 0.916667H0.916667V33.9167H26.5833V6.41667ZM21.0833 0.916667V6.41667H26.5833" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M6.41667 15.5833H13.75M6.41667 21.0833H19.25M6.41667 26.5833H15.5833" stroke-width="1.375" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M18.3333 17.4167C19.8521 17.4167 21.0833 16.1854 21.0833 14.6667C21.0833 13.1479 19.8521 11.9167 18.3333 11.9167C16.8146 11.9167 15.5833 13.1479 15.5833 14.6667C15.5833 16.1854 16.8146 17.4167 18.3333 17.4167Z" fill="#F2C4C4" stroke-width="1.375" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/></svg>`]
+  "s-garden": [1, "Décris <em>ton jardin</em>", "Pour choisir des plantes qui s’y plairont.", `<svg class="illu" aria-hidden="true" width="24" height="32" viewBox="0 0 27.5 36.6667" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.4167 23.8333C22.9855 23.8333 27.5 19.3189 27.5 13.75C27.5 8.18113 22.9855 3.66667 17.4167 3.66667C11.8478 3.66667 7.33333 8.18113 7.33333 13.75C7.33333 19.3189 11.8478 23.8333 17.4167 23.8333Z" fill="#D5E3CF"/><path d="M13.75 35.75C4.58333 24.75 0.916667 19.25 0.916667 13.75C0.916667 10.3464 2.26875 7.08218 4.67546 4.67546C7.08218 2.26875 10.3464 0.916667 13.75 0.916667C17.1536 0.916667 20.4178 2.26875 22.8245 4.67546C25.2313 7.08218 26.5833 10.3464 26.5833 13.75C26.5833 19.25 22.9167 24.75 13.75 35.75Z" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M8.25 15.5833C10.0833 8.25 17.4167 6.41667 20.1667 8.25C20.1667 13.75 13.75 19.25 8.25 15.5833ZM8.25 15.5833L16.5 10.0833" stroke-width="1.375" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/></svg>`],
+  "s-photo": [2, "Ajoute <em>une photo</em>", "On y lit le soleil et la place disponible.", `<svg class="illu" aria-hidden="true" width="44" height="32" viewBox="0 0 40.3333 29.3333" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M25.6667 24.75C30.7293 24.75 34.8333 20.6459 34.8333 15.5833C34.8333 10.5207 30.7293 6.41667 25.6667 6.41667C20.6041 6.41667 16.5 10.5207 16.5 15.5833C16.5 20.6459 20.6041 24.75 25.6667 24.75Z" fill="#F3D35B"/><path d="M3.66667 6.41667H11L14.6667 0.916667H25.6667L29.3333 6.41667H36.6667C37.396 6.41667 38.0955 6.7064 38.6112 7.22212C39.1269 7.73785 39.4167 8.43732 39.4167 9.16667V25.6667C39.4167 26.396 39.1269 27.0955 38.6112 27.6112C38.0955 28.1269 37.396 28.4167 36.6667 28.4167H3.66667C2.93732 28.4167 2.23785 28.1269 1.72212 27.6112C1.2064 27.0955 0.916667 26.396 0.916667 25.6667V9.16667C0.916667 8.43732 1.2064 7.73785 1.72212 7.22212C2.23785 6.7064 2.93732 6.41667 3.66667 6.41667Z" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M26.5833 16.5C26.5833 20.0438 23.7105 22.9167 20.1667 22.9167C16.6228 22.9167 13.75 20.0438 13.75 16.5C13.75 12.9562 16.6228 10.0833 20.1667 10.0833C23.7105 10.0833 26.5833 12.9562 26.5833 16.5Z" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M33 10.0833H33.9167" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/></svg>`],
+  "s-envies": [3, "Partage <em>tes envies</em>", "Fleurs, intimité, abeilles… on trouve les plantes qui vont avec.", `<svg class="illu" aria-hidden="true" width="32" height="32" viewBox="0 0 18.6 18.6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.05 17.55C1.05 7.05 8.55 1.05 17.55 1.05C17.55 11.55 11.55 17.55 1.05 17.55Z" fill="#D5E3CF" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M1.05 17.55L11.55 7.05" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/></svg>`],
+  "s-espace": [4, "Découvre <em>tes plantes</em>", "Une plante ne te plaît pas ? Remplace-la d’un geste.", `<svg class="illu" aria-hidden="true" width="26" height="32" viewBox="0 0 28.4167 34.8333" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M26.5833 4.58333H8.25C7.23748 4.58333 6.41667 5.40414 6.41667 6.41667V30.25C6.41667 31.2625 7.23748 32.0833 8.25 32.0833H26.5833C27.5959 32.0833 28.4167 31.2625 28.4167 30.25V6.41667C28.4167 5.40414 27.5959 4.58333 26.5833 4.58333Z" fill="#F5CDB0"/><path d="M26.5833 6.41667L21.0833 0.916667H0.916667V33.9167H26.5833V6.41667ZM21.0833 0.916667V6.41667H26.5833" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M6.41667 15.5833H13.75M6.41667 21.0833H19.25M6.41667 26.5833H15.5833" stroke-width="1.375" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M18.3333 17.4167C19.8521 17.4167 21.0833 16.1854 21.0833 14.6667C21.0833 13.1479 19.8521 11.9167 18.3333 11.9167C16.8146 11.9167 15.5833 13.1479 15.5833 14.6667C15.5833 16.1854 16.8146 17.4167 18.3333 17.4167Z" fill="#F2C4C4" stroke-width="1.375" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/></svg>`]
 };
 let coach = store.get("app-coach", null);
 function startCoach(){ coach = {seen: []}; store.set("app-coach", coach); }
@@ -176,7 +176,7 @@ function setLoginMode(isSignup){
   signup = isSignup;
   $("login-eyebrow").textContent = signup ? "Bienvenue" : "Bon retour";
   $("login-title").innerHTML = signup ? "Ton jardin,<br><em>planté</em> sur mesure." : `Te <em>revoilà</em>${prenom ? ", " + esc(prenom) : ""} !`;
-  $("login-lede").textContent = signup ? "Prends ton jardin en photo. On te propose des plantes qui s’y plairont, et on t’aide à les planter." : "Connecte-toi pour retrouver ton jardin.";
+  $("login-lede").textContent = signup ? "Une photo de ton jardin, et on choisit avec toi des plantes qui s’y plairont." : "Ton jardin t’attend.";
   $("login-google-lbl").textContent = signup ? "Créer mon compte avec Google" : "Continuer avec Google";
   $("login-email-go").textContent = signup ? "Commencer avec mon e-mail" : "Se connecter avec un e-mail";
   $("login-submit").textContent = signup ? "Créer mon compte" : "Se connecter";
@@ -217,7 +217,7 @@ function afterLogin(isNew, who){
 $("login-google").addEventListener("click", () => afterLogin(signup, "google"));
 $("login-forgot").addEventListener("click", () => {
   const ok = /^\S+@\S+\.\S+$/.test($("login-email").value.trim());
-  loginErr(ok ? "" : "Saisis ton e-mail, on t’enverra un lien pour choisir un nouveau mot de passe.");
+  loginErr(ok ? "" : "Indique ton e-mail, on t’envoie un lien pour en choisir un nouveau.");
   if(!ok) $("login-email").focus();
 });
 $("login-form").addEventListener("submit", e => {
@@ -225,8 +225,8 @@ $("login-form").addEventListener("submit", e => {
   if(LOGIN_LIBRE) return afterLogin(signup, $("login-email").value.trim() || "google");
   const email = $("login-email").value.trim(), pass = $("login-pass").value;
   $("login-email").removeAttribute("aria-invalid"); $("login-pass").removeAttribute("aria-invalid");
-  if(!/^\S+@\S+\.\S+$/.test(email)){ loginErr("Saisis une adresse e-mail valide, par exemple toi@exemple.fr."); $("login-email").setAttribute("aria-invalid", "true"); $("login-email").focus(); return; }
-  if(signup ? pass.length < 8 : !pass){ loginErr(signup ? "Choisis un mot de passe d’au moins 8 caractères." : "Saisis ton mot de passe."); $("login-pass").setAttribute("aria-invalid", "true"); $("login-pass").focus(); return; }
+  if(!/^\S+@\S+\.\S+$/.test(email)){ loginErr("Cette adresse semble incomplète : toi@exemple.fr, par exemple."); $("login-email").setAttribute("aria-invalid", "true"); $("login-email").focus(); return; }
+  if(signup ? pass.length < 8 : !pass){ loginErr(signup ? "Il faut au moins 8 caractères." : "Il manque ton mot de passe."); $("login-pass").setAttribute("aria-invalid", "true"); $("login-pass").focus(); return; }
   afterLogin(signup, email);
 });
 
@@ -300,7 +300,7 @@ $("ph-input").addEventListener("change", async e => {
     const w0 = img.width || img.naturalWidth, h0 = img.height || img.naturalHeight, k = Math.min(1, 1024 / Math.max(w0, h0));
     photo = {data: toJpeg(img, 1024, .78).split(",")[1], w: Math.round(w0*k), h: Math.round(h0*k), thumb: toJpeg(img, 480, .72), direction: null, note: ""};
   }catch(err){
-    phErr("Cette photo n’a pas pu être lue. Choisis une photo au format JPEG ou PNG, ou fais une capture d’écran de la photo.");
+    phErr("On n’arrive pas à ouvrir cette photo. Essaie en JPEG ou PNG, ou en capture d’écran.");
   }
   renderPhoto();
 });
@@ -310,20 +310,20 @@ function renderPhoto(){
   const p = photo;
   $("ph-card").innerHTML = p ? `<article class="ph">
     <div class="ph-top"><img src="${p.thumb}" alt="Ta photo du coin à planter">
-      <div class="ph-side">
-        <label class="ph-q" for="dir">Ton coin regarde vers…</label><span class="ph-hint">Le nord, le sud… Cela change le soleil qu’il reçoit.</span>
-        <select id="dir">
-          <option value="" ${!p.direction ? "selected" : ""}>Je ne sais pas</option>
-          ${DIRS.map(d => `<option value="${d}" ${p.direction === d ? "selected" : ""}>${DIR_LONG[d].charAt(0).toUpperCase() + DIR_LONG[d].slice(1)}</option>`).join("")}
-        </select>
-      </div>
+      <div class="ph-side ph-name"><label class="ph-q" for="ph-nom">Son nom</label>
+        <input id="ph-nom" type="text" maxlength="40" autocomplete="off" placeholder="Ex. : la haie du fond" value="${esc(p.nom || "")}" aria-describedby="ph-nom-hint">
+        <span class="ph-hint" id="ph-nom-hint">Facultatif : sinon, on lui en trouve un.</span></div>
       <button class="ph-del" type="button" id="ph-del" aria-label="Retirer la photo">×</button>
     </div>
-    <div class="ph-name"><label class="ph-q" for="ph-nom">Son nom</label>
-      <input id="ph-nom" type="text" maxlength="40" autocomplete="off" placeholder="Par exemple : le long de la clôture" value="${esc(p.nom || "")}" aria-describedby="ph-nom-hint">
-      <span class="ph-hint" id="ph-nom-hint">Facultatif : si tu laisses vide, on lui en trouve un.</span></div>
-    ${canMeasure ? `<div class="compass" id="compass" ${p.direction ? "hidden" : ""}>${COMPASS}<div class="cp-txt"><b>Utilise la boussole pour t’aider</b>
-      <span class="ph-live" id="live">Mets-toi face au coin à planter, comme pour le prendre en photo.</span>
+    <div class="ph-side ph-dir">
+      <label class="ph-q" for="dir">Ton coin regarde vers…</label><span class="ph-hint">C’est ce qui décide de son soleil.</span>
+      <select id="dir">
+        <option value="" ${!p.direction ? "selected" : ""}>Je ne sais pas</option>
+        ${DIRS.map(d => `<option value="${d}" ${p.direction === d ? "selected" : ""}>${DIR_LONG[d].charAt(0).toUpperCase() + DIR_LONG[d].slice(1)}</option>`).join("")}
+      </select>
+    </div>
+    ${canMeasure ? `<div class="compass" id="compass" ${p.direction ? "hidden" : ""}>${COMPASS}<div class="cp-txt"><b>Ou laisse la boussole t’aider</b>
+      <span class="ph-live" id="live">Mets-toi face au coin, comme pour la photo.</span>
       <p class="cp-read" id="cp-read" aria-live="polite" hidden><span class="cp-dir" id="cp-dir"></span><span class="cp-deg" id="cp-deg"></span></p>
       <button class="linkish" type="button" id="measure" hidden></button></div></div>` : ""}
     ${p.note || p.showNote ? `<textarea id="note" maxlength="300" aria-label="Précision sur ce coin" placeholder="Par exemple : je veux cacher le balcon du voisin">${esc(p.note)}</textarea>`
@@ -362,8 +362,8 @@ function startCompass(){
   if(typeof DeviceOrientationEvent.requestPermission === "function"){
     const b = $("measure"); b.textContent = "Activer la boussole"; b.hidden = false;
     b.onclick = async () => {
-      try{ if(await DeviceOrientationEvent.requestPermission() !== "granted") return noCompass("Pas de souci, choisis simplement dans la liste. Si tu ne sais pas, laisse « Je ne sais pas » : on l’estimera sur la photo."); }
-      catch(e){ return noCompass("Pas de souci, choisis simplement dans la liste. Si tu ne sais pas, laisse « Je ne sais pas » : on l’estimera sur la photo."); }
+      try{ if(await DeviceOrientationEvent.requestPermission() !== "granted") return noCompass("Pas de souci : choisis dans la liste, ou laisse « Je ne sais pas »."); }
+      catch(e){ return noCompass("Pas de souci : choisis dans la liste, ou laisse « Je ne sais pas »."); }
       listenCompass();
     };
     return;
@@ -387,7 +387,7 @@ function listenCompass(){
   };
   window.addEventListener("deviceorientationabsolute", onOri);
   window.addEventListener("deviceorientation", onOri);
-  const t = setTimeout(() => { if(!dir) noCompass("Ce téléphone n’a pas de boussole. Choisis dans la liste, ou laisse « Je ne sais pas » : on l’estimera sur la photo."); }, 4000);
+  const t = setTimeout(() => { if(!dir) noCompass("Pas de boussole ici, ce n’est pas grave : choisis dans la liste, ou laisse « Je ne sais pas »."); }, 4000);
   compassOff = () => { window.removeEventListener("deviceorientationabsolute", onOri); window.removeEventListener("deviceorientation", onOri); clearTimeout(t); };
 }
 $("to-envies").addEventListener("click", () => { renderEnvies(); show("s-envies"); });
@@ -406,7 +406,7 @@ function styleWarn(){
   box.hidden = !ref || ref === envies.style;
   if(box.hidden) return;
   const name = STYLE_OPT.find(o => o[0] === ref)[1].toLowerCase();
-  box.innerHTML = `<b>Tes autres coins sont en ${esc(name)}.</b> Garder la même ambiance donne un jardin harmonieux, mais c’est toi qui choisis. <button class="linkish" type="button" id="a-style-back">Revenir au ${esc(name)}</button>`;
+  box.innerHTML = `<b>Tes autres coins sont en ${esc(name)}.</b> La même ambiance partout, c’est plus harmonieux. <button class="linkish" type="button" id="a-style-back">Revenir au ${esc(name)}</button>`;
   $("a-style-back").addEventListener("click", () => { envies.style = ref; store.set("app-envies", envies); drawStyle(); styleHint(); });
 }
 styleHint();
@@ -461,7 +461,7 @@ function renderGarden(){
   const home = gardenEdit || espaces().length ? ["s-jardin", "Ton jardin"] : ["s-login", "Accueil"];
   $("garden-back").dataset.go = home[0];
   $("garden-back").querySelector("span").textContent = home[1];
-  $("garden-lede").textContent = gardenEdit ? "Ces réglages servent aux prochains coins que tu ajouteras." : `${avec("Bienvenue, ", ". ")}Quelques questions sur ton jardin, une seule fois. Elles nous aident à choisir des plantes qui vivront longtemps chez toi.`;
+  $("garden-lede").textContent = gardenEdit ? "Ces réglages servent aux prochains coins que tu ajouteras." : `${avec("Bienvenue, ", ". ")}Quelques questions, une seule fois, pour des plantes qui se plairont chez toi.`;
   $("garden-privacy").hidden = true;
   $("garden-next").textContent = gardenEdit ? "Enregistrer" : "Continuer";
   $("gar-err").hidden = true;
@@ -480,14 +480,14 @@ $("garden-next").addEventListener("click", () => {
 });
 
 // ---------- 04 · Analyse ----------
-const STEPS = ["Lecture de la photo","On repère les coins à planter","On mesure le soleil que reçoit chaque coin","Estimation de la place disponible","On choisit tes plantes"];
+const STEPS = ["On lit ta photo","On repère les coins à planter","On mesure leur soleil","On estime la place","On choisit tes plantes"];
 function drawSteps(k){ $("an-steps").innerHTML = STEPS.map((s, i) => `<li class="${i < k ? "done" : i === k ? "now" : ""}"><i></i>${s}</li>`).join(""); }
 async function runAnalyse(errId, back){
   const err = msg => { $(errId).textContent = msg; $(errId).hidden = !msg; };
   err("");
   if(!photo){ show("s-photo"); return; }
   show("s-analyse");
-  $("an-wait").textContent = `On regarde ta photo avec attention${avec(", ")}. Compte une demi-minute, tu peux poser ton téléphone.`;
+  $("an-wait").textContent = `On regarde ta photo avec attention${avec(", ")}. Une demi-minute, et c’est prêt.`;
   let k = 0; drawSteps(0);
   const tick = setInterval(() => { k = Math.min(k + 1, STEPS.length - 1); drawSteps(k); }, 7000);
   const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 90000);
@@ -501,9 +501,9 @@ async function runAnalyse(errId, back){
     if(!r.ok){
       let msg = d.erreur;
       if(!msg){
-        if(r.status === 504 || /TIMEOUT/i.test(raw)) msg = "L’analyse a pris trop de temps côté serveur. Réessaie dans un instant.";
-        else if(r.status === 413 || /PAYLOAD_TOO_LARGE/i.test(raw)) msg = "La photo est trop lourde pour être envoyée. Réessaie avec une autre photo.";
-        else msg = `L’analyse a échoué (erreur ${r.status}).`;
+        if(r.status === 504 || /TIMEOUT/i.test(raw)) msg = "Pardon, l’analyse a pris trop de temps. Réessaie dans un instant.";
+        else if(r.status === 413 || /PAYLOAD_TOO_LARGE/i.test(raw)) msg = "Cette photo est trop lourde. Essaie avec une capture d’écran.";
+        else msg = `Pardon, l’analyse n’a pas abouti (erreur ${r.status}).`;
       }
       const vcode = (raw.match(/[A-Z_]{8,}/) || [""])[0];
       show(back); err(msg + (d.detail ? ` Détail technique : ${d.detail}` : vcode ? ` Code Vercel : ${vcode}` : ""));
@@ -522,7 +522,7 @@ async function runAnalyse(errId, back){
     openEspace(rec, d.zones[0].id);
   }catch(e){
     show(back);
-    err(e.name === "AbortError" ? "L’analyse a été plus longue que prévu. Ta photo est toujours là : réessaie dans un instant." : "La connexion semble coupée. Rien n’est perdu : réessaie quand le réseau revient.");
+    err(e.name === "AbortError" ? "Pardon, c’est plus long que prévu. Ta photo est gardée : réessaie dans un instant." : "La connexion semble coupée. Rien n’est perdu : réessaie quand le réseau revient.");
   }finally{ clearInterval(tick); clearTimeout(to); }
 }
 function dropRecord(r){
@@ -623,13 +623,13 @@ function renderProposal(){
       <button class="link" type="button" id="buy-toggle" aria-expanded="${listOpen}">${listOpen ? "Masquer la liste" : "Ma liste pour la jardinerie"}</button></div>
     ${listOpen ? `<ul>${b.rows.map(([nom, r, q]) => { const p = PLANTS.find(x => x.nom === nom); const [x, y] = p ? unitPrice(p, r) : [0, 0];
       return `<li><span>${p ? `<a href="${shopUrl(p)}" target="_blank" rel="noopener">${esc(nom)} ↗</a>` : esc(nom)}<small>${r === "bulbe" ? q + " bulbes" : q + (q > 1 ? " plants" : " plant")}</small></span><span>${eur0(x * q)} – ${eur0(y * q)}</span></li>`; }).join("")}</ul>
-      <p class="bnote">Prix indicatifs de jardinerie et de pépinière, en ${FMT_DESC[state.fmt]}. Hors terre, paillage, livraison et main-d’œuvre.</p>` : ""}`;
+      <p class="bnote">Prix indicatifs en ${FMT_DESC[state.fmt]}, hors terre, paillage, livraison et pose.</p>` : ""}`;
 }
 // Les mots du jardin : une explication courte des types de plantes présents dans la proposition.
 const GLOSSAIRE = [["vivace", "Vivace", "une plante qui repousse chaque année, sans la replanter"], ["graminee", "Graminée", "une touffe de fines feuilles, comme une herbe haute, qui bouge au vent"], ["couvre-sol", "Couvre-sol", "une plante basse qui s’étale et limite les mauvaises herbes"], ["bulbe", "Bulbe", "un oignon à planter en automne, qui fleurit au printemps"], ["grimpante", "Grimpante", "une plante qui monte le long d’un mur ou d’une clôture"]];
 function glossary(types){
   const items = GLOSSAIRE.filter(([t]) => types.includes(t)).map(([, w, d]) => `<li><b>${w}</b> : ${d}.</li>`);
-  return `<div class="glossary"><p><b>Fond, milieu, devant</b> : où planter chaque plante, les plus hautes au fond, les plus basses devant.</p>${items.length ? `<ul>${items.join("")}</ul>` : ""}</div>`;
+  return `<div class="glossary"><p><b>Fond, milieu, devant</b> : les plus hautes au fond, les plus basses devant.</p>${items.length ? `<ul>${items.join("")}</ul>` : ""}</div>`;
 }
 // Plan de plantation : le plan vu de dessus du moteur, repris sous la proposition.
 function renderPlan(){
@@ -659,7 +659,7 @@ $("crit-toggle").addEventListener("click", () => {
 // true : aucune image n'est demandée à Gemini, l'espace montre seulement la photo d'origine.
 const APERCU_PAUSE = false;
 let apTok = 0, apTimer = null, apBusy = false;
-const AP_NOTE = "Image créée par IA (Gemini, de Google) à partir de ta photo : l’aspect réel variera. Ta photo est envoyée à Google le temps de créer l’image.";
+const AP_NOTE = "Dessin par IA (Gemini, de Google) : le vrai rendu variera. Ta photo passe par Google le temps du dessin.";
 function curZoneObj(){ return ZONES.find(z => z.id === curZone); }
 function sigOf(){ return combo.map(c => c.plant.nom).sort().join("|") + "#" + state.age + "#" + state.prof; }
 function scheduleApercu(){ clearTimeout(apTimer); apTimer = setTimeout(refreshApercu, 60); }
@@ -710,7 +710,7 @@ async function refreshApercu(){
     note.textContent = AP_NOTE;
   } else {
     actions.innerHTML = "";
-    note.textContent = "Refais une analyse de ce coin pour voir les plantations dessinées sur ta photo.";
+    note.textContent = "Refais l’analyse de ce coin pour voir tes plantes sur ta photo.";
   }
   const go = $("ap-go"); if(go) go.addEventListener("click", () => generateApercu(z, rec, ph));
 }
@@ -736,14 +736,14 @@ async function generateApercu(z, rec, ph){
   const sig = sigOf();
   apBusy = true; actions.innerHTML = ""; note.classList.remove("err"); note.textContent = "";
   const load = document.createElement("div"); load.className = "ba-load";
-  load.innerHTML = `<div class="sprout" aria-hidden="true"><i></i><i></i><i></i></div><p>Création de l’image…</p><small>Compte 15 à 40 secondes.</small>`;
+  load.innerHTML = `<div class="sprout" aria-hidden="true"><i></i><i></i><i></i></div><p>On dessine tes plantes…</p><small>15 à 40 secondes.</small>`;
   ba.appendChild(load);
   const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 80000);
   try{
     const r = await fetch("/api/apercu", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(payload), signal: ctrl.signal});
     const raw = await r.text(); let d = {}; try{ d = JSON.parse(raw); }catch(e){}
     if(!r.ok || !d.image){
-      const msg = d.erreur || (r.status === 504 || /TIMEOUT/i.test(raw) ? "La création de l’image a pris trop de temps. Réessaie." : `La création de l’image a échoué (erreur ${r.status}).`);
+      const msg = d.erreur || (r.status === 504 || /TIMEOUT/i.test(raw) ? "Le dessin a pris trop de temps. Réessaie." : `Pardon, le dessin n’a pas abouti (erreur ${r.status}).`);
       throw new Error(msg + (d.detail ? ` Détail technique : ${d.detail}` : ""));
     }
     const image = await shrinkImage(`data:${d.mime || "image/png"};base64,${d.image}`);
@@ -751,7 +751,7 @@ async function generateApercu(z, rec, ph){
   }catch(e){
     apBusy = false; load.remove();
     await refreshApercu();
-    const n = $("ap-note"); if(n){ n.textContent = e.name === "AbortError" ? "La création de l’image a pris trop de temps." : e.message === "Failed to fetch" ? "Pas de connexion : l’image n’a pas pu être créée." : e.message; n.classList.add("err"); }
+    const n = $("ap-note"); if(n){ n.textContent = e.name === "AbortError" ? "Le dessin a pris trop de temps." : e.message === "Failed to fetch" ? "La connexion semble coupée : le dessin attendra." : e.message; n.classList.add("err"); }
     const a = $("ap-actions"); if(a && ph){ a.innerHTML = `<button class="linkish" type="button" id="ap-go">Réessayer</button>`; $("ap-go").addEventListener("click", () => generateApercu(z, rec, ph)); }
     return;
   }finally{ clearTimeout(to); }
@@ -816,7 +816,7 @@ function renderJardin(){
         <span class="vig">${vig}</span>
       </button>${editing ? `<button class="rm" type="button" data-rm="${e.key}" aria-label="Retirer le coin ${esc(z.nom)}">×</button>` : ""}</div>`;
   });
-  $("j-spaces").innerHTML = cards.length ? cards.join("") : `<p class="empty">Ton jardin attend son premier coin. Commence par une photo, on s’occupe du reste.</p>`;
+  $("j-spaces").innerHTML = cards.length ? cards.join("") : `<p class="empty">Ton jardin attend son premier coin. Une photo suffit.</p>`;
   $("j-sec").hidden = !list.length;
   $("j-count").textContent = list.length;
   $("j-facts").innerHTML = `<div><small>Coins</small><b>${list.length}</b></div><div><small>Plantes</small><b>${nPlants || "–"}</b></div><div><small>Budget</small><b>${nb ? `${eur0(bmin)} – ${eur0(bmax)}`.replace(/\s?€/, "") : "–"}</b></div>`;
@@ -933,22 +933,22 @@ const MOIS_NOM = ["janvier","février","mars","avril","mai","juin","juillet","ao
 function renderConseils(){
   const m = new Date().getMonth() + 1;
   $("c-mois").textContent = `En ${MOIS_NOM[m - 1]}`;
-  $("c-lede").textContent = `${avec("", ", voici ce")}${prenom ? "" : "Ce"} qu’il y a à faire ce mois-ci, pour les plantes de ton jardin.`;
+  $("c-lede").textContent = `${avec("", ", voici ce")}${prenom ? "" : "Ce"} qui fera du bien à tes plantes ce mois-ci.`;
   const P = gardenPlants().map(o => o.p);
-  if(!P.length){ $("c-list").innerHTML = `<p class="empty">Ajoute un premier coin : chaque mois, on te dira simplement quoi faire pour tes plantes.</p>`; return; }
+  if(!P.length){ $("c-list").innerHTML = `<p class="empty">Ajoute un premier coin : chaque mois, on te dira quoi faire.</p>`; return; }
   const names = ps => ps.slice(0, 4).map(p => p.nom).join(", ") + (ps.length > 4 ? "…" : "");
   const of = t => P.filter(p => p.type === t), tips = [];
   const flo = P.filter(p => months(p).includes(m));
   if(flo.length) tips.push(["En fleur ce mois-ci", `Profite-en : ${names(flo)}.`]);
-  if([3, 4, 10, 11].includes(m)) tips.push(["C’est le moment de planter", m >= 10 ? "La terre est encore tiède : les racines s’installent pendant l’hiver, et tes plantes partiront plus fort au printemps." : "La terre se réchauffe : plante avant les grosses chaleurs, et arrose bien la première fois."]);
-  if([9, 10, 11].includes(m) && of("bulbe").length) tips.push(["Plante tes bulbes", `Avant les premiers froids, enterre-les à deux ou trois fois leur hauteur, pointe vers le haut : ${names(of("bulbe"))}.`]);
-  if([2, 3].includes(m) && of("graminee").length) tips.push(["Coupe tes graminées", `Rabats-les à 10 cm du sol, juste avant que les nouvelles pousses sortent : ${names(of("graminee"))}.`]);
-  if([2, 3].includes(m) && of("vivace").length) tips.push(["Fais place aux nouvelles pousses", `Coupe au ras les tiges sèches de tes vivaces : ${names(of("vivace"))}.`]);
+  if([3, 4, 10, 11].includes(m)) tips.push(["C’est le moment de planter", m >= 10 ? "La terre est encore tiède : tes plantes s’installent l’hiver et partent plus fort au printemps." : "La terre se réchauffe : plante avant les grosses chaleurs, et arrose bien la première fois."]);
+  if([9, 10, 11].includes(m) && of("bulbe").length) tips.push(["Plante tes bulbes", `Avant les froids, à deux ou trois fois leur hauteur, pointe en haut : ${names(of("bulbe"))}.`]);
+  if([2, 3].includes(m) && of("graminee").length) tips.push(["Coupe tes graminées", `À 10 cm du sol, avant les nouvelles pousses : ${names(of("graminee"))}.`]);
+  if([2, 3].includes(m) && of("vivace").length) tips.push(["Fais place aux nouvelles pousses", `Coupe au ras les tiges sèches : ${names(of("vivace"))}.`]);
   const apres = P.filter(p => p.bloom && p.bloom[1] === (m === 1 ? 12 : m - 1) && /taill/i.test(p.note || ""));
-  if(apres.length) tips.push(["Une petite taille", `Leur floraison vient de finir : raccourcis-les d’un tiers, elles repartiront plus touffues. ${names(apres)}.`]);
-  if([6, 7, 8].includes(m)) tips.push(["Arrose malin", "Pour les plantes de moins d’un an : une fois par semaine, en une fois et généreusement, plutôt qu’un peu tous les jours. Le soir, de préférence."]);
-  if([4, 5, 10, 11].includes(m)) tips.push(["Couvre la terre", "Étale du paillage (copeaux, feuilles mortes) au pied des plantes : il garde l’humidité et limite les mauvaises herbes."]);
-  if([12, 1].includes(m)) tips.push(["Le jardin se repose", "Laisse les tiges sèches en place : elles abritent les insectes l’hiver, et sont jolies sous le givre. Rien d’autre à faire, profite."]);
+  if(apres.length) tips.push(["Une petite taille", `Floraison finie : raccourcis-les d’un tiers, elles repartiront plus touffues. ${names(apres)}.`]);
+  if([6, 7, 8].includes(m)) tips.push(["Arrose malin", "Plantes de moins d’un an : une fois par semaine, généreusement, le soir."]);
+  if([4, 5, 10, 11].includes(m)) tips.push(["Couvre la terre", "Copeaux ou feuilles mortes au pied des plantes : la terre reste fraîche, les mauvaises herbes reculent."]);
+  if([12, 1].includes(m)) tips.push(["Le jardin se repose", "Laisse les tiges sèches : elles abritent les insectes et sont jolies sous le givre."]);
   $("c-list").innerHTML = tips.map(([t, d]) => `<article class="tip"><h3>${esc(t)}</h3><p>${esc(d)}</p></article>`).join("");
 }
 
@@ -978,8 +978,8 @@ function renderCompte(){
     <section class="acct-sec"><h3>Ton prénom</h3><p>${prenom ? esc(prenom) : "Pas encore renseigné"}</p><button class="link" type="button" data-act="prenom">${prenom ? "Changer ton prénom" : "Ajouter ton prénom"}</button></section>
     <section class="acct-sec"><h3>Connexion</h3><p>${known === "google" ? "Connexion avec Google" : esc(known || "")}</p></section>
     <section class="acct-sec"><h3>Ton jardin</h3><p>${esc(cond)}</p><button class="btn secondary sm" type="button" data-act="reglages">Modifier les réglages du jardin</button></section>
-    <section class="acct-sec"><h3>Besoin d’aide ?</h3><p>Les cartes d’aide t’accompagnent pas à pas quand tu ajoutes un coin.</p><button class="link" type="button" data-act="aide">Revoir les cartes d’aide</button></section>
-    <section class="acct-sec"><h3>Tes données</h3><p>Ton jardin et tes coins sont gardés sur ce téléphone. Tes photos servent juste à l’analyse, puis ne sont gardées nulle part.</p></section>
+    <section class="acct-sec"><h3>Besoin d’aide ?</h3><p>Pour te guider quand tu ajoutes un coin.</p><button class="link" type="button" data-act="aide">Revoir les cartes d’aide</button></section>
+    <section class="acct-sec"><h3>Tes données</h3><p>Ton jardin reste sur ce téléphone. Tes photos ne servent qu’à l’analyse, on ne les garde pas.</p></section>
     <button class="btn secondary" type="button" data-act="logout">Se déconnecter</button>`;
 }
 $("a-body").addEventListener("click", e => {

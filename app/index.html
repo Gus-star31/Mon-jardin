@@ -36,7 +36,7 @@
     <div class="topbar"><span class="brand"><svg class="illu" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13 C 3 6, 8 2, 14 2 C 14 9, 10 13, 3 13 Z" fill="#D5E3CF" stroke="#1C1C1A" stroke-width="1.4" stroke-linejoin="round"/><path d="M3 13 L 10 6" stroke="#1C1C1A" stroke-width="1.4" stroke-linecap="round"/></g></svg>Atelier <em>des massifs</em></span></div>
     <p class="eyebrow" id="login-eyebrow">Bienvenue</p>
     <h1 id="login-title">Ton jardin,<br><em>planté</em> sur mesure.</h1>
-    <p class="lede" id="login-lede">Prends ton jardin en photo. On te propose des plantes qui s’y plairont, et on t’aide à les planter.</p>
+    <p class="lede" id="login-lede">Une photo de ton jardin, et on choisit avec toi des plantes qui s’y plairont.</p>
     <p class="install" id="install" hidden></p>
     <div class="login" id="login">
       <button class="btn secondary" type="button" id="login-google"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span id="login-google-lbl">Créer mon compte avec Google</span></button>
@@ -62,7 +62,7 @@
   <!-- 01 · Ton prénom (après la création du compte, avant Ton jardin) -->
   <section class="screen" id="s-prenom" hidden>
     <div class="topbar"><span class="brand"><svg class="illu" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13 C 3 6, 8 2, 14 2 C 14 9, 10 13, 3 13 Z" fill="#D5E3CF" stroke="#1C1C1A" stroke-width="1.4" stroke-linejoin="round"/><path d="M3 13 L 10 6" stroke="#1C1C1A" stroke-width="1.4" stroke-linecap="round"/></g></svg>Atelier <em>des massifs</em></span><button class="link" type="button" id="prenom-back" hidden>Annuler</button></div>
-    <header class="head"><h1>Comment <em>t’appelles</em>-tu ?</h1><p class="lede">On aime bien savoir à qui on parle. Ton prénom reste sur ce téléphone.</p></header>
+    <header class="head"><h1>Comment <em>t’appelles</em>-tu ?</h1><p class="lede">Pour t’appeler par ton prénom. Il reste sur ce téléphone.</p></header>
     <form class="prenom" id="prenom-form" novalidate>
       <div class="field"><label for="prenom">Ton prénom</label><div class="input"><input id="prenom" type="text" autocomplete="given-name" autocapitalize="words" maxlength="30" placeholder="Par exemple : Camille"></div></div>
       <div class="nav-block"><div class="nav"><button class="btn primary" type="submit" id="prenom-next" disabled>Continuer</button></div>
@@ -73,7 +73,7 @@
   <!-- 02 · Choisis ta photo -->
   <section class="screen" id="s-photo" hidden>
     <div class="topbar"><button class="back" type="button" data-go="s-login" id="photo-back"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15 9 H3 M8 4 L3 9 L8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Accueil</span></button></div>
-    <header class="head"><ol class="steps" id="pg-photo" aria-label="Étapes"></ol><h2>Choisis <em>ta photo</em></h2><p class="lede">Photographie le coin à planter, debout, en face, comme tu le regarderais.</p></header>
+    <header class="head"><ol class="steps" id="pg-photo" aria-label="Étapes"></ol><h2>Choisis <em>ta photo</em></h2><p class="lede">Le coin à planter, de face, comme tu le regardes.</p></header>
     <div id="ph-card"></div>
     <label class="addph" for="ph-input" id="ph-add">
       <input type="file" id="ph-input" accept="image/*">
@@ -81,7 +81,7 @@
     </label>
     <p class="err" id="ph-err" hidden></p>
     <div class="nav-block">
-      <p class="privacy"><svg class="illu" aria-hidden="true" width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="13" width="14" height="11" rx="2" fill="#F3D35B" stroke-width="1.5"/><path d="M10 13 v-3 a4 4 0 0 1 8 0 v3" stroke-width="1.5"/><circle cx="14" cy="18" r="1.4" fill="#1C1C1A" stroke="none"/></g></svg><span>Ta photo sert juste à l’analyse : elle est envoyée à Claude, l’IA d’Anthropic, puis n’est gardée nulle part.</span></p>
+      <p class="privacy"><svg class="illu" aria-hidden="true" width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="13" width="14" height="11" rx="2" fill="#F3D35B" stroke-width="1.5"/><path d="M10 13 v-3 a4 4 0 0 1 8 0 v3" stroke-width="1.5"/><circle cx="14" cy="18" r="1.4" fill="#1C1C1A" stroke="none"/></g></svg><span>Ta photo ne sert qu’à l’analyse par Claude, l’IA d’Anthropic. On ne la garde pas.</span></p>
       <div class="nav"><button class="btn secondary" type="button" id="photo-back2">Retour</button><button class="btn primary" type="button" id="to-envies" disabled>Continuer</button></div>
     </div>
   </section>
@@ -90,11 +90,11 @@
   <section class="screen" id="s-envies" hidden>
     <div class="topbar"><button class="back" type="button" data-go="s-photo"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15 9 H3 M8 4 L3 9 L8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Ta photo</span></button></div>
     <header class="head"><ol class="steps" id="pg-envies" aria-label="Étapes"></ol><h2>Tes <em>envies</em></h2></header>
-    <fieldset><legend>Qu’aimerais-tu pour ce coin ?</legend><div class="chips" id="a-obj"></div></fieldset>
+    <fieldset><legend>De quoi rêves-tu pour ce coin ?</legend><div class="chips" id="a-obj"></div></fieldset>
     <fieldset><legend>L’ambiance que tu aimes</legend><div class="chips" id="a-style"></div><p class="warnl style-warn" id="a-style-warn" role="status" hidden></p><p class="hint" id="a-style-hint"></p><div id="a-style-ph"></div></fieldset>
     <p class="err" id="env-err" hidden></p>
     <div class="nav-block">
-      <p class="privacy"><svg class="illu" aria-hidden="true" width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="13" width="14" height="11" rx="2" fill="#F3D35B" stroke-width="1.5"/><path d="M10 13 v-3 a4 4 0 0 1 8 0 v3" stroke-width="1.5"/><circle cx="14" cy="18" r="1.4" fill="#1C1C1A" stroke="none"/></g></svg><span>Ta photo sert juste à l’analyse : elle est envoyée à Claude, l’IA d’Anthropic, puis n’est gardée nulle part.</span></p>
+      <p class="privacy"><svg class="illu" aria-hidden="true" width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="13" width="14" height="11" rx="2" fill="#F3D35B" stroke-width="1.5"/><path d="M10 13 v-3 a4 4 0 0 1 8 0 v3" stroke-width="1.5"/><circle cx="14" cy="18" r="1.4" fill="#1C1C1A" stroke="none"/></g></svg><span>Ta photo ne sert qu’à l’analyse par Claude, l’IA d’Anthropic. On ne la garde pas.</span></p>
       <div class="nav"><button class="btn primary" type="button" id="env-next">Voir mes propositions</button></div>
     </div>
   </section>
@@ -102,10 +102,10 @@
   <!-- 03 · Ton jardin -->
   <section class="screen" id="s-garden" hidden>
     <div class="topbar"><button class="back" type="button" data-go="s-envies" id="garden-back"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15 9 H3 M8 4 L3 9 L8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Tes envies</span></button></div>
-    <header class="head"><ol class="steps" id="pg-garden" aria-label="Étapes"></ol><p class="eyebrow" id="step-garden" hidden>Réglages du jardin</p><h2>Ton <em>jardin</em></h2><p class="lede" id="garden-lede">Quelques questions sur ton jardin, une seule fois. Elles nous aident à choisir des plantes qui vivront longtemps chez toi.</p></header>
+    <header class="head"><ol class="steps" id="pg-garden" aria-label="Étapes"></ol><p class="eyebrow" id="step-garden" hidden>Réglages du jardin</p><h2>Ton <em>jardin</em></h2><p class="lede" id="garden-lede">Quelques questions, une seule fois, pour des plantes qui se plairont chez toi.</p></header>
     <fieldset id="garden-projet"><legend>Que veux-tu aménager ?</legend><div class="choices" id="a-projet"></div></fieldset>
-    <fieldset><legend>Ton climat</legend><p class="hint">Il dit quelles plantes passeront l’hiver et l’été chez toi.</p><div class="chips" id="a-clim"></div></fieldset>
-    <fieldset id="garden-sol"><legend>Ta terre</legend><p class="hint">Prends une poignée de terre humide : elle colle aux doigts (argileuse), elle file entre les doigts (sableuse), elle est claire avec des cailloux blancs (calcaire), ou noire et souple comme en sous-bois (humifère) ?</p><div class="chips" id="a-sol"></div></fieldset>
+    <fieldset><legend>Ton climat</legend><p class="hint">Pour des plantes qui passent l’hiver et l’été sans souffrir.</p><div class="chips" id="a-clim"></div></fieldset>
+    <fieldset id="garden-sol"><legend>Ta terre</legend><p class="hint">Une poignée de terre humide colle (argileuse), file entre les doigts (sableuse), est claire et caillouteuse (calcaire), ou noire et souple (humifère).</p><div class="chips" id="a-sol"></div></fieldset>
     <div class="cp-help">
       <p><b>Tu ne sais pas ?</b> Renseigne ton code postal, on remplit ton climat pour toi. Le sol, lui, sera estimé à l’analyse d’après ta région et ta photo.</p>
       <div class="field">
@@ -116,7 +116,7 @@
     <fieldset><legend>Combien de temps veux-tu donner à ton jardin ?</legend><div class="choices" id="a-arro"></div></fieldset>
     <p class="err" id="gar-err" hidden></p>
     <div class="nav-block">
-      <p class="privacy" id="garden-privacy"><svg class="illu" aria-hidden="true" width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="13" width="14" height="11" rx="2" fill="#F3D35B" stroke-width="1.5"/><path d="M10 13 v-3 a4 4 0 0 1 8 0 v3" stroke-width="1.5"/><circle cx="14" cy="18" r="1.4" fill="#1C1C1A" stroke="none"/></g></svg><span>Ta photo sert juste à l’analyse : elle est envoyée à Claude, l’IA d’Anthropic, puis n’est gardée nulle part.</span></p>
+      <p class="privacy" id="garden-privacy"><svg class="illu" aria-hidden="true" width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="13" width="14" height="11" rx="2" fill="#F3D35B" stroke-width="1.5"/><path d="M10 13 v-3 a4 4 0 0 1 8 0 v3" stroke-width="1.5"/><circle cx="14" cy="18" r="1.4" fill="#1C1C1A" stroke="none"/></g></svg><span>Ta photo ne sert qu’à l’analyse par Claude, l’IA d’Anthropic. On ne la garde pas.</span></p>
       <div class="nav"><button class="btn primary" type="button" id="garden-next">Voir mes propositions</button></div>
     </div>
   </section>
@@ -126,8 +126,8 @@
     <div class="topbar"><span class="brand"><svg class="illu" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13 C 3 6, 8 2, 14 2 C 14 9, 10 13, 3 13 Z" fill="#D5E3CF" stroke="#1C1C1A" stroke-width="1.4" stroke-linejoin="round"/><path d="M3 13 L 10 6" stroke="#1C1C1A" stroke-width="1.4" stroke-linecap="round"/></g></svg>Atelier <em>des massifs</em></span></div>
     <div class="ill-wrap mag"><svg class="illu" aria-hidden="true" width="240" height="212" viewBox="0 0 260 230" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="222" cy="40" r="13" fill="#F3D35B" /><path d="M241 40 L248 40" /><path d="M235.4 53.4 L240.4 58.4" /><path d="M222 59 L222 66" /><path d="M208.6 53.4 L203.6 58.4" /><path d="M203 40 L196 40" /><path d="M208.6 26.6 L203.6 21.6" /><path d="M222 21 L222 14" /><path d="M235.4 26.6 L240.4 21.6" /><path d="M30 200 C 80 190, 180 192, 238 202" /><path d="M40 204 c 4 -8 10 -8 12 0 M200 206 c 4 -8 10 -8 12 0" stroke-width="1.5"/><path d="M120 196 C 118 160, 122 130, 120 104" /><path d="M120 140 C 96 140, 82 120, 84 104 C 104 104, 118 118, 120 140 Z" fill="#D5E3CF" /><path d="M120 124 C 140 126, 158 110, 158 92 C 138 90, 122 104, 120 124 Z" fill="#D5E3CF" /><path d="M120 140 C 108 130, 98 118, 92 110 M120 124 C 132 114, 144 104, 150 98" stroke-width="1.5"/><path d="M120 104 c -6 -8 -4 -16 2 -20 c 4 6 4 14 -2 20" fill="#D5E3CF" stroke-width="1.5"/><circle cx="124" cy="118" r="58" fill="#BFD0EE" fill-opacity="0.2" stroke="#1C1C1A" stroke-width="2.5"/><circle cx="124" cy="118" r="50" stroke="#1C1C1A" stroke-width="1.2" stroke-dasharray="2 5" stroke-linecap="round"/><path d="M166 160 L 206 200" stroke="#1C1C1A" stroke-width="12" stroke-linecap="round"/><path d="M96 80 C 104 72, 114 70, 124 70" stroke="#FBF9F3" stroke-width="4" stroke-linecap="round"/><ellipse cx="62" cy="194" rx="9" ry="7" fill="#F2C4C4" stroke-width="1.5"/><path d="M62 187 v14 M53 191 c -4 -2 -4 -6 0 -6" stroke-width="1.5"/><circle cx="58" cy="193" r="1.3" fill="#1C1C1A" stroke="none"/><circle cx="66" cy="196" r="1.3" fill="#1C1C1A" stroke="none"/></g></svg><span class="hand mag-note" aria-hidden="true">on regarde<br>de près…</span></div>
     <div class="loading" role="status" aria-live="polite">
-      <h2>Analyse <em>de ton jardin</em></h2>
-      <p class="sm-t" id="an-wait">On regarde ta photo avec attention. Compte une demi-minute, tu peux poser ton téléphone.</p>
+      <h2>On découvre <em>ton jardin</em></h2>
+      <p class="sm-t" id="an-wait">On regarde ta photo avec attention. Une demi-minute, et c’est prêt.</p>
     </div>
     <ol class="an-steps" id="an-steps"></ol>
   </section>
@@ -151,8 +151,8 @@
     <div class="budget-card" id="esp-budget"></div>
     <button class="btn secondary" type="button" id="crit-toggle" aria-expanded="false" aria-controls="crit-grid">Modifier mes critères</button>
     <div class="crit" id="crit-grid" hidden>
-      <p class="hint">Change un critère : la proposition se recompose aussitôt. Le plan, les hauteurs et le calendrier de floraison sont en dessous.</p>
-      <div class="zonesbar" hidden><h2 id="zones-t">Zones</h2><span id="gtotal"></span><div id="zones"></div><div id="znote"></div></div>
+      <p class="hint">Change un critère, la proposition s’adapte aussitôt.</p>
+      <div class="zonesbar" hidden><h2 id="zones-t">Coins</h2><span id="gtotal"></span><div id="zones"></div><div id="znote"></div></div>
       <div class="grid">
         <aside id="crit">
 <fieldset>
@@ -230,7 +230,7 @@
       </div>
       <p class="count" id="count"></p>
     </div>
-    <p class="foot">Ces conseils viennent d’une photo : avant d’acheter, jette un œil sur place au soleil et à la place disponible. Les tailles, prix et besoins en eau sont des estimations.</p>
+    <p class="foot">Faite d’après une photo : vérifie le soleil et la place avant d’acheter. Tailles et prix sont estimés.</p>
   </section>
 
   <!-- 07 à 09 · Ton jardin -->
@@ -239,7 +239,7 @@
     <div id="j-rule"></div>
     <span class="demo-flag" id="j-demo" hidden>Exemple</span>
     <p class="eyebrow" id="j-hello" hidden></p><h1 id="j-title">Ton <em>jardin</em></h1>
-    <p class="lede" id="j-edit-lede" hidden>Retire un coin dont tu n’as plus besoin. Ses plantes et son budget seront effacés.</p>
+    <p class="lede" id="j-edit-lede" hidden>Retire les coins dont tu n’as plus besoin.</p>
     <article class="garden-card" id="j-hero">
       <div class="garden-ill" id="j-ill"></div>
       <div class="garden-info">
@@ -256,14 +256,14 @@
   <!-- 10 · Mes conseils -->
   <section class="screen tabscreen" id="s-conseils" hidden>
     <div class="topbar"><span class="brand"><svg class="illu" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13 C 3 6, 8 2, 14 2 C 14 9, 10 13, 3 13 Z" fill="#D5E3CF" stroke="#1C1C1A" stroke-width="1.4" stroke-linejoin="round"/><path d="M3 13 L 10 6" stroke="#1C1C1A" stroke-width="1.4" stroke-linecap="round"/></g></svg>Atelier <em>des massifs</em></span></div>
-    <header class="head"><p class="eyebrow" id="c-mois"></p><h1>Tes <em>conseils</em></h1><p class="lede" id="c-lede">Ce qu’il y a à faire ce mois-ci, pour les plantes de ton jardin.</p></header>
+    <header class="head"><p class="eyebrow" id="c-mois"></p><h1>Tes <em>conseils</em></h1><p class="lede" id="c-lede">Ce qui fera du bien à tes plantes ce mois-ci.</p></header>
     <div class="advice" id="c-list"></div>
   </section>
 
   <!-- 11 · Ma liste -->
   <section class="screen tabscreen" id="s-liste" hidden>
     <div class="topbar"><span class="brand"><svg class="illu" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13 C 3 6, 8 2, 14 2 C 14 9, 10 13, 3 13 Z" fill="#D5E3CF" stroke="#1C1C1A" stroke-width="1.4" stroke-linejoin="round"/><path d="M3 13 L 10 6" stroke="#1C1C1A" stroke-width="1.4" stroke-linecap="round"/></g></svg>Atelier <em>des massifs</em></span></div>
-    <header class="head"><h1>Ta <em>liste</em></h1><p class="lede">Toutes les plantes de tes coins, pour la jardinerie. Coche-les au fur et à mesure.</p></header>
+    <header class="head"><h1>Ta <em>liste</em></h1><p class="lede">Toutes tes plantes, à cocher à la jardinerie.</p></header>
     <div id="l-body"></div>
   </section>
 
@@ -287,7 +287,7 @@
     <div class="scrim" data-close></div>
     <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-t">
       <h2 id="sheet-t"></h2>
-      <p>Ses plantes et son budget seront effacés. Tu pourras annuler juste après, ou refaire ce coin plus tard.</p>
+      <p>Ses plantes et son budget partent avec lui. Tu pourras annuler juste après.</p>
       <div class="sheet-actions">
         <button class="btn ink" type="button" id="sheet-ok">Retirer ce coin</button>
         <button class="btn secondary" type="button" data-close>Annuler</button>
