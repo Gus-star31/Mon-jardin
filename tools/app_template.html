@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Atelier des massifs</title>
-<meta name="description" content="Prends ton jardin en photo : l'app analyse un coin à la fois et te propose des plantes qui s'y plairont, avec un budget.">
+<meta name="description" content="Prends ton jardin en photo : on analyse un coin à la fois et te propose des plantes qui s'y plairont, avec un budget.">
 <meta name="theme-color" content="#F3EFE6">
 <meta name="color-scheme" content="light">
 <link rel="manifest" href="/app/manifest.webmanifest">
@@ -34,12 +34,13 @@
   <!-- 01 · Connexion et présentation -->
   <section class="screen login-screen" id="s-login" hidden>
     <div class="topbar"><span class="brand"><svg class="illu" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13 C 3 6, 8 2, 14 2 C 14 9, 10 13, 3 13 Z" fill="#D5E3CF" stroke="#1C1C1A" stroke-width="1.4" stroke-linejoin="round"/><path d="M3 13 L 10 6" stroke="#1C1C1A" stroke-width="1.4" stroke-linecap="round"/></g></svg>Atelier <em>des massifs</em></span></div>
-    <h1>Ton jardin,<br><em>planté</em> sur mesure.</h1>
-    <p class="lede">Prends ton jardin en photo, l’app te propose des plantes qui s’y plairont.</p>
+    <p class="eyebrow" id="login-eyebrow">Bienvenue</p>
+    <h1 id="login-title">Ton jardin,<br><em>planté</em> sur mesure.</h1>
+    <p class="lede" id="login-lede">Prends ton jardin en photo. On te propose des plantes qui s’y plairont, et on t’aide à les planter.</p>
     <p class="install" id="install" hidden></p>
     <div class="login" id="login">
-      <button class="btn secondary" type="button" id="login-google"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>Continuer avec Google</button>
-      <button class="btn secondary" type="button" id="login-email-go">Continuer avec un e-mail</button>
+      <button class="btn secondary" type="button" id="login-google"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span id="login-google-lbl">Créer mon compte avec Google</span></button>
+      <button class="btn secondary" type="button" id="login-email-go">Commencer avec mon e-mail</button>
       <form id="login-form" novalidate hidden>
         <div class="field">
           <label for="login-email">E-mail</label>
@@ -58,10 +59,21 @@
     </div>
   </section>
 
+  <!-- 01 · Ton prénom (après la création du compte, avant Ton jardin) -->
+  <section class="screen" id="s-prenom" hidden>
+    <div class="topbar"><span class="brand"><svg class="illu" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13 C 3 6, 8 2, 14 2 C 14 9, 10 13, 3 13 Z" fill="#D5E3CF" stroke="#1C1C1A" stroke-width="1.4" stroke-linejoin="round"/><path d="M3 13 L 10 6" stroke="#1C1C1A" stroke-width="1.4" stroke-linecap="round"/></g></svg>Atelier <em>des massifs</em></span><button class="link" type="button" id="prenom-back" hidden>Annuler</button></div>
+    <header class="head"><h1>Comment <em>t’appelles</em>-tu ?</h1><p class="lede">On aime bien savoir à qui on parle. Ton prénom reste sur ce téléphone.</p></header>
+    <form class="prenom" id="prenom-form" novalidate>
+      <div class="field"><label for="prenom">Ton prénom</label><div class="input"><input id="prenom" type="text" autocomplete="given-name" autocapitalize="words" maxlength="30" placeholder="Par exemple : Camille"></div></div>
+      <div class="nav-block"><div class="nav"><button class="btn primary" type="submit" id="prenom-next" disabled>Continuer</button></div>
+        <button class="link prenom-skip" type="button" id="prenom-skip">Je préfère ne pas le dire</button></div>
+    </form>
+  </section>
+
   <!-- 02 · Choisis ta photo -->
   <section class="screen" id="s-photo" hidden>
     <div class="topbar"><button class="back" type="button" data-go="s-login" id="photo-back"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15 9 H3 M8 4 L3 9 L8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Accueil</span></button></div>
-    <header class="head"><ol class="steps" id="pg-photo" aria-label="Étapes"></ol><h2>Choisis <em>ta photo</em></h2><p class="lede">Une photo par coin à planter, prise de face.</p></header>
+    <header class="head"><ol class="steps" id="pg-photo" aria-label="Étapes"></ol><h2>Choisis <em>ta photo</em></h2><p class="lede">Photographie le coin à planter, debout, en face, comme tu le regarderais.</p></header>
     <div id="ph-card"></div>
     <label class="addph" for="ph-input" id="ph-add">
       <input type="file" id="ph-input" accept="image/*">
@@ -69,7 +81,7 @@
     </label>
     <p class="err" id="ph-err" hidden></p>
     <div class="nav-block">
-      <p class="privacy"><svg class="illu" aria-hidden="true" width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="13" width="14" height="11" rx="2" fill="#F3D35B" stroke-width="1.5"/><path d="M10 13 v-3 a4 4 0 0 1 8 0 v3" stroke-width="1.5"/><circle cx="14" cy="18" r="1.4" fill="#1C1C1A" stroke="none"/></g></svg><span>Tes photos sont envoyées à Claude, l’IA d’Anthropic, le temps de l’analyse. Elles ne sont enregistrées sur aucun serveur.</span></p>
+      <p class="privacy"><svg class="illu" aria-hidden="true" width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="13" width="14" height="11" rx="2" fill="#F3D35B" stroke-width="1.5"/><path d="M10 13 v-3 a4 4 0 0 1 8 0 v3" stroke-width="1.5"/><circle cx="14" cy="18" r="1.4" fill="#1C1C1A" stroke="none"/></g></svg><span>Ta photo sert juste à l’analyse : elle est envoyée à Claude, l’IA d’Anthropic, puis n’est gardée nulle part.</span></p>
       <div class="nav"><button class="btn secondary" type="button" id="photo-back2">Retour</button><button class="btn primary" type="button" id="to-envies" disabled>Continuer</button></div>
     </div>
   </section>
@@ -78,12 +90,11 @@
   <section class="screen" id="s-envies" hidden>
     <div class="topbar"><button class="back" type="button" data-go="s-photo"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15 9 H3 M8 4 L3 9 L8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Ta photo</span></button></div>
     <header class="head"><ol class="steps" id="pg-envies" aria-label="Étapes"></ol><h2>Tes <em>envies</em></h2></header>
-    <fieldset><legend>Que souhaites-tu faire ?</legend><div class="chips" id="a-obj"></div></fieldset>
-    <fieldset><legend>Style de jardin</legend><div class="chips" id="a-style"></div><p class="warnl style-warn" id="a-style-warn" role="status" hidden></p><p class="hint" id="a-style-hint"></p><div id="a-style-ph"></div></fieldset>
-    <figure class="env-photo" id="env-photo" hidden><img id="env-img" alt="Ta photo du coin à planter"></figure>
+    <fieldset><legend>Qu’aimerais-tu pour ce coin ?</legend><div class="chips" id="a-obj"></div></fieldset>
+    <fieldset><legend>L’ambiance que tu aimes</legend><div class="chips" id="a-style"></div><p class="warnl style-warn" id="a-style-warn" role="status" hidden></p><p class="hint" id="a-style-hint"></p><div id="a-style-ph"></div></fieldset>
     <p class="err" id="env-err" hidden></p>
     <div class="nav-block">
-      <p class="privacy"><svg class="illu" aria-hidden="true" width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="13" width="14" height="11" rx="2" fill="#F3D35B" stroke-width="1.5"/><path d="M10 13 v-3 a4 4 0 0 1 8 0 v3" stroke-width="1.5"/><circle cx="14" cy="18" r="1.4" fill="#1C1C1A" stroke="none"/></g></svg><span>Tes photos sont envoyées à Claude, l’IA d’Anthropic, le temps de l’analyse. Elles ne sont enregistrées sur aucun serveur.</span></p>
+      <p class="privacy"><svg class="illu" aria-hidden="true" width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="13" width="14" height="11" rx="2" fill="#F3D35B" stroke-width="1.5"/><path d="M10 13 v-3 a4 4 0 0 1 8 0 v3" stroke-width="1.5"/><circle cx="14" cy="18" r="1.4" fill="#1C1C1A" stroke="none"/></g></svg><span>Ta photo sert juste à l’analyse : elle est envoyée à Claude, l’IA d’Anthropic, puis n’est gardée nulle part.</span></p>
       <div class="nav"><button class="btn primary" type="button" id="env-next">Voir mes propositions</button></div>
     </div>
   </section>
@@ -91,19 +102,21 @@
   <!-- 03 · Ton jardin -->
   <section class="screen" id="s-garden" hidden>
     <div class="topbar"><button class="back" type="button" data-go="s-envies" id="garden-back"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15 9 H3 M8 4 L3 9 L8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Tes envies</span></button></div>
-    <header class="head"><ol class="steps" id="pg-garden" aria-label="Étapes"></ol><p class="eyebrow" id="step-garden" hidden>Réglages du jardin</p><h2>Ton <em>jardin</em></h2><p class="lede" id="garden-lede">Ces réglages valent pour tout ton jardin. Tu ne les donnes qu’une fois.</p></header>
-    <div class="field">
-      <label for="dept">Climat</label>
-      <div class="input"><input id="dept" type="text" list="depts" autocomplete="off" placeholder="Renseigne ton département" aria-describedby="dept-help"><span id="dept-help"></span></div>
-      <datalist id="depts"></datalist>
-      <p class="err" id="dept-err" hidden>Indique ton département, par son nom ou son numéro : il sert à connaître le climat.</p>
+    <header class="head"><ol class="steps" id="pg-garden" aria-label="Étapes"></ol><p class="eyebrow" id="step-garden" hidden>Réglages du jardin</p><h2>Ton <em>jardin</em></h2><p class="lede" id="garden-lede">Quelques questions sur ton jardin, une seule fois. Elles nous aident à choisir des plantes qui vivront longtemps chez toi.</p></header>
+    <fieldset id="garden-projet"><legend>Que veux-tu aménager ?</legend><div class="choices" id="a-projet"></div></fieldset>
+    <fieldset><legend>Ton climat</legend><p class="hint">Il dit quelles plantes passeront l’hiver et l’été chez toi.</p><div class="chips" id="a-clim"></div></fieldset>
+    <fieldset id="garden-sol"><legend>Ta terre</legend><p class="hint">Prends une poignée de terre humide : elle colle aux doigts (argileuse), elle file entre les doigts (sableuse), elle est claire avec des cailloux blancs (calcaire), ou noire et souple comme en sous-bois (humifère) ?</p><div class="chips" id="a-sol"></div></fieldset>
+    <div class="cp-help">
+      <p><b>Tu ne sais pas ?</b> Renseigne ton code postal, on remplit ton climat pour toi. Le sol, lui, sera estimé à l’analyse d’après ta région et ta photo.</p>
+      <div class="field">
+        <label for="cp">Code postal</label>
+        <div class="input"><input id="cp" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="5" placeholder="31000" aria-describedby="cp-help"><span id="cp-help" aria-live="polite"></span></div>
+      </div>
     </div>
-    <div class="rule plain"><span>Sol, arrosage</span></div>
-    <fieldset><legend>Type de sol</legend><div class="chips" id="a-sol"></div><p class="hint">Tu ne sais pas ? Laisse vide : l’analyse l’estimera d’après ta région et ta photo.</p></fieldset>
-    <fieldset><legend>Arrosage possible en été</legend><div class="chips" id="a-arro"></div></fieldset>
+    <fieldset><legend>Combien de temps veux-tu donner à ton jardin ?</legend><div class="choices" id="a-arro"></div></fieldset>
     <p class="err" id="gar-err" hidden></p>
     <div class="nav-block">
-      <p class="privacy" id="garden-privacy"><svg class="illu" aria-hidden="true" width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="13" width="14" height="11" rx="2" fill="#F3D35B" stroke-width="1.5"/><path d="M10 13 v-3 a4 4 0 0 1 8 0 v3" stroke-width="1.5"/><circle cx="14" cy="18" r="1.4" fill="#1C1C1A" stroke="none"/></g></svg><span>Tes photos sont envoyées à Claude, l’IA d’Anthropic, le temps de l’analyse. Elles ne sont enregistrées sur aucun serveur.</span></p>
+      <p class="privacy" id="garden-privacy"><svg class="illu" aria-hidden="true" width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="13" width="14" height="11" rx="2" fill="#F3D35B" stroke-width="1.5"/><path d="M10 13 v-3 a4 4 0 0 1 8 0 v3" stroke-width="1.5"/><circle cx="14" cy="18" r="1.4" fill="#1C1C1A" stroke="none"/></g></svg><span>Ta photo sert juste à l’analyse : elle est envoyée à Claude, l’IA d’Anthropic, puis n’est gardée nulle part.</span></p>
       <div class="nav"><button class="btn primary" type="button" id="garden-next">Voir mes propositions</button></div>
     </div>
   </section>
@@ -114,7 +127,7 @@
     <div class="ill-wrap mag"><svg class="illu" aria-hidden="true" width="240" height="212" viewBox="0 0 260 230" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="222" cy="40" r="13" fill="#F3D35B" /><path d="M241 40 L248 40" /><path d="M235.4 53.4 L240.4 58.4" /><path d="M222 59 L222 66" /><path d="M208.6 53.4 L203.6 58.4" /><path d="M203 40 L196 40" /><path d="M208.6 26.6 L203.6 21.6" /><path d="M222 21 L222 14" /><path d="M235.4 26.6 L240.4 21.6" /><path d="M30 200 C 80 190, 180 192, 238 202" /><path d="M40 204 c 4 -8 10 -8 12 0 M200 206 c 4 -8 10 -8 12 0" stroke-width="1.5"/><path d="M120 196 C 118 160, 122 130, 120 104" /><path d="M120 140 C 96 140, 82 120, 84 104 C 104 104, 118 118, 120 140 Z" fill="#D5E3CF" /><path d="M120 124 C 140 126, 158 110, 158 92 C 138 90, 122 104, 120 124 Z" fill="#D5E3CF" /><path d="M120 140 C 108 130, 98 118, 92 110 M120 124 C 132 114, 144 104, 150 98" stroke-width="1.5"/><path d="M120 104 c -6 -8 -4 -16 2 -20 c 4 6 4 14 -2 20" fill="#D5E3CF" stroke-width="1.5"/><circle cx="124" cy="118" r="58" fill="#BFD0EE" fill-opacity="0.2" stroke="#1C1C1A" stroke-width="2.5"/><circle cx="124" cy="118" r="50" stroke="#1C1C1A" stroke-width="1.2" stroke-dasharray="2 5" stroke-linecap="round"/><path d="M166 160 L 206 200" stroke="#1C1C1A" stroke-width="12" stroke-linecap="round"/><path d="M96 80 C 104 72, 114 70, 124 70" stroke="#FBF9F3" stroke-width="4" stroke-linecap="round"/><ellipse cx="62" cy="194" rx="9" ry="7" fill="#F2C4C4" stroke-width="1.5"/><path d="M62 187 v14 M53 191 c -4 -2 -4 -6 0 -6" stroke-width="1.5"/><circle cx="58" cy="193" r="1.3" fill="#1C1C1A" stroke="none"/><circle cx="66" cy="196" r="1.3" fill="#1C1C1A" stroke="none"/></g></svg><span class="hand mag-note" aria-hidden="true">on regarde<br>de près…</span></div>
     <div class="loading" role="status" aria-live="polite">
       <h2>Analyse <em>de ton jardin</em></h2>
-      <p class="sm-t">Compte 20 à 40 secondes. Tu peux laisser l’app ouverte.</p>
+      <p class="sm-t" id="an-wait">On regarde ta photo avec attention. Compte une demi-minute, tu peux poser ton téléphone.</p>
     </div>
     <ol class="an-steps" id="an-steps"></ol>
   </section>
@@ -124,6 +137,11 @@
     <div class="topbar"><button class="back" type="button" data-go="s-jardin" id="esp-back"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15 9 H3 M8 4 L3 9 L8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Ton jardin</span></button><span class="num" id="esp-num"></span></div>
     <span class="demo-flag" id="esp-demo" hidden>Exemple</span>
     <h2 class="esp-title" id="esp-title"></h2>
+    <button class="linkish rename-link" type="button" id="esp-rename">Renommer ce coin</button>
+    <form class="rename" id="esp-rename-form" hidden>
+      <div class="field"><label for="esp-nom">Nom du coin</label><div class="input"><input id="esp-nom" type="text" maxlength="40" autocomplete="off"></div></div>
+      <div class="rename-actions"><button class="btn primary sm" type="submit">Enregistrer</button><button class="link" type="button" id="esp-rename-cancel">Annuler</button></div>
+    </form>
     <div id="esp-rule"></div>
     <div class="apercu" id="esp-apercu"></div>
     <div class="plants" id="esp-plants" aria-live="polite"></div>
@@ -131,7 +149,7 @@
     <div class="ztags" id="esp-tags"></div>
     <div id="esp-warn"></div>
     <div class="budget-card" id="esp-budget"></div>
-    <button class="btn secondary" type="button" id="crit-toggle" aria-expanded="false" aria-controls="crit-grid">Ajuster les critères de cet espace</button>
+    <button class="btn secondary" type="button" id="crit-toggle" aria-expanded="false" aria-controls="crit-grid">Modifier mes critères</button>
     <div class="crit" id="crit-grid" hidden>
       <p class="hint">Change un critère : la proposition se recompose aussitôt. Le plan, les hauteurs et le calendrier de floraison sont en dessous.</p>
       <div class="zonesbar" hidden><h2 id="zones-t">Zones</h2><span id="gtotal"></span><div id="zones"></div><div id="znote"></div></div>
@@ -143,39 +161,66 @@
       </div>
       <p class="count" id="count"></p>
     </div>
-    <p class="foot">Analyse automatique à partir d’une photo : vérifie l’exposition et les mesures sur place avant d’acheter. Rusticité, croissance, besoins en eau et prix sont des ordres de grandeur.</p>
+    <p class="foot">Ces conseils viennent d’une photo : avant d’acheter, jette un œil sur place au soleil et à la place disponible. Les tailles, prix et besoins en eau sont des estimations.</p>
   </section>
 
   <!-- 07 à 09 · Ton jardin -->
-  <section class="screen" id="s-jardin" hidden>
+  <section class="screen tabscreen" id="s-jardin" hidden>
     <div class="topbar"><span class="brand"><svg class="illu" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13 C 3 6, 8 2, 14 2 C 14 9, 10 13, 3 13 Z" fill="#D5E3CF" stroke="#1C1C1A" stroke-width="1.4" stroke-linejoin="round"/><path d="M3 13 L 10 6" stroke="#1C1C1A" stroke-width="1.4" stroke-linecap="round"/></g></svg>Atelier <em>des massifs</em></span><button class="link" type="button" id="edit-toggle">Modifier</button></div>
     <div id="j-rule"></div>
     <span class="demo-flag" id="j-demo" hidden>Exemple</span>
-    <h1 id="j-title">Ton <em>jardin</em></h1>
-    <p class="lede" id="j-edit-lede" hidden>Retire un espace dont tu n’as plus besoin. Sa proposition et son budget seront supprimés.</p>
+    <p class="eyebrow" id="j-hello" hidden></p><h1 id="j-title">Ton <em>jardin</em></h1>
+    <p class="lede" id="j-edit-lede" hidden>Retire un coin dont tu n’as plus besoin. Ses plantes et son budget seront effacés.</p>
     <article class="garden-card" id="j-hero">
-      <div class="garden-ill"><svg class="scene" aria-hidden="true" width="342" height="210" viewBox="0 0 342 210" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="342" height="210" fill="#EAF0E4" stroke="none"/><path d="M0 0 H342 V96 H0 Z" fill="#F7F3EA" stroke="none"/><rect x="0" y="70" width="342" height="80" fill="#EFE6CF" stroke="none"/><path d="M0 70 L0 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M7 72 L7 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M14 70 L14 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M21 72 L21 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M28 70 L28 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M35 72 L35 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M42 70 L42 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M49 72 L49 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M56 70 L56 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M63 72 L63 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M70 70 L70 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M77 72 L77 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M84 70 L84 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M91 72 L91 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M98 70 L98 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M105 72 L105 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M112 70 L112 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M119 72 L119 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M126 70 L126 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M133 72 L133 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M140 70 L140 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M147 72 L147 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M154 70 L154 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M161 72 L161 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M168 70 L168 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M175 72 L175 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M182 70 L182 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M189 72 L189 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M196 70 L196 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M203 72 L203 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M210 70 L210 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M217 72 L217 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M224 70 L224 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M231 72 L231 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M238 70 L238 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M245 72 L245 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M252 70 L252 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M259 72 L259 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M266 70 L266 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M273 72 L273 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M280 70 L280 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M287 72 L287 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M294 70 L294 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M301 72 L301 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M308 70 L308 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M315 72 L315 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M322 70 L322 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M329 72 L329 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M336 70 L336 150" stroke="#1C1C1A" stroke-width="1" stroke-linecap="round"/><path d="M-2 80 L344 80 M-2 136 L344 136" stroke="#1C1C1A" stroke-width="1.2"/><path d="M0 150 C 80 146, 260 154, 342 148 V210 H0 Z" fill="#E1EAD9"/><path d="M0 150 C 80 146, 260 154, 342 148" /><path d="M176 156 C 173 108, 180 72, 176 36" stroke="#1C1C1A" stroke-width="5" stroke-linecap="round"/><path d="M173 146 l6 -3" stroke-width="1.5"/><path d="M173 129 l6 -3" stroke-width="1.5"/><path d="M173 113 l6 -3" stroke-width="1.5"/><path d="M173 96 l6 -3" stroke-width="1.5"/><path d="M173 79 l6 -3" stroke-width="1.5"/><path d="M173 63 l6 -3" stroke-width="1.5"/><path d="M176 36 Q 150 17.2, 130 52" stroke="#1C1C1A" stroke-width="2" stroke-linecap="round"/><path d="M158 35 l-4 8 M146 41 l-4 8" stroke-width="1.5"/><path d="M176 36 Q 202 17.2, 222 52" stroke="#1C1C1A" stroke-width="2" stroke-linecap="round"/><path d="M194 35 l4 8 M206 41 l4 8" stroke-width="1.5"/><path d="M176 36 Q 162 20.8, 142 70" stroke="#1C1C1A" stroke-width="2" stroke-linecap="round"/><path d="M162 40 l-3 8 M154 51 l-3 8" stroke-width="1.5"/><path d="M176 36 Q 190 20.8, 210 70" stroke="#1C1C1A" stroke-width="2" stroke-linecap="round"/><path d="M190 40 l3 8 M198 51 l3 8" stroke-width="1.5"/><path d="M176 36 Q 160 8, 166 6" stroke="#1C1C1A" stroke-width="2" stroke-linecap="round"/><path d="M172 21 l-1 8 M170 16 l-1 8" stroke-width="1.5"/><path d="M176 36 Q 194 8.4, 188 8" stroke="#1C1C1A" stroke-width="2" stroke-linecap="round"/><path d="M181 22 l1 8 M184 17 l1 8" stroke-width="1.5"/><path d="M176 36 Q 146 12.8, 126 30" stroke="#1C1C1A" stroke-width="2" stroke-linecap="round"/><path d="M156 28 l-4 8 M144 29 l-4 8" stroke-width="1.5"/><path d="M176 36 Q 206 13.2, 228 32" stroke="#1C1C1A" stroke-width="2" stroke-linecap="round"/><path d="M197 29 l4 8 M210 30 l4 8" stroke-width="1.5"/><path d="M30 176 l3 -7 l3 7 M70 192 l3 -6 l3 6" stroke-width="1.5"/><path d="M90 176 l3 -7 l3 7 M130 192 l3 -6 l3 6" stroke-width="1.5"/><path d="M250 176 l3 -7 l3 7 M290 192 l3 -6 l3 6" stroke-width="1.5"/><path d="M310 176 l3 -7 l3 7 M350 192 l3 -6 l3 6" stroke-width="1.5"/><path d="M11 151 C 3 107.8, 34 79, 47.8 83.8 C 52.4 50.2, 89.2 55, 84.6 91.5 C 107.6 93.4, 114 141.4, 103 151 Z" fill="#D5E3CF" stroke="none"/><path d="M6 156 C -2 112.8, 29 84, 42.8 88.8 C 47.4 55.2, 84.2 60, 79.6 96.5 C 102.6 98.4, 109 146.4, 98 156 Z" /><path d="M38.2 122.4 q 6 -6 12 -2 M61.2 98.4 q 6 -5 11 0" stroke-width="1.5"/><path d="M253 153 C 245 108, 277 78, 291.4 83 C 296.2 48, 334.6 53, 329.8 91 C 353.8 93, 360.5 143, 349 153 Z" fill="#D5E3CF" stroke="none"/><path d="M248 158 C 240 113, 272 83, 286.4 88 C 291.2 53, 329.6 58, 324.8 96 C 348.8 98, 355.5 148, 344 158 Z" /><path d="M281.6 123 q 6 -6 12 -2 M305.6 98 q 6 -5 11 0" stroke-width="1.5"/><path d="M94 156 C 86 131.7, 109 115.5, 118 118.2 C 121 99.3, 145 102, 142 122.5 C 157 123.6, 161.2 150.6, 154 156 Z" fill="#BFD0EE" stroke="none"/><path d="M90 160 C 82 135.7, 105 119.5, 114 122.2 C 117 103.3, 141 106, 138 126.5 C 153 127.6, 157.2 154.6, 150 160 Z" /><path d="M111 141.1 q 6 -6 12 -2 M126 127.6 q 6 -5 11 0" stroke-width="1.5"/><path d="M232 172 C 225.9 137.9, 215.6 124.6, 208.6 119.3" stroke="#1C1C1A" stroke-width="1.6" stroke-linecap="round"/><path d="M232 172 C 228.8 125.5, 224.4 116.2, 221.2 110" stroke="#1C1C1A" stroke-width="1.6" stroke-linecap="round"/><path d="M232 172 C 232 122.4, 234.5 111.7, 235.6 105" stroke="#1C1C1A" stroke-width="1.6" stroke-linecap="round"/><path d="M232 172 C 234.5 128.6, 245.9 119, 251.8 113.1" stroke="#1C1C1A" stroke-width="1.6" stroke-linecap="round"/><path d="M232 172 C 237.4 141, 255.9 132.9, 266.2 128.6" stroke="#1C1C1A" stroke-width="1.6" stroke-linecap="round"/><path d="M232 172 C 230.6 134.8, 218.1 137.4, 212.2 133.6" stroke="#1C1C1A" stroke-width="1.6" stroke-linecap="round"/><path d="M232 172 C 233.8 137.9, 250.9 146.9, 259 144.1" stroke="#1C1C1A" stroke-width="1.6" stroke-linecap="round"/><path d="M140 186 C 135.2 161.8, 127.3 152.3, 121.8 148.6" stroke="#1C1C1A" stroke-width="1.6" stroke-linecap="round"/><path d="M140 186 C 137.5 153, 134.1 146.4, 131.6 142" stroke="#1C1C1A" stroke-width="1.6" stroke-linecap="round"/><path d="M140 186 C 140 150.8, 142 143.2, 142.8 138.5" stroke="#1C1C1A" stroke-width="1.6" stroke-linecap="round"/><path d="M140 186 C 142 155.2, 150.8 148.4, 155.4 144.2" stroke="#1C1C1A" stroke-width="1.6" stroke-linecap="round"/><path d="M140 186 C 144.2 164, 158.6 158.3, 166.6 155.2" stroke="#1C1C1A" stroke-width="1.6" stroke-linecap="round"/><path d="M140 186 C 138.9 159.6, 129.2 161.4, 124.6 158.7" stroke="#1C1C1A" stroke-width="1.6" stroke-linecap="round"/><path d="M140 186 C 141.4 161.8, 154.7 168.2, 161 166.2" stroke="#1C1C1A" stroke-width="1.6" stroke-linecap="round"/><path d="M98 186 L98 142" stroke-width="1.5"/><ellipse cx="94.5" cy="142" rx="3.2" ry="4.2" fill="#BFD0EE" stroke-width="1.5"/><ellipse cx="101.5" cy="145" rx="3.2" ry="4.2" fill="#BFD0EE" stroke-width="1.5"/><ellipse cx="94.5" cy="149" rx="3.2" ry="4.2" fill="#BFD0EE" stroke-width="1.5"/><ellipse cx="101.5" cy="152" rx="3.2" ry="4.2" fill="#BFD0EE" stroke-width="1.5"/><ellipse cx="94.5" cy="156" rx="3.2" ry="4.2" fill="#BFD0EE" stroke-width="1.5"/><ellipse cx="101.5" cy="159" rx="3.2" ry="4.2" fill="#BFD0EE" stroke-width="1.5"/><ellipse cx="94.5" cy="163" rx="3.2" ry="4.2" fill="#BFD0EE" stroke-width="1.5"/><ellipse cx="101.5" cy="166" rx="3.2" ry="4.2" fill="#BFD0EE" stroke-width="1.5"/><ellipse cx="94.5" cy="170" rx="3.2" ry="4.2" fill="#BFD0EE" stroke-width="1.5"/><ellipse cx="101.5" cy="173" rx="3.2" ry="4.2" fill="#BFD0EE" stroke-width="1.5"/><path d="M108 188 L108 152" stroke-width="1.5"/><ellipse cx="104.5" cy="152" rx="3.2" ry="4.2" fill="#BFD0EE" stroke-width="1.5"/><ellipse cx="111.5" cy="155" rx="3.2" ry="4.2" fill="#BFD0EE" stroke-width="1.5"/><ellipse cx="104.5" cy="159" rx="3.2" ry="4.2" fill="#BFD0EE" stroke-width="1.5"/><ellipse cx="111.5" cy="162" rx="3.2" ry="4.2" fill="#BFD0EE" stroke-width="1.5"/><ellipse cx="104.5" cy="166" rx="3.2" ry="4.2" fill="#BFD0EE" stroke-width="1.5"/><ellipse cx="111.5" cy="169" rx="3.2" ry="4.2" fill="#BFD0EE" stroke-width="1.5"/><ellipse cx="104.5" cy="173" rx="3.2" ry="4.2" fill="#BFD0EE" stroke-width="1.5"/><ellipse cx="111.5" cy="176" rx="3.2" ry="4.2" fill="#BFD0EE" stroke-width="1.5"/><ellipse cx="104.5" cy="180" rx="3.2" ry="4.2" fill="#BFD0EE" stroke-width="1.5"/><ellipse cx="111.5" cy="183" rx="3.2" ry="4.2" fill="#BFD0EE" stroke-width="1.5"/><path d="M214 186 C 212 167, 217 155.6, 214 148" stroke-width="1.5"/><circle cx="214" cy="143" r="4" fill="#F2C4C4" stroke-width="1.5"/><circle cx="219" cy="148" r="4" fill="#F2C4C4" stroke-width="1.5"/><circle cx="214" cy="153" r="4" fill="#F2C4C4" stroke-width="1.5"/><circle cx="209" cy="148" r="4" fill="#F2C4C4" stroke-width="1.5"/><circle cx="214" cy="148" r="2.8" fill="#F3D35B" stroke-width="1.5"/><path d="M254 190 C 252 175, 257 166, 254 160" stroke-width="1.5"/><circle cx="254" cy="156" r="3.2" fill="#FBF9F3" stroke-width="1.5"/><circle cx="258" cy="160" r="3.2" fill="#FBF9F3" stroke-width="1.5"/><circle cx="254" cy="164" r="3.2" fill="#FBF9F3" stroke-width="1.5"/><circle cx="250" cy="160" r="3.2" fill="#FBF9F3" stroke-width="1.5"/><circle cx="254" cy="160" r="2.2" fill="#F3D35B" stroke-width="1.5"/><path d="M30 192 C 28 175, 33 164.8, 30 158" stroke-width="1.5"/><circle cx="30" cy="154" r="3.2" fill="#F2C4C4" stroke-width="1.5"/><circle cx="34" cy="158" r="3.2" fill="#F2C4C4" stroke-width="1.5"/><circle cx="30" cy="162" r="3.2" fill="#F2C4C4" stroke-width="1.5"/><circle cx="26" cy="158" r="3.2" fill="#F2C4C4" stroke-width="1.5"/><circle cx="30" cy="158" r="2.2" fill="#F3D35B" stroke-width="1.5"/><path d="M0 196 C 100 192, 240 198, 342 194" stroke-width="1.5"/></g></svg></div>
+      <div class="garden-ill" id="j-ill"></div>
       <div class="garden-info">
         <div class="facts" id="j-facts"></div>
         <p class="sm-t" id="j-cond"></p>
       </div>
     </article>
-    <div class="sec-head" id="j-sec"><h3>Tes <em>espaces</em></h3><span class="num" id="j-count"></span></div>
+    <div class="sec-head" id="j-sec"><h3>Tes <em>coins</em></h3><span class="num" id="j-count"></span></div>
     <div class="spaces" id="j-spaces"></div>
-    <button class="addph add-space" type="button" id="j-add"><svg class="illu" aria-hidden="true" width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="20" cy="20" r="19" fill="#FBF9F3" stroke-width="1.5"/><path d="M20 12 V28 M12 20 H28"/></g></svg><span><b>Ajouter un espace</b><small>Une photo du coin à planter suffit</small></span></button>
+    <button class="addph add-space" type="button" id="j-add"><svg class="illu" aria-hidden="true" width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="20" cy="20" r="19" fill="#FBF9F3" stroke-width="1.5"/><path d="M20 12 V28 M12 20 H28"/></g></svg><span><b>Ajouter un coin</b><small>Une photo du coin à planter suffit</small></span></button>
     <p class="install" id="install2" hidden></p>
   </section>
+
+  <!-- 10 · Mes conseils -->
+  <section class="screen tabscreen" id="s-conseils" hidden>
+    <div class="topbar"><span class="brand"><svg class="illu" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13 C 3 6, 8 2, 14 2 C 14 9, 10 13, 3 13 Z" fill="#D5E3CF" stroke="#1C1C1A" stroke-width="1.4" stroke-linejoin="round"/><path d="M3 13 L 10 6" stroke="#1C1C1A" stroke-width="1.4" stroke-linecap="round"/></g></svg>Atelier <em>des massifs</em></span></div>
+    <header class="head"><p class="eyebrow" id="c-mois"></p><h1>Tes <em>conseils</em></h1><p class="lede" id="c-lede">Ce qu’il y a à faire ce mois-ci, pour les plantes de ton jardin.</p></header>
+    <div class="advice" id="c-list"></div>
+  </section>
+
+  <!-- 11 · Ma liste -->
+  <section class="screen tabscreen" id="s-liste" hidden>
+    <div class="topbar"><span class="brand"><svg class="illu" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13 C 3 6, 8 2, 14 2 C 14 9, 10 13, 3 13 Z" fill="#D5E3CF" stroke="#1C1C1A" stroke-width="1.4" stroke-linejoin="round"/><path d="M3 13 L 10 6" stroke="#1C1C1A" stroke-width="1.4" stroke-linecap="round"/></g></svg>Atelier <em>des massifs</em></span></div>
+    <header class="head"><h1>Ta <em>liste</em></h1><p class="lede">Toutes les plantes de tes coins, pour la jardinerie. Coche-les au fur et à mesure.</p></header>
+    <div id="l-body"></div>
+  </section>
+
+  <!-- 12 · Mon compte -->
+  <section class="screen tabscreen" id="s-compte" hidden>
+    <div class="topbar"><span class="brand"><svg class="illu" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13 C 3 6, 8 2, 14 2 C 14 9, 10 13, 3 13 Z" fill="#D5E3CF" stroke="#1C1C1A" stroke-width="1.4" stroke-linejoin="round"/><path d="M3 13 L 10 6" stroke="#1C1C1A" stroke-width="1.4" stroke-linecap="round"/></g></svg>Atelier <em>des massifs</em></span></div>
+    <header class="head"><h1>Ton <em>compte</em></h1></header>
+    <div class="acct" id="a-body"></div>
+  </section>
+
+  <nav class="tabbar" id="tabbar" aria-label="Menu" hidden>
+    <button type="button" data-tab="s-jardin"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 20C4 11 10 5 20 4c0 10-6 16-16 16Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M4 20 13 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Mon jardin</span></button>
+    <button type="button" data-tab="s-conseils"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 10h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 13.2c1.6 0 2.5 1 2.5 2.3S13.4 18 12 18s-2.5-1.2-2.5-2.5 1-2.3 2.5-2.3Z" stroke="currentColor" stroke-width="1.5"/></svg><span>Mes conseils</span></button>
+    <button type="button" data-tab="s-liste"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="4" y="3.5" width="16" height="17" rx="2.5" stroke="currentColor" stroke-width="1.8"/><path d="m7.5 9 1.5 1.5L12 7.5M7.5 15.5 9 17l3-3M14 9.5h3M14 16h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Ma liste</span></button>
+    <button type="button" data-tab="s-compte"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8.5" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M4.5 20c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Mon compte</span></button>
+  </nav>
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden><svg aria-hidden="true" width="20" height="20" viewBox="0 0 19.3333 19.3333" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.66667 18.5556C14.5759 18.5556 18.5556 14.5759 18.5556 9.66667C18.5556 4.75747 14.5759 0.777778 9.66667 0.777778C4.75747 0.777778 0.777778 4.75747 0.777778 9.66667C0.777778 14.5759 4.75747 18.5556 9.66667 18.5556Z" fill="#D5E3CF" stroke-width="1.55556" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/><path d="M5.77778 9.88889L8.55556 12.5556L13.6667 7" stroke-width="1.77778" stroke-linecap="round" stroke-linejoin="round" stroke="#1C1C1A"/></svg><span id="toast-msg"></span><button type="button" id="toast-undo">Annuler</button></div>
 
   <div class="sheet-wrap" id="sheet" hidden>
     <div class="scrim" data-close></div>
     <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-t">
-      <span class="grip" aria-hidden="true"></span>
       <h2 id="sheet-t"></h2>
-      <p>Sa proposition de plantes et son budget seront supprimés. Tu pourras toujours refaire une analyse de ce coin.</p>
+      <p>Ses plantes et son budget seront effacés. Tu pourras annuler juste après, ou refaire ce coin plus tard.</p>
       <div class="sheet-actions">
-        <button class="btn ink" type="button" id="sheet-ok">Retirer l’espace</button>
+        <button class="btn ink" type="button" id="sheet-ok">Retirer ce coin</button>
         <button class="btn secondary" type="button" data-close>Annuler</button>
       </div>
     </div>

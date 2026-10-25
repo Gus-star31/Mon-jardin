@@ -134,9 +134,6 @@ main{display:flex;flex-direction:column;gap:26px;min-width:0}
 .budget{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px}
 .budget h2{font-family:var(--f-display);font-weight:400;font-size:20px;margin:0;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .budget h2 em{font-style:normal;font-family:var(--f-data);font-size:13px;color:var(--moss)}
-.nurs{margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;font-size:14px}
-.nurs span{color:var(--muted)}
-.nurs a{color:var(--moss);font-weight:600;text-underline-offset:2px}
 .tbl{overflow-x:auto}
 .budget table{width:100%;border-collapse:collapse;font-size:14px;min-width:460px}
 .budget th{text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;padding:6px 8px;border-bottom:1px solid var(--line)}

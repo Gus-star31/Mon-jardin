@@ -79,10 +79,13 @@ function opposite(d) { return DIRS[(DIRS.indexOf(d) + 4) % 8]; }
 function rot(d, n) { return DIRS[(DIRS.indexOf(d) + n + 8) % 8]; }
 function clean(s, n) { return String(s || "").replace(/[\u0000-\u001f]/g, " ").slice(0, n).trim(); }
 
+const PROJETS = { ville: "jardin de ville (cour ou petit jardin entouré de murs)", terrain: "terrain (jardin plus vaste autour d'une maison)", balcon: "balcon ou terrasse : uniquement des plantes en pots et jardinières, propose des contenants plutôt que des massifs en pleine terre" };
+
 function buildContent(body) {
   const objectifs = (body.objectifs || []).filter(o => OBJS[o]).map(o => OBJS[o]);
   const intro = [
     `Ville : ${clean(body.ville, 80) || "non précisée"}.`,
+    `Type de projet : ${PROJETS[body.projet] || "jardin"}.`,
     `Type de sol indiqué : ${SOLS[body.sol] || "inconnu"}.`,
     `Arrosage possible en été : ${ARRO[body.arrosage] || ARRO["1"]}.`,
     `Envies : ${objectifs.length ? objectifs.join(", ") : "habiller le jardin"}.`,
