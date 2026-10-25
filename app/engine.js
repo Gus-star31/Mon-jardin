@@ -1,4 +1,4 @@
-// Fichier généré par tools/build_app.py à partir de /index.html. Ne pas modifier à la main.
+// Fichier généré par tools/build_app.py à partir de tools/atelier.html. Ne pas modifier à la main.
 
 // ---------- Données ----------
 // nom, latin, type, expo(s=soleil,m=mi-ombre,o=ombre), sol(a=argileux,c=calcaire,s=sableux/caillouteux,h=humifère), eau(d=sec,f=frais,w=humide),

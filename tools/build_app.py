@@ -1,4 +1,4 @@
-"""Génère les fichiers de l'app (/app) à partir de l'atelier (/index.html).
+"""Génère les fichiers de l'app (/app) à partir du moteur de l'atelier (tools/atelier.html).
 
 L'atelier reste la référence pour les plantes, les règles de composition, le plan et le budget.
 Ce script en extrait le style, le panneau de critères et le moteur, les adapte à l'app,
@@ -9,14 +9,14 @@ Usage : python3 tools/build_app.py   (depuis la racine du dépôt)
 import pathlib, re, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-src = (ROOT / "index.html").read_text(encoding="utf-8")
+src = (ROOT / "tools" / "atelier.html").read_text(encoding="utf-8")
 
 
 def between(text, start, end, label):
     i = text.find(start)
     j = text.find(end, i + len(start))
     if i < 0 or j < 0:
-        sys.exit(f"Bloc introuvable dans index.html : {label}")
+        sys.exit(f"Bloc introuvable dans tools/atelier.html : {label}")
     return text[i + len(start):j]
 
 
@@ -47,9 +47,9 @@ js = sub(r'try\{ document\.getElementById\("zones-t"\)\.scrollIntoView\(\{block:
          'if(!window.__quiet){ try{ document.getElementById("zones-t").scrollIntoView({block:"nearest"}); }catch(e){} }', js, "défilement")
 js = sub(r'\nsetZone\("[^"]*"\);\s*$', "\n", js, "zone de départ")
 
-engine = "// Fichier généré par tools/build_app.py à partir de /index.html. Ne pas modifier à la main.\n" + js
+engine = "// Fichier généré par tools/build_app.py à partir de tools/atelier.html. Ne pas modifier à la main.\n" + js
 (ROOT / "app" / "engine.js").write_text(engine, encoding="utf-8")
-(ROOT / "app" / "atelier.css").write_text("/* Généré par tools/build_app.py à partir de /index.html. */\n" + css, encoding="utf-8")
+(ROOT / "app" / "atelier.css").write_text("/* Généré par tools/build_app.py à partir de tools/atelier.html. */\n" + css, encoding="utf-8")
 
 tpl = (ROOT / "tools" / "app_template.html").read_text(encoding="utf-8")
 if "<!--ATELIER_ASIDE-->" not in tpl:
