@@ -1,4 +1,6 @@
-# Atelier des massifs
+# Green Thumb
+
+Anciennement « Atelier des massifs ».
 
 Une app pour composer les massifs et les haies d'un jardin selon l'exposition, le sol, le climat, l'arrosage et la place disponible : plan de plantation, vue de face selon l'âge du jardin, photos, calendrier de floraison et budget estimé.
 

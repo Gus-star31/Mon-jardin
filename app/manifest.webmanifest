@@ -1,7 +1,7 @@
 {
-  "name": "Atelier des massifs",
-  "short_name": "Massifs",
-  "description": "Prends ton jardin en photo : l'app analyse un coin à la fois et te propose des plantes qui s'y plairont, avec un budget.",
+  "name": "Green Thumb",
+  "short_name": "Green Thumb",
+  "description": "Prends ton jardin en photo : on te propose des plantes qui s'y plairont, avec un budget.",
   "lang": "fr",
   "start_url": "/app/",
   "scope": "/app/",
