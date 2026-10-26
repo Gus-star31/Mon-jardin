@@ -1,4 +1,4 @@
-/* App Green Thumb · DA « Carnet d'atelier » : papier crème, trait d'encre, un seul bleu (bleu de Prusse).
+/* App Coup de pousse · DA « Carnet d'atelier » : papier crème, trait d'encre, un seul bleu (bleu de Prusse).
    Les jetons reprennent les variables Figma du design system. Ils remplacent ceux de l'atelier (atelier.css),
    pour que le panneau de critères et le détail du moteur suivent la même DA. Thème clair uniquement, assumé. */
 :root, :root:not([data-theme="light"]), :root[data-theme="dark"]{
