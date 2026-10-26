@@ -343,16 +343,16 @@ const AGES = [["0","À la plantation"],["1","Après 1 an"],["3","Après 3 ans"],
 // ---------- Styles de jardin ----------
 // Chaque style privilégie une famille de plantes. Si aucune plante du style ne convient à un emplacement, l'outil en prend une autre adaptée.
 const STYLES = {
-  libre:{label:"Sans style imposé", hint:"Toutes les plantes adaptées à tes conditions.", re:null},
-  med:{label:"Méditerranéen sec", hint:"Feuillages gris, arbustes aromatiques, floraisons bleues et blanches. Aucun arrosage une fois installé.",
+  libre:{label:"Sans style imposé", hint:"Toutes les plantes qui se plairont chez toi, sans contrainte.", re:null},
+  med:{label:"Méditerranéen sec", hint:"L’odeur de la lavande et du romarin, des feuillages argentés. Presque pas d’arrosage.",
     re:/Lavandula|rosmarinus|Cistus|Myrtus|Teucrium|Euphorbia|Stachys|Thymus|officinalis|Origanum|Phillyrea|Quercus ilex|Laurus|Cercis|Pittosporum tobira|Ceanothus|Atriplex|Nerium|yangii|Nassella|Festuca|Iris|Centranthus|Erigeron|Agastache|Echinops|Pinus|Acanthus|Muscari|Allium hollandicum|Trachelospermum|banksiae|Elaeagnus|Viburnum tinus/},
-  nat:{label:"Naturaliste", hint:"Graminées et grandes vivaces mêlées, comme une prairie fleurie. L'inspiration des massifs de graminées et d'échinacées.",
+  nat:{label:"Naturaliste", hint:"Comme une prairie fleurie : de hautes herbes qui ondulent et des fleurs mêlées.",
     re:/Nassella|Miscanthus|Pennisetum|Calamagrostis|Muhlenbergia|Echinacea|Rudbeckia|Achillea|Verbena|lindheimeri|Hylotelephium|Echinops|Agastache|Nepeta|nemorosa|Allium hollandicum|yangii|Kniphofia|Hemerocallis|Festuca|Carex|Koelreuteria|Elaeagnus|Viburnum tinus|Cornus|Geranium/},
-  anglais:{label:"Jardin anglais", hint:"Profusion de fleurs, rosiers, grimpantes et bordures généreuses. Demande souvent plus d'eau.",
+  anglais:{label:"Jardin anglais", hint:"Des fleurs partout, des rosiers et des bordures généreuses. Un peu plus d’eau.",
     re:/Rosa|Clematis|Lonicera|Digitalis|Geranium|Nepeta|Alchemilla|Hydrangea|Anemone|Lavandula|Astilbe|Iris|Agapanthus|Allium hollandicum|Centranthus|Echinacea|Heuchera|Lamium|Helleborus|Choisya|Abelia|Escallonia|Viburnum tinus|Osmanthus|Erigeron|Narcissus|Camassia|Cercis|Lagerstroemia|Hemerocallis|Trachelospermum/},
-  contemporain:{label:"Contemporain épuré", hint:"Peu d'espèces, formes nettes, boules persistantes et graminées. Palette sobre.",
+  contemporain:{label:"Contemporain épuré", hint:"Peu de plantes, des formes nettes et calmes, belles toute l’année.",
     re:/Pittosporum|Thuja|Pinus|Festuca|Ophiopogon|Carex|Hakonechloa|Miscanthus|Calamagrostis|Nassella|Euphorbia|Stachys|yangii|Lavandula|Allium hollandicum|Laurus|Prunus lusitanica|Phillyrea|Elaeagnus|Fargesia|Trachelospermum|Agapanthus|Lagerstroemia|Koelreuteria|Acanthus|Teucrium/},
-  sauvage:{label:"Refuge pour la biodiversité", hint:"Plantes mellifères, baies pour les oiseaux et espèces locales. Un jardin vivant qui demande peu d'entretien.",
+  sauvage:{label:"Refuge pour la biodiversité", hint:"Des fleurs pour les abeilles et des baies pour les oiseaux. Un jardin vivant, peu d’entretien.",
     re:/Centranthus|Origanum|Thymus|Viburnum tinus|Cornus|Pyracantha|Lonicera|Echinops|Achillea|Verbena|nemorosa|Nepeta|officinalis|Hylotelephium|Arbutus|Phillyrea|Laurus|Quercus ilex|Elaeagnus|Rosa|Agastache|Cistus|Lavandula|Echinacea|Erigeron|Digitalis|Geranium|Ceanothus|Cercis|Koelreuteria|Muscari|Narcissus|Cyclamen|Hedera|Atriplex/}
 };
 // Photos d'illustration des styles (Wikimedia Commons, licences libres : la page source indique l'auteur et la licence).
