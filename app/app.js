@@ -36,11 +36,46 @@ const EAU_LBL = {d:"Sol sec en été", f:"Sol frais", w:"Sol humide"};
 const SOL_OPT = [["a","Argileux"],["ac","Argilo-calcaire"],["c","Calcaire"],["s","Sableux"],["h","Humifère"]];
 const SOL_LBL = Object.fromEntries(SOL_OPT);
 // L'entretien prévu ; le moteur s'en sert comme besoin en arrosage des plantes.
-const ARRO_OPT = [["1","Très peu","Des plantes qui se débrouillent seules après un an."],["2","Un peu","Un arrosage de temps en temps l’été."],["3","Volontiers","Arroser régulièrement l’été ne te fait pas peur."],["nsp","Je ne sais pas encore","On part sur des plantes peu exigeantes."]];
+const ARRO_OPT = [["1","Très peu","Des plantes qui se débrouillent seules après un an."],["2","Un peu","Un arrosage de temps en temps l’été."],["3","Volontiers","Arroser régulièrement l’été ne te fait pas peur."],["nsp","Je ne sais pas encore","Pas de souci, on part sur des plantes peu exigeantes."]];
 const ARRO_LBL = {"1":"entretien minimal","2":"un peu d’entretien","3":"entretien régulier","nsp":"entretien à préciser"};
 // « Je ne sais pas encore » : le moteur part sur des plantes sans arrosage.
 const arroOf = a => a === "nsp" ? "1" : (a || "1");
 const OBJ_OPT = [["massif","Habiller mon jardin"],["isoler","M’isoler du voisinage"],["pollin","Attirer abeilles et papillons"],["mur","Habiller un mur ou une clôture"],["refuge","Accueillir oiseaux et insectes"]];
+// Silhouette du coin : hauteur, densité et profondeur en un seul choix, traduits en réglages du moteur.
+const SIL_OPT = [["bas","Bas et aéré","Jusqu’à 50 cm · on voit la terre · 1 m de profondeur"],["mi","Généreux, à mi-hauteur","Jusqu’à 1 m · bien rempli · 1,5 m de profondeur"],["haut","Haut et étagé","Jusqu’à 2 m · très fourni · 2 m de profondeur"],["nsp","Je ne sais pas encore","On choisit d’après ta photo."]];
+const SIL = {bas:{hmax:"50", dens:"a", prof:100}, mi:{hmax:"100", dens:"n", prof:150}, haut:{hmax:"0", dens:"d", prof:200}};
+// Schéma vu de face : une rangée de touffes par étage, du fond (foncé) vers l'avant (clair) ;
+// la hauteur dit la taille, l'écart la densité, le nombre de rangées la profondeur.
+function silSVG(k){
+  const R = {bas:[[[16,46,76,106],10,9,"#D5E3CF"]],
+    mi:[[[16,38,60,82,104],14,13,"#BFD3B6"],[[12,30,48,66,84,102],9,9,"#E6EEE1"]],
+    haut:[[[18,44,70,96],13,24,"#A9C29F"],[[14,34,54,74,94,108],10,10,"#D5E3CF"],[[10,26,42,58,74,90,106],7,7,"#EEF3EA"]]}[k];
+  const ground = 60;
+  const shapes = R.map(([xs, rx, ry, fill]) => xs.map(x => `<ellipse cx="${x}" cy="${ground - ry}" rx="${rx}" ry="${ry}" fill="${fill}" stroke="#1C1C1A" stroke-width="1.3"/>`).join("")).join("");
+  return `<svg class="sil" aria-hidden="true" width="120" height="64" viewBox="0 0 120 64" fill="none">${shapes}<path d="M2 60.5 H118" stroke="#1C1C1A" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+}
+// En plus des plantes : mobilier, pots, abris et eau, proposés seulement si la personne le demande.
+const EXTRA_OPT = [["assise","Un coin pour s’asseoir"],["pots","Des pots et jardinières"],["abris","Des abris pour la petite faune"],["eau","Un point d’eau"]];
+const EXTRAS = [
+  {id:"banc", cat:"assise", nom:"Banc en bois", ou:"Au soleil du soir, dos à la haie ou au mur.", prix:[120,300], jardin:true},
+  {id:"bistrot", cat:"assise", nom:"Table et deux chaises pliantes", ou:"Elles se rangent contre le mur après usage.", prix:[90,200], jardin:true, balcon:true},
+  {id:"pot-grand", cat:"pots", nom:"Grand pot en terre cuite", ou:"Pour une plante en vedette, à l’entrée du coin.", prix:[30,70], jardin:true},
+  {id:"jardiniere", cat:"pots", nom:"Jardinière de 80 cm", ou:"Le long de la rambarde, côté soleil.", prix:[25,55], balcon:true},
+  {id:"pot-leger", cat:"pots", nom:"Pot léger en fibre, 50 cm", ou:"Facile à déplacer, il ne charge pas le balcon.", prix:[40,90], balcon:true, jardin:true},
+  {id:"nichoir", cat:"abris", nom:"Nichoir à mésanges", ou:"À 2 m de haut, trou vers le sud-est, à l’abri du vent.", prix:[20,40], jardin:true, balcon:true},
+  {id:"hotel", cat:"abris", nom:"Hôtel à insectes", ou:"En plein soleil, tourné vers le sud, à 50 cm du sol.", prix:[25,60], jardin:true, balcon:true, expo:["s","m"]},
+  {id:"herisson", cat:"abris", nom:"Abri à hérisson", ou:"Au calme, sous une haie, à l’ombre.", prix:[30,60], jardin:true},
+  {id:"bois", cat:"abris", nom:"Tas de bois mort", ou:"Quelques bûches au fond du massif : un abri gratuit.", prix:[0,0], jardin:true},
+  {id:"bain", cat:"eau", nom:"Bain d’oiseaux", ou:"À découvert, à 2 m d’un arbuste pour fuir les chats.", prix:[25,70], jardin:true},
+  {id:"abreuvoir", cat:"eau", nom:"Abreuvoir à abeilles", ou:"Une soucoupe, des cailloux, un peu d’eau. À remplir l’été.", prix:[5,15], jardin:true, balcon:true}
+];
+// Un objet par envie (deux pour les abris), adapté au projet (balcon ou jardin) et au soleil du coin.
+const EXTRA_MAX = {assise:1, pots:1, abris:2, eau:1};
+function extrasFor(rec, z){
+  const p = rec.prefs || {}, balcon = p.projet === "balcon";
+  return (p.extras || []).flatMap(cat => EXTRAS.filter(x => x.cat === cat && (balcon ? x.balcon : x.jardin) && (!x.expo || x.expo.includes(z.exposition))).slice(0, EXTRA_MAX[cat] || 1));
+}
+const extraUrl = x => "https://www.google.com/search?tbm=shop&q=" + encodeURIComponent(x.nom);
 const STYLE_OPT = [["libre","Sans style imposé"],["med","Méditerranéen sec"],["nat","Naturaliste"],["anglais","Jardin anglais"],["sauvage","Refuge biodiversité"]];
 const CLIM_LBL = {med:"Méditerranéen", so:"Sud-Ouest", oc:"Océanique", co:"Continental", mo:"Montagnard"};
 const ROLE_SHORT = {arbre:["Arbre","sauge"], ecran:["Haie","sauge"], grimpante:["Grimpante","sauge"], structure:["Fond","sauge"], graminee:["Graminée","peche"], vivace:["Milieu","peche"], bordure:["Devant","ciel"], bulbe:["Bulbe","ciel"]};
@@ -58,8 +93,15 @@ function findDept(txt){
 
 // ---------- Données ----------
 let records = store.get("app-analyses", []);
+// Un nom de coin tient en 3 mots, pour rester sur la ligne de son titre avec « Renommer ».
+const mots = s => (s || "").trim().split(/\s+/).filter(Boolean);
+function nomCourt(s){
+  if(mots(s).length <= 3) return (s || "").trim();
+  const avant = s.split(",")[0].trim();
+  return mots(avant).length <= 3 ? avant : mots(s).slice(0, 3).join(" ");
+}
 let garden = store.get("app-garden", null);
-let envies = Object.assign({objectifs:["massif"], style:"libre"}, store.get("app-envies", {}));
+let envies = Object.assign({objectifs:["massif"], style:"libre", silhouette:"nsp", extras:[]}, store.get("app-envies", {}));
 // Reprise des données de la version précédente : le jardin se déduit de la dernière analyse.
 (() => {
   const old = store.get("app-prefs", null);
@@ -69,7 +111,7 @@ let envies = Object.assign({objectifs:["massif"], style:"libre"}, store.get("app
     store.set("app-garden", garden);
   }
   if(old && !store.get("app-envies", null)){ envies = {objectifs: old.objectifs || ["massif"], style: STYLE_OPT.some(o => o[0] === old.style) ? old.style : "libre"}; store.set("app-envies", envies); }
-  records.forEach(r => { r.removed = r.removed || []; });
+  records.forEach(r => { r.removed = r.removed || []; ((r.analysis && r.analysis.zones) || []).forEach(z => { z.nom = nomCourt(z.nom); }); });
   records.sort((a, b) => String(a.date).localeCompare(String(b.date)));
 })();
 function saveRecords(){
@@ -87,7 +129,10 @@ const espaces = () => {
 // ---------- Navigation ----------
 const SCREENS = ["s-ouverture","s-login","s-prenom","s-conseils","s-liste","s-compte","s-sources","s-photo","s-envies","s-garden","s-analyse","s-espace","s-jardin"];
 function show(id, push = true){
+  const was = SCREENS.find(s => !$(s).hidden);
   SCREENS.forEach(s => { $(s).hidden = s !== id; });
+  // Micro-interaction : l'écran qui arrive glisse doucement (fondu seul entre deux onglets).
+  if(was !== id){ const el = $(id); el.classList.remove("enter", "enter-tab"); void el.offsetWidth; el.classList.add(TABS.includes(id) && TABS.includes(was) ? "enter-tab" : "enter"); }
   closeSheet();
   window.scrollTo(0, 0);
   if(push && id !== "s-analyse"){ try{ history.pushState({s:id}, ""); }catch(e){} }
@@ -144,18 +189,17 @@ function appChips(boxId, options, mode, get, set){
     const val = get();
     box.innerHTML = options.map(([v, l]) => {
       const id = `ap-${boxId}-${v}`;
-      const on = mode === "multi" ? val.includes(v) : val === v;
-      return `<label class="chip" for="${id}"><input id="${id}" type="${mode === "multi" ? "checkbox" : mode === "toggle" ? "checkbox" : "radio"}" name="${boxId}" value="${v}" ${on ? "checked" : ""}><span>${esc(l)}</span></label>`;
+      const on = mode === "multi" || mode === "multi0" ? val.includes(v) : val === v;
+      return `<label class="chip" for="${id}"><input id="${id}" type="${mode === "radio" || mode === "single" ? "radio" : "checkbox"}" name="${boxId}" value="${v}" ${on ? "checked" : ""}><span>${esc(l)}</span></label>`;
     }).join("");
   };
   box.addEventListener("change", e => {
-    if(mode === "multi"){
+    if(mode === "multi" || mode === "multi0"){
       const vals = [...box.querySelectorAll("input:checked")].map(i => i.value);
-      if(!vals.length){ draw(); return; }
+      if(!vals.length && mode === "multi"){ draw(); return; }
       set(vals);
     } else if(mode === "toggle"){ set(e.target.checked ? e.target.value : null); }
     else set(box.querySelector("input:checked").value);
-    draw(); const i = $(`ap-${boxId}-${e.target.value}`); if(i) i.focus();
   });
   draw();
   return draw;
@@ -176,7 +220,7 @@ function setLoginMode(isSignup){
   signup = isSignup;
   $("login-eyebrow").textContent = signup ? "Bienvenue" : "Bon retour";
   $("login-title").innerHTML = signup ? "Ton jardin,<br><em>planté</em> sur mesure." : `Te <em>revoilà</em>${prenom ? ", " + esc(prenom) : ""} !`;
-  $("login-lede").textContent = signup ? "Une photo de ton jardin, et on choisit avec toi des plantes qui s’y plairont." : "Ton jardin t’attend.";
+  $("login-lede").textContent = signup ? "Une photo de ton jardin, et on choisit ensemble des plantes qui s’y sentiront bien." : "Ton jardin t’attend, il a sûrement poussé.";
   $("login-google-lbl").textContent = signup ? "Créer mon compte avec Google" : "Continuer avec Google";
   $("login-email-go").textContent = signup ? "Commencer avec mon e-mail" : "Se connecter avec un e-mail";
   $("login-submit").textContent = signup ? "Créer mon compte" : "Se connecter";
@@ -217,7 +261,7 @@ function afterLogin(isNew, who){
 $("login-google").addEventListener("click", () => afterLogin(signup, "google"));
 $("login-forgot").addEventListener("click", () => {
   const ok = /^\S+@\S+\.\S+$/.test($("login-email").value.trim());
-  loginErr(ok ? "" : "Indique ton e-mail, on t’envoie un lien pour en choisir un nouveau.");
+  loginErr(ok ? "" : "Ça arrive à tout le monde ! Indique ton e-mail, on t’envoie un lien.");
   if(!ok) $("login-email").focus();
 });
 $("login-form").addEventListener("submit", e => {
@@ -311,8 +355,8 @@ function renderPhoto(){
   $("ph-card").innerHTML = p ? `<article class="ph">
     <div class="ph-top"><img src="${p.thumb}" alt="Ta photo du coin à planter">
       <div class="ph-side ph-name"><label class="ph-q" for="ph-nom">Son nom</label>
-        <input id="ph-nom" type="text" maxlength="40" autocomplete="off" placeholder="Ex. : la haie du fond" value="${esc(p.nom || "")}" aria-describedby="ph-nom-hint">
-        <span class="ph-hint" id="ph-nom-hint">Facultatif : sinon, on lui en trouve un.</span></div>
+        <input id="ph-nom" type="text" maxlength="40" autocomplete="off" placeholder="Ex. : Haie du fond" value="${esc(p.nom || "")}" aria-describedby="ph-nom-hint">
+        <span class="ph-hint" id="ph-nom-hint">Facultatif, 3 mots au plus.</span></div>
       <button class="ph-del" type="button" id="ph-del" aria-label="Retirer la photo">×</button>
     </div>
     <div class="ph-side ph-dir">
@@ -343,7 +387,7 @@ $("ph-card").addEventListener("change", e => {
   photo.direction = e.target.value || null;
   if($("compass")){ $("compass").hidden = !!photo.direction; startCompass(); }
 });
-$("ph-card").addEventListener("input", e => { if(e.target.id === "note") photo.note = e.target.value; if(e.target.id === "ph-nom") photo.nom = e.target.value; });
+$("ph-card").addEventListener("input", e => { if(e.target.id === "note") photo.note = e.target.value; if(e.target.id === "ph-nom"){ photo.nom = e.target.value; $("ph-nom-hint").classList.toggle("err", mots(e.target.value).length > 3); } });
 // Boussole : téléphone à plat, le haut tourné vers le coin photographié. La rose tourne, le repère du haut montre l'orientation.
 const COMPASS = `<svg class="dial" aria-hidden="true" width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
   <g id="rose" stroke="#1C1C1A" stroke-width="2" stroke-linecap="round"><circle cx="36" cy="38" r="27" fill="#FBF9F3"/><path d="M36 13 V17 M36 59 V63 M11 38 H15 M57 38 H61" stroke-width="1.5"/>
@@ -395,6 +439,12 @@ $("to-envies").addEventListener("click", () => { renderEnvies(); show("s-envies"
 // 03 · Envies
 appChips("a-obj", OBJ_OPT, "multi", () => envies.objectifs, v => { envies.objectifs = v; store.set("app-envies", envies); });
 const drawStyle = appChips("a-style", STYLE_OPT, "single", () => envies.style, v => { envies.style = v; store.set("app-envies", envies); styleHint(); });
+function drawSil(){
+  $("a-sil").innerHTML = SIL_OPT.map(([v, t, d]) => `<label class="choice sil-choice"><input type="radio" name="a-sil" value="${v}" ${envies.silhouette === v ? "checked" : ""}><span>${v === "nsp" ? "" : silSVG(v)}<span class="sil-txt"><b>${esc(t)}</b><small>${esc(d)}</small></span></span></label>`).join("");
+}
+$("a-sil").addEventListener("change", e => { envies.silhouette = e.target.value; store.set("app-envies", envies); });
+drawSil();
+appChips("a-extras", EXTRA_OPT, "multi0", () => envies.extras || [], v => { envies.extras = v; store.set("app-envies", envies); });
 function styleHint(){ $("a-style-hint").textContent = (STYLES[envies.style] || STYLES.libre).hint; $("a-style-ph").innerHTML = styleFigure(envies.style); styleWarn(); }
 // Rappel de cohérence : le style du premier espace (hors « sans style ») fait référence pour les suivants.
 function gardenStyle(){
@@ -461,7 +511,7 @@ function renderGarden(){
   const home = gardenEdit || espaces().length ? ["s-jardin", "Ton jardin"] : ["s-login", "Accueil"];
   $("garden-back").dataset.go = home[0];
   $("garden-back").querySelector("span").textContent = home[1];
-  $("garden-lede").textContent = gardenEdit ? "Ces réglages servent aux prochains coins que tu ajouteras." : `${avec("Bienvenue, ", ". ")}Quelques questions, une seule fois, pour des plantes qui se plairont chez toi.`;
+  $("garden-lede").textContent = gardenEdit ? "Ces réglages servent aux prochains coins que tu ajouteras." : `${avec("Bienvenue, ", ". ")}Quelques questions, une seule fois, et on saura quoi planter chez toi.`;
   $("garden-privacy").hidden = true;
   $("garden-next").textContent = gardenEdit ? "Enregistrer" : "Continuer";
   $("gar-err").hidden = true;
@@ -481,13 +531,14 @@ $("garden-next").addEventListener("click", () => {
 
 // ---------- 04 · Analyse ----------
 const STEPS = ["On lit ta photo","On repère les coins à planter","On mesure leur soleil","On estime la place","On choisit tes plantes"];
-function drawSteps(k){ $("an-steps").innerHTML = STEPS.map((s, i) => `<li class="${i < k ? "done" : i === k ? "now" : ""}"><i></i>${s}</li>`).join(""); }
+function drawSteps(k){ $("an-scan").dataset.k = k; $("an-steps").innerHTML = STEPS.map((s, i) => `<li class="${i < k ? "done" : i === k ? "now" : ""}"><i></i>${s}</li>`).join(""); }
 async function runAnalyse(errId, back){
   const err = msg => { $(errId).textContent = msg; $(errId).hidden = !msg; };
   err("");
   if(!photo){ show("s-photo"); return; }
+  $("an-img").hidden = !photo.thumb; if(photo.thumb) $("an-img").src = photo.thumb;
   show("s-analyse");
-  $("an-wait").textContent = `On regarde ta photo avec attention${avec(", ")}. Une demi-minute, et c’est prêt.`;
+  $("an-wait").textContent = `On regarde ta photo avec attention${avec(", ")}. Une demi-minute, le temps de souffler, et c’est prêt.`;
   let k = 0; drawSteps(0);
   const tick = setInterval(() => { k = Math.min(k + 1, STEPS.length - 1); drawSteps(k); }, 7000);
   const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 90000);
@@ -501,7 +552,7 @@ async function runAnalyse(errId, back){
     if(!r.ok){
       let msg = d.erreur;
       if(!msg){
-        if(r.status === 504 || /TIMEOUT/i.test(raw)) msg = "Pardon, l’analyse a pris trop de temps. Réessaie dans un instant.";
+        if(r.status === 504 || /TIMEOUT/i.test(raw)) msg = "Pardon, ça a pris trop de temps. Rien de grave : réessaie dans un instant.";
         else if(r.status === 413 || /PAYLOAD_TOO_LARGE/i.test(raw)) msg = "Cette photo est trop lourde. Essaie avec une capture d’écran.";
         else msg = `Pardon, l’analyse n’a pas abouti (erreur ${r.status}).`;
       }
@@ -509,10 +560,11 @@ async function runAnalyse(errId, back){
       show(back); err(msg + (d.detail ? ` Détail technique : ${d.detail}` : vcode ? ` Code Vercel : ${vcode}` : ""));
       return;
     }
-    const rec = {id: Date.now().toString(36), date: new Date().toISOString(), ville, prefs: {projet: projet || "jardin", sol: garden.sol || "inconnu", arrosage: arroOf(garden.arrosage), objectifs, style: envies.style}, analysis: d, thumbs: [photo.thumb], removed: []};
+    const rec = {id: Date.now().toString(36), date: new Date().toISOString(), ville, prefs: {projet: projet || "jardin", sol: garden.sol || "inconnu", arrosage: arroOf(garden.arrosage), objectifs, style: envies.style, silhouette: envies.silhouette || "nsp", extras: envies.extras || []}, analysis: d, thumbs: [photo.thumb], removed: []};
     if(!garden.clim && d.climat){ garden.clim = d.climat.zone; store.set("app-garden", garden); }
     // Le nom donné par la personne prime sur celui de l'analyse ; une photo découpée en plusieurs coins les numérote.
-    const nom = (photo.nom || "").trim();
+    d.zones.forEach(z => { z.nom = nomCourt(z.nom); });
+    const nom = nomCourt(photo.nom || "");
     if(nom) d.zones.forEach((z, i) => { z.nom = d.zones.length > 1 ? `${nom} · ${i + 1}` : nom; });
     records.push(rec);
     while(records.length > 24){ dropRecord(records[0]); }
@@ -520,9 +572,10 @@ async function runAnalyse(errId, back){
     saveRecords();
     photo = null; demo = false;
     openEspace(rec, d.zones[0].id);
+    showToast(d.zones.length > 1 ? `Et voilà, tes ${d.zones.length} coins sont prêts !` : "Et voilà, ton coin est prêt !");
   }catch(e){
     show(back);
-    err(e.name === "AbortError" ? "Pardon, c’est plus long que prévu. Ta photo est gardée : réessaie dans un instant." : "La connexion semble coupée. Rien n’est perdu : réessaie quand le réseau revient.");
+    err(e.name === "AbortError" ? "Pardon, c’est plus long que prévu. Ta photo est gardée, réessaie dans un instant." : "La connexion semble coupée. Rien n’est perdu : réessaie quand le réseau revient.");
   }finally{ clearInterval(tick); clearTimeout(to); }
 }
 function dropRecord(r){
@@ -532,7 +585,7 @@ function dropRecord(r){
 
 // Renommer le coin ouvert, depuis sa fiche.
 function renameOpen(open){
-  $("esp-rename-form").hidden = !open; $("esp-rename").hidden = open; $("esp-title").hidden = open;
+  $("esp-rename-form").hidden = !open; $("esp-head").hidden = open;
   if(open){ $("esp-nom").value = (curZoneObj() || {}).label || ""; $("esp-nom").focus(); $("esp-nom").select(); }
   else $("esp-rename").focus();
 }
@@ -541,6 +594,8 @@ $("esp-rename-cancel").addEventListener("click", () => renameOpen(false));
 $("esp-rename-form").addEventListener("submit", e => {
   e.preventDefault();
   const nom = $("esp-nom").value.trim(), zo = curZoneObj(); if(!nom || !zo || !current) return renameOpen(false);
+  if(mots(nom).length > 3){ $("esp-nom-err").hidden = false; $("esp-nom").setAttribute("aria-invalid", "true"); $("esp-nom").focus(); return; }
+  $("esp-nom-err").hidden = true; $("esp-nom").removeAttribute("aria-invalid");
   const z = current.analysis.zones.find(x => x.id === zo.id); if(z) z.nom = nom;
   zo.label = nom; saveRecords();
   renderZoneDetail(zo); renameOpen(false); showToast("C’est noté, ton coin s’appelle maintenant « " + nom + " ».");
@@ -548,10 +603,12 @@ $("esp-rename-form").addEventListener("submit", e => {
 
 // ---------- 06 · Un espace ----------
 function zoneState(z, rec){
-  const p = rec.prefs || {}, a = rec.analysis;
+  const p = rec.prefs || {}, a = rec.analysis, sil = SIL[p.silhouette];
   let obj = (z.objectifs && z.objectifs.length ? z.objectifs : ["massif"]).map(o => o === "refuge" ? "pollin" : o).filter(o => ["massif","isoler","pollin","mur"].includes(o));
   if(!obj.length) obj = ["massif"];
-  return {obj: [...new Set(obj)], haut: z.hauteur_masquer || "2", vite: obj.includes("isoler") ? "rapide" : "tout", prof: z.profondeur, expo: z.exposition,
+  // La silhouette choisie plafonne la profondeur à la place réellement disponible.
+  const prof = sil ? String(Math.min(+z.profondeur || 150, sil.prof)) : z.profondeur;
+  return {obj: [...new Set(obj)], haut: z.hauteur_masquer || "2", vite: obj.includes("isoler") ? "rapide" : "tout", prof, hmax: sil ? sil.hmax : "0", dens: sil ? sil.dens : "n", expo: z.exposition,
     sol: p.sol && p.sol !== "inconnu" ? p.sol : a.sol.type, eau: z.humidite, clim: a.climat.zone, taille: z.longueur,
     pal: "all", types: BASE_TYPES, arro: p.arrosage || "1", style: p.style || "libre", age: "3", projet: p.projet || "jardin"};
 }
@@ -560,7 +617,7 @@ function titleHTML(t){
   return i > 0 ? `${esc(t.slice(0, i + 1))} <em>${esc(t.slice(i + 1).trim())}</em>` : esc(t);
 }
 function openEspace(rec, zoneId){
-  current = rec;
+  current = rec; shownPlants = new Set();
   ZKEY = "app-zones-" + rec.id;
   zoneData = store.get(ZKEY, {});
   ZONES = rec.analysis.zones.filter(z => !(rec.removed || []).includes(z.id)).map(z => ({id: z.id, label: z.nom, note: z.description, z, thumb: rec.thumbs && rec.thumbs[(z.photo || 1) - 1], st: zoneState(z, rec)}));
@@ -569,7 +626,7 @@ function openEspace(rec, zoneId){
   $("esp-demo").hidden = !rec.demo;
   $("esp-rename").hidden = !!rec.demo; $("esp-rename-form").hidden = true;
   $("esp-back").dataset.go = "s-jardin";
-  $("crit-grid").hidden = true; $("crit-toggle").setAttribute("aria-expanded", "false"); $("crit-toggle").textContent = "Modifier mes critères"; listOpen = false;
+  critOpen(false); setPane("plantes"); listOpen = false;
   show("s-espace");
   window.__quiet = true;
   setZone(zoneId);
@@ -592,6 +649,8 @@ window.renderZoneDetail = function(z){
 const SPARK = `<svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 1.5 C 9.6 6, 12 8.4, 16.5 9 C 12 9.6, 9.6 12, 9 16.5 C 8.4 12, 6 9.6, 1.5 9 C 6 8.4, 8.4 6, 9 1.5 Z" fill="#F3D35B" stroke="#FBF9F3" stroke-width="1.4" stroke-linejoin="round"/></svg>`;
 let listOpen = false;
 const euro = n => new Intl.NumberFormat("fr-FR", {style: "currency", currency: "EUR", maximumFractionDigits: 0}).format(Math.max(1, Math.round(n)));
+// Plantes déjà affichées pour ce coin : seules les nouvelles s'animent.
+let shownPlants = new Set(), shownKey = "";
 function renderProposal(){
   const order = ["arbre","ecran","grimpante","back","mid","front","bulb"];
   const items = combo.map((c, i) => [c, i]).sort((a, b) => order.indexOf(lay(a[0])) - order.indexOf(lay(b[0])));
@@ -600,13 +659,16 @@ function renderProposal(){
   $("esp-rule").innerHTML = combo.length ? `<div class="rule"><span>La proposition</span><i>↕</i><span>${combo.length} plante${combo.length > 1 ? "s" : ""} · ${pieds} plant${pieds > 1 ? "s" : ""}</span></div>` : "";
   if(!combo.length){
     $("esp-plants").innerHTML = `<p class="empty">Ce coin est exigeant : aucune plante ne coche toutes les cases. Assouplis un critère, on trouvera.</p>`;
-    $("esp-budget").hidden = true; return;
+    $("esp-budget").hidden = true; $("esp-sum").innerHTML = ""; return;
   }
   renderPlan();
+  renderExtras();
+  const fresh = c => !shownPlants.has(c.plant.nom);
+  let rank = 0;
   $("esp-plants").innerHTML = items.map(([c, i]) => {
     const p = c.plant, ph = photoOf(p), [role, col] = ROLE_SHORT[c.role] || [ROLE_LABEL[c.role] || "", ""];
     const [a, b] = unitPrice(p, c.role), n = qty[p.nom] || 1;
-    return `<article class="plant">
+    return `<article class="plant${fresh(c) ? " fresh" : ""}" style="--i:${fresh(c) ? rank++ : 0}">
       ${ph ? `<figure><img src="${ph.src}" alt="${esc(p.nom)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></figure>` : ""}
       <div class="pt">
         <div class="row"><span class="tag ${col}">${esc(role)}</span><span class="qp">${n} × ${euro((a + b) / 2)}</span></div>
@@ -615,14 +677,27 @@ function renderProposal(){
         <p class="plinks"><a href="${photoUrl(p)}" target="_blank" rel="noopener">Photos ↗</a><a href="${shopUrl(p)}" target="_blank" rel="noopener">Où l’acheter ↗</a></p>
         ${c.locked ? "" : `<button class="linkish" type="button" data-rep="${i}">Remplacer cette plante</button>`}
       </div></article>`;
-  }).join("") + glossary(combo.map(c => c.plant.type));
+  }).join("");
+  $("esp-glossary").innerHTML = glossary(combo.map(c => c.plant.type));
+  const key = current ? current.id + "-" + curZone : "";
+  if(key !== shownKey){ shownKey = key; }
+  shownPlants = new Set(combo.map(c => c.plant.nom));
   const b = lastBudget;
   $("esp-budget").hidden = !b;
+  $("esp-sum").innerHTML = b ? `<span><small>Budget estimé</small><b>${eur0(b.min)} – ${eur0(b.max)}</b></span><button class="link" type="button" data-pane-go="details">Voir le détail</button>` : "";
   if(b) $("esp-budget").innerHTML = `<div class="bh"><div><span class="eyebrow">Budget estimé</span><strong>${eur0(b.min)} – ${eur0(b.max)}</strong></div>
       <button class="link" type="button" id="buy-toggle" aria-expanded="${listOpen}">${listOpen ? "Masquer la liste" : "Ma liste pour la jardinerie"}</button></div>
     ${listOpen ? `<ul>${b.rows.map(([nom, r, q]) => { const p = PLANTS.find(x => x.nom === nom); const [x, y] = p ? unitPrice(p, r) : [0, 0];
       return `<li><span>${p ? `<a href="${shopUrl(p)}" target="_blank" rel="noopener">${esc(nom)} ↗</a>` : esc(nom)}<small>${r === "bulbe" ? q + " bulbes" : q + (q > 1 ? " plants" : " plant")}</small></span><span>${eur0(x * q)} – ${eur0(y * q)}</span></li>`; }).join("")}</ul>
       <p class="bnote">Prix indicatifs en ${FMT_DESC[state.fmt]}, hors terre, paillage, livraison et pose.</p>` : ""}`;
+}
+function renderExtras(){
+  const zo = curZoneObj(), list = zo && current ? extrasFor(current, zo.z) : [];
+  $("esp-extras").hidden = !list.length;
+  if(!list.length) return;
+  const min = list.reduce((s, x) => s + x.prix[0], 0), max = list.reduce((s, x) => s + x.prix[1], 0);
+  $("esp-extras").innerHTML = `<h3>En plus <em>des plantes</em></h3><p class="hint">Environ ${eur0(min)} – ${eur0(max)}, à ajouter au budget des plantes.</p>
+    <ul>${list.map(x => `<li><b>${esc(x.nom)}</b><span>${esc(x.ou)}</span><span class="x-row"><span class="x-prix">${x.prix[1] ? `${eur0(x.prix[0])} – ${eur0(x.prix[1])}` : "Gratuit"}</span>${x.prix[1] ? `<a href="${extraUrl(x)}" target="_blank" rel="noopener">Où l’acheter ↗</a>` : ""}</span></li>`).join("")}</ul>`;
 }
 // Les mots du jardin : une explication courte des types de plantes présents dans la proposition.
 const GLOSSAIRE = [["vivace", "Vivace", "une plante qui repousse chaque année, sans la replanter"], ["graminee", "Graminée", "une touffe de fines feuilles, comme une herbe haute, qui bouge au vent"], ["couvre-sol", "Couvre-sol", "une plante basse qui s’étale et limite les mauvaises herbes"], ["bulbe", "Bulbe", "un oignon à planter en automne, qui fleurit au printemps"], ["grimpante", "Grimpante", "une plante qui monte le long d’un mur ou d’une clôture"]];
@@ -646,15 +721,42 @@ function renderPlan(){
 }
 $("esp-plants").addEventListener("click", e => { const r = e.target.closest("[data-rep]"); if(r) replace(+r.dataset.rep); });
 $("esp-budget").addEventListener("click", e => { if(e.target.closest("#buy-toggle")){ listOpen = !listOpen; renderProposal(); } });
-$("crit-toggle").addEventListener("click", () => {
-  const g = $("crit-grid"), open = g.hidden;
-  g.hidden = !open;
-  $("crit-toggle").setAttribute("aria-expanded", open);
-  $("crit-toggle").textContent = open ? "Masquer mes critères" : "Modifier mes critères";
-  if(open) requestAnimationFrame(() => { if(typeof drawAll === "function") drawAll(); });
+// Onglets du coin : l'essentiel (plantes, plan) d'abord, le bonus dans « Détails ».
+const PANES = ["plantes", "plan", "details"];
+function setPane(name, focus){
+  PANES.forEach(p => { const on = p === name, tab = $("tab-" + p);
+    tab.setAttribute("aria-selected", on); tab.tabIndex = on ? 0 : -1; $("pane-" + p).hidden = !on; });
+  if(focus) $("tab-" + name).focus();
+  if(name === "plan") requestAnimationFrame(() => { if(typeof drawAll === "function") drawAll(); });
+}
+$("esp-seg").addEventListener("click", e => { const b = e.target.closest("[data-pane]"); if(b) setPane(b.dataset.pane); });
+$("esp-seg").addEventListener("keydown", e => {
+  const i = PANES.findIndex(p => $("tab-" + p).getAttribute("aria-selected") === "true");
+  const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+  if(d){ e.preventDefault(); setPane(PANES[(i + d + PANES.length) % PANES.length], true); }
 });
+$("s-espace").addEventListener("click", e => {
+  const g = e.target.closest("[data-pane-go]"); if(!g) return;
+  setPane(g.dataset.paneGo); $("esp-seg").scrollIntoView({block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+});
+// Critères : un panneau par-dessus la page ; la proposition se met à jour derrière.
+function critOpen(open){
+  $("crit-grid").hidden = !open; $("crit-toggle").setAttribute("aria-expanded", open);
+  document.body.classList.toggle("crit-on", open);
+  if(open){ requestAnimationFrame(() => { if(typeof drawAll === "function") drawAll(); }); $("crit-close").focus(); }
+}
+$("crit-toggle").addEventListener("click", () => critOpen(true));
+$("crit-close").addEventListener("click", () => { critOpen(false); setPane("plantes"); $("crit-toggle").focus(); });
+document.addEventListener("keydown", e => { if(e.key === "Escape" && !$("crit-grid").hidden){ critOpen(false); $("crit-toggle").focus(); } });
 
 // ---------- Aperçu sur la photo (Gemini) ----------
+// Chargement : trois plantes tracées à la main, en boucle, pendant que Gemini dessine.
+const DRAW_SVG = `<svg class="draw" aria-hidden="true" width="132" height="64" viewBox="0 0 132 64" fill="none" stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path pathLength="1" style="--d:0s" d="M22 60 C22 46 22 36 22 26 M22 40 C14 38 10 32 9 26 C17 26 21 32 22 40 M22 32 C29 29 33 23 34 18 C26 19 23 25 22 32"/>
+  <path pathLength="1" style="--d:.5s" d="M66 60 C66 40 66 26 66 12 M66 12 C61 12 58 8 60 4 C64 4 67 8 66 12 M66 30 C58 28 55 22 55 17 M66 24 C73 22 77 17 77 12 M66 44 C59 43 56 38 56 33"/>
+  <path pathLength="1" style="--d:1s" d="M108 60 C108 50 106 42 104 36 M104 36 C98 36 95 31 96 26 C101 26 104 30 104 36 M106 46 C112 45 117 40 118 34 C112 34 108 39 106 46"/>
+  <path pathLength="1" style="--d:0s" d="M6 61 H126" stroke-width="1.6"/>
+</svg>`;
 // true : aucune image n'est demandée à Gemini, l'espace montre seulement la photo d'origine.
 const APERCU_PAUSE = false;
 let apTok = 0, apTimer = null, apBusy = false;
@@ -735,7 +837,7 @@ async function generateApercu(z, rec, ph){
   const sig = sigOf();
   apBusy = true; actions.innerHTML = ""; note.classList.remove("err"); note.textContent = "";
   const load = document.createElement("div"); load.className = "ba-load";
-  load.innerHTML = `<div class="sprout" aria-hidden="true"><i></i><i></i><i></i></div><p>On dessine tes plantes…</p><small>15 à 40 secondes.</small>`;
+  load.innerHTML = `${DRAW_SVG}<p>On dessine tes plantes…</p><small>15 à 40 secondes, un peu de patience.</small><span class="ba-bar" aria-hidden="true"><i></i></span>`;
   ba.appendChild(load);
   const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 80000);
   try{
@@ -815,12 +917,12 @@ function renderJardin(){
         <span class="vig">${vig}</span>
       </button>${editing ? `<button class="rm" type="button" data-rm="${e.key}" aria-label="Retirer le coin ${esc(z.nom)}">×</button>` : ""}</div>`;
   });
-  $("j-spaces").innerHTML = cards.length ? cards.join("") : `<p class="empty">Ton jardin attend son premier coin. Une photo suffit.</p>`;
+  $("j-spaces").innerHTML = cards.length ? cards.join("") : `<p class="empty">Ton jardin n’attend plus que toi. Une photo suffit pour commencer.</p>`;
   $("j-sec").hidden = !list.length;
   $("j-count").textContent = list.length;
   $("j-facts").innerHTML = `<div><small>Coins</small><b>${list.length}</b></div><div><small>Plantes</small><b>${nPlants || "–"}</b></div><div><small>Budget</small><b>${nb ? `${eur0(bmin)} – ${eur0(bmax)}`.replace(/\s?€/, "") : "–"}</b></div>`;
   const cond = [!demo && projet ? PROJET_LBL[projet].charAt(0).toUpperCase() + PROJET_LBL[projet].slice(1) : null, g.clim ? CLIM_LBL[g.clim] : null, g.sol ? `terre ${SOL_LBL[g.sol].toLowerCase()}` : "terre estimée à l’analyse", ARRO_LBL[g.arrosage || "1"]].filter(Boolean).join(" · ");
-  $("j-cond").innerHTML = esc(cond) + (demo ? "" : ` · <button class="link" type="button" id="garden-edit">Changer</button>`);
+  $("j-cond").innerHTML = `<span>${esc(cond)}</span>` + (demo ? "" : `<button class="edit-link" type="button" id="garden-edit">Modifier</button>`);
   $("j-add").querySelector("b").textContent = demo ? "Créer ton jardin" : "Ajouter un coin";
   $("j-add").querySelector("small").textContent = "Une photo du coin à planter suffit";
 }
@@ -934,7 +1036,7 @@ function renderConseils(){
   $("c-mois").textContent = `En ${MOIS_NOM[m - 1]}`;
   $("c-lede").textContent = `${avec("", ", voici ce")}${prenom ? "" : "Ce"} qui fera du bien à tes plantes ce mois-ci.`;
   const P = gardenPlants().map(o => o.p);
-  if(!P.length){ $("c-list").innerHTML = `<p class="empty">Ajoute un premier coin : chaque mois, on te dira quoi faire.</p>`; return; }
+  if(!P.length){ $("c-list").innerHTML = `<p class="empty">Ajoute un premier coin : chaque mois, on te soufflera quoi faire.</p>`; return; }
   const names = ps => ps.slice(0, 4).map(p => p.nom).join(", ") + (ps.length > 4 ? "…" : "");
   const of = t => P.filter(p => p.type === t), tips = [];
   const flo = P.filter(p => months(p).includes(m));
@@ -947,26 +1049,36 @@ function renderConseils(){
   if(apres.length) tips.push(["Une petite taille", `Floraison finie : raccourcis-les d’un tiers, elles repartiront plus touffues. ${names(apres)}.`]);
   if([6, 7, 8].includes(m)) tips.push(["Arrose malin", "Plantes de moins d’un an : une fois par semaine, généreusement, le soir."]);
   if([4, 5, 10, 11].includes(m)) tips.push(["Couvre la terre", "Copeaux ou feuilles mortes au pied des plantes : la terre reste fraîche, les mauvaises herbes reculent."]);
-  if([12, 1].includes(m)) tips.push(["Le jardin se repose", "Laisse les tiges sèches : elles abritent les insectes et sont jolies sous le givre."]);
+  if([12, 1].includes(m)) tips.push(["Le jardin se repose", "Laisse les tiges sèches : elles abritent les insectes et sont jolies sous le givre. Repose-toi aussi."]);
   $("c-list").innerHTML = tips.map(([t, d]) => `<article class="tip"><h3>${esc(t)}</h3><p>${esc(d)}</p></article>`).join("");
 }
 
 // 11 · Ma liste : les plantes de tous les coins, à cocher une fois achetées.
 let achats = new Set(store.get("app-achats", []));
+function gardenExtras(){
+  const out = new Map();
+  for(const e of espaces()) for(const x of extrasFor(e.rec, e.z)){ const o = out.get(x.id) || {x, q: 0}; o.q++; out.set(x.id, o); }
+  return [...out.values()];
+}
 function renderListe(focusNom){
   const items = gardenPlants().sort((a, b) => a.p.nom.localeCompare(b.p.nom, "fr"));
+  const objets = gardenExtras();
   if(!items.length){ $("l-body").innerHTML = `<p class="empty">Ta liste se remplira avec les plantes de tes coins. Commence par ajouter un coin.</p>`; return; }
   let min = 0, max = 0; items.forEach(o => { const [a, b] = unitPrice(o.p, o.role); min += a * o.q; max += b * o.q; });
-  const left = items.filter(o => !achats.has(o.p.nom)).length;
-  $("l-body").innerHTML = `<div class="budget-card"><div class="bh"><div><span class="eyebrow">Budget estimé</span><strong>${eur0(min)} – ${eur0(max)}</strong></div><span class="l-left">${left ? `${left} à acheter` : "Tout est acheté"}</span></div></div>
+  objets.forEach(o => { min += o.x.prix[0] * o.q; max += o.x.prix[1] * o.q; });
+  const left = items.filter(o => !achats.has(o.p.nom)).length + objets.filter(o => !achats.has(o.x.nom)).length;
+  $("l-body").innerHTML = `<div class="budget-card"><div class="bh"><div><span class="eyebrow">Budget estimé</span><strong>${eur0(min)} – ${eur0(max)}</strong></div><span class="l-left">${left ? `${left} à acheter` : "Tout est acheté, bravo !"}</span></div></div>
     <ul class="shop">${items.map(o => `<li><label class="shop-item"><input type="checkbox" data-nom="${esc(o.p.nom)}" ${achats.has(o.p.nom) ? "checked" : ""}><span><b>${esc(o.p.nom)}</b><small>${o.role === "bulbe" ? o.q + " bulbes" : o.q + (o.q > 1 ? " plants" : " plant")} · ${esc(o.coins.join(", "))}</small></span></label><a href="${shopUrl(o.p)}" target="_blank" rel="noopener">Où l’acheter ↗</a></li>`).join("")}</ul>
-    <p class="hint">Prix indicatifs pour de jeunes plantes en petits pots, hors terre, paillage et livraison.</p>`;
+    ${objets.length ? `<h3 class="shop-h">Objets</h3><ul class="shop">${objets.map(o => `<li><label class="shop-item"><input type="checkbox" data-nom="${esc(o.x.nom)}" ${achats.has(o.x.nom) ? "checked" : ""}><span><b>${esc(o.x.nom)}</b><small>${o.q > 1 ? o.q + " exemplaires" : "1 exemplaire"}</small></span></label>${o.x.prix[1] ? `<a href="${extraUrl(o.x)}" target="_blank" rel="noopener">Où l’acheter ↗</a>` : ""}</li>`).join("")}</ul>` : ""}
+    <p class="hint">Prix indicatifs${objets.length ? " pour de jeunes plantes et des objets courants" : " pour de jeunes plantes en petits pots"}, hors terre, paillage et livraison.</p>`;
   if(focusNom){ const c = [...$("l-body").querySelectorAll("input[data-nom]")].find(i => i.dataset.nom === focusNom); if(c) c.focus(); }
 }
 $("l-body").addEventListener("change", e => {
   const c = e.target.closest("input[data-nom]"); if(!c) return;
   if(c.checked) achats.add(c.dataset.nom); else achats.delete(c.dataset.nom);
-  store.set("app-achats", [...achats]); renderListe(c.dataset.nom);
+  store.set("app-achats", [...achats]);
+  const all = [...$("l-body").querySelectorAll("input[data-nom]")], left = all.filter(i => !i.checked).length;
+  $("l-body").querySelector(".l-left").textContent = left ? `${left} à acheter` : "Tout est acheté, bravo !";
 });
 
 // 12 · Mon compte
@@ -974,9 +1086,9 @@ function renderCompte(){
   const g = garden || {};
   const cond = [projet ? PROJET_LBL[projet].charAt(0).toUpperCase() + PROJET_LBL[projet].slice(1) : null, g.clim ? `climat ${CLIM_LBL[g.clim].toLowerCase()}` : null, g.sol ? `terre ${SOL_LBL[g.sol].toLowerCase()}` : "terre estimée à l’analyse", ARRO_LBL[g.arrosage || "1"]].filter(Boolean).join(" · ");
   $("a-body").innerHTML = `
-    <section class="acct-sec"><h3>Ton prénom</h3><p>${prenom ? esc(prenom) : "Pas encore renseigné"}</p><button class="link" type="button" data-act="prenom">${prenom ? "Changer ton prénom" : "Ajouter ton prénom"}</button></section>
+    <section class="acct-sec"><div class="title-row"><h3>Ton prénom</h3><button class="edit-link" type="button" data-act="prenom">${prenom ? "Modifier" : "Ajouter"}</button></div><p>${prenom ? esc(prenom) : "Pas encore renseigné"}</p></section>
     <section class="acct-sec"><h3>Connexion</h3><p>${known === "google" ? "Connexion avec Google" : esc(known || "")}</p></section>
-    <section class="acct-sec"><h3>Ton jardin</h3><p>${esc(cond)}</p><button class="btn secondary sm" type="button" data-act="reglages">Modifier les réglages du jardin</button></section>
+    <section class="acct-sec"><div class="title-row"><h3>Ton jardin</h3><button class="edit-link" type="button" data-act="reglages">Modifier</button></div><p>${esc(cond)}</p></section>
     <section class="acct-sec"><h3>Besoin d’aide ?</h3><p>Pour te guider quand tu ajoutes un coin.</p><button class="link" type="button" data-act="aide">Revoir les cartes d’aide</button></section>
     <section class="acct-sec"><h3>Tes données</h3><p>Ton jardin reste sur ce téléphone. Tes photos ne servent qu’à l’analyse, on ne les garde pas.</p></section>
     <section class="acct-sec"><h3>Les sources</h3><p>Photos, données des plantes et IA.</p><button class="link" type="button" data-act="sources">Voir les sources</button></section>
@@ -1038,10 +1150,10 @@ const DEMO = {id: "demo", demo: true, date: "2026-10-23T12:00:00Z", ville: "Toul
     sol: {type: "ac", explication: "Le sol est estimé argilo-calcaire, comme souvent dans la région toulousaine."},
     observations: [],
     zones: [
-      {id:"z1", nom:"Côté rue, le long de la canisse", photo:1, description:"Bande de pelouse au pied de la canisse qui sépare le jardin de la rue, de part et d’autre d’un palmier.", orientation:"SO", exposition:"s", ensoleillement:"Soleil de la fin de matinée au soir.", humidite:"d", profondeur:"150", longueur:"m", objectifs:["isoler","massif"], hauteur_masquer:"2", a_garder:["le palmier"], attention:["arracher le liseron au pied de la canisse."]},
-      {id:"z2", nom:"Allée, côté clôture", photo:1, description:"Étroite bande au pied de la clôture qui longe l’allée.", orientation:"SO", exposition:"s", ensoleillement:"La bande la plus chaude de l’allée.", humidite:"d", profondeur:"60", longueur:"p", objectifs:["massif","mur"], hauteur_masquer:null, a_garder:[], attention:[]},
-      {id:"z3", nom:"Allée, côté maison", photo:1, description:"Pied de mur le long de la maison, de l’autre côté de l’allée.", orientation:"NE", exposition:"m", ensoleillement:"Soleil du matin, puis ombre de la maison.", humidite:"f", profondeur:"60", longueur:"p", objectifs:["massif"], hauteur_masquer:null, a_garder:["le robinet"], attention:[]},
-      {id:"z4", nom:"Fond, face au balcon", photo:1, description:"Limite du fond, dominée par le balcon d’une maison voisine, derrière un abricotier.", orientation:"SE", exposition:"s", ensoleillement:"Plein soleil presque toute la journée.", humidite:"d", profondeur:"150", longueur:"m", objectifs:["isoler","massif"], hauteur_masquer:"4", a_garder:["l’abricotier","le composteur"], attention:["contenir le bambou avec une barrière anti-rhizomes s’il est traçant."]}
+      {id:"z1", nom:"Côté rue", photo:1, description:"Bande de pelouse au pied de la canisse qui sépare le jardin de la rue, de part et d’autre d’un palmier.", orientation:"SO", exposition:"s", ensoleillement:"Soleil de la fin de matinée au soir.", humidite:"d", profondeur:"150", longueur:"m", objectifs:["isoler","massif"], hauteur_masquer:"2", a_garder:["le palmier"], attention:["arracher le liseron au pied de la canisse."]},
+      {id:"z2", nom:"Allée côté clôture", photo:1, description:"Étroite bande au pied de la clôture qui longe l’allée.", orientation:"SO", exposition:"s", ensoleillement:"La bande la plus chaude de l’allée.", humidite:"d", profondeur:"60", longueur:"p", objectifs:["massif","mur"], hauteur_masquer:null, a_garder:[], attention:[]},
+      {id:"z3", nom:"Allée côté maison", photo:1, description:"Pied de mur le long de la maison, de l’autre côté de l’allée.", orientation:"NE", exposition:"m", ensoleillement:"Soleil du matin, puis ombre de la maison.", humidite:"f", profondeur:"60", longueur:"p", objectifs:["massif"], hauteur_masquer:null, a_garder:["le robinet"], attention:[]},
+      {id:"z4", nom:"Fond du jardin", photo:1, description:"Limite du fond, dominée par le balcon d’une maison voisine, derrière un abricotier.", orientation:"SE", exposition:"s", ensoleillement:"Plein soleil presque toute la journée.", humidite:"d", profondeur:"150", longueur:"m", objectifs:["isoler","massif"], hauteur_masquer:"4", a_garder:["l’abricotier","le composteur"], attention:["contenir le bambou avec une barrière anti-rhizomes s’il est traçant."]}
     ]
   }
 };

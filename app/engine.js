@@ -254,8 +254,12 @@ const OPT = {
   vite:[["rapide","Rapide en priorité"],["tout","Peu importe"]],
   haut:[["2","2 m"],["3","3 m"],["4","4 m et plus"]],
   fmt:[["petit","Petits formats"],["moyen","Formats moyens"]],
-  taille:[["p","Petit · 3 m²"],["m","Moyen · 6 m²"],["g","Grand · 12 m²"]]
+  taille:[["p","Petit · 3 m²"],["m","Moyen · 6 m²"],["g","Grand · 12 m²"]],
+  hmax:[["50","Jusqu'à 50 cm"],["100","Jusqu'à 1 m"],["0","Sans limite"]],
+  dens:[["a","Aéré"],["n","Généreux"],["d","Très fourni"]]
 };
+// Densité : écart entre les plantes sur le plan, en part de leur largeur adulte.
+const DENS = {a:1.3, n:1, d:0.8};
 const CLIM = {
   med:{min:-6,hint:"Hivers doux (jusqu'à −6 °C), étés chauds et secs."},
   so:{min:-10,hint:"Hivers jusqu'à −10 °C, étés chauds avec épisodes de sécheresse."},
@@ -362,7 +366,7 @@ const inStyle = p => !STYLES[state.style].re || (p.x ? (p.x.styles||[]).includes
 const WATER_LBL = {1:"Sans arrosage",2:"Arrosage occasionnel",3:"Arrosage régulier"};
 const isEcran = p => p.type==="arbuste" && p.h>=(+state.haut)*100 && evergreen(p);
 
-const state = {projet:"jardin",style:"libre",vite:"rapide",age:"3",arro:"1",prof:"150",haut:"2",fmt:"petit",obj:["massif"],expo:"s",sol:"ac",eau:"d",clim:"so",types:["arbuste","graminee","vivace","couvre-sol","bulbe","aromatique"],pal:"all",taille:"m"};
+const state = {projet:"jardin",style:"libre",vite:"rapide",age:"3",arro:"1",prof:"150",haut:"2",hmax:"0",dens:"n",fmt:"petit",obj:["massif"],expo:"s",sol:"ac",eau:"d",clim:"so",types:["arbuste","graminee","vivace","couvre-sol","bulbe","aromatique"],pal:"all",taille:"m"};
 let combo = [];   // [{plant, role, locked}]
 
 // ---------- UI des filtres ----------
@@ -391,7 +395,7 @@ function chips(key, multi){
 }
 chips("obj",true);
 document.getElementById("obj-hint").textContent = objHint();
-["style","vite","arro","prof","haut","fmt","expo","sol","eau","clim","pal","taille"].forEach(k=>chips(k,false));
+["style","vite","arro","prof","haut","hmax","dens","fmt","expo","sol","eau","clim","pal","taille"].forEach(k=>chips(k,false));
 chips("types",true);
 
 // ---------- Logique ----------
@@ -412,6 +416,7 @@ function compatible(p){
   const G = goals();
   const forced = (G.hedge && isEcran(p)) || (G.wall && p.type==="grimpante") || (G.hedge && state.haut==="4" && p.type==="arbre");
   if(!state.types.includes(p.type) && !forced) return false;
+  if(+state.hmax && p.h > +state.hmax && !forced) return false;
   if(state.pal!=="all" && !PAL[state.pal].includes(p.fam)) return false;
   if(water(p) > +state.arro) return false;
   if(G.melli && p.type!=="graminee" && !melli(p)) return false;
@@ -644,10 +649,11 @@ function planHTML(){
     seq.forEach((it,si)=>{
       const d = spread(it.c.plant, it.c.role), r=d/2;
       const x0 = si*segW, x1 = x0+segW;
-      const rowStep = d*0.87;
+      const dd = it.c.role==="ecran" ? d : d*(DENS[state.dens]||1);
+      const rowStep = dd*0.87;
       const rows = Math.max(1, Math.floor((y1-y0)/rowStep));
-      const colsBase = it.c.role==="ecran" ? Math.max(1, Math.round(segW/d)) : Math.max(1, Math.floor(segW/d));
-      const step = it.c.role==="ecran" ? segW/colsBase : d;
+      const colsBase = it.c.role==="ecran" ? Math.max(1, Math.round(segW/d)) : Math.max(1, Math.floor(segW/dd));
+      const step = it.c.role==="ecran" ? segW/colsBase : dd;
       const offY = (y1-y0 - (rows-1)*rowStep)/2;
       for(let ri=0; ri<rows; ri++){
         const shift = (ri%2 && colsBase>1) ? r : 0;
@@ -1068,8 +1074,8 @@ document.getElementById("saved").addEventListener("click",e=>{
   if(o){
     const s=list[+o.dataset.open]; Object.assign(state, s.st);
     state.obj = [].concat(state.obj || "massif");
-    state.haut = state.haut || "2"; state.fmt = state.fmt || "petit"; state.prof = state.prof || "150"; state.arro = state.arro || "1"; state.vite = state.vite || "rapide"; state.style = state.style || "libre";
-    ["style","vite","arro","prof","haut","fmt","expo","sol","eau","clim","pal","taille"].forEach(k=>chips(k,false)); chips("types",true); chips("obj",true);
+    state.haut = state.haut || "2"; state.hmax = state.hmax || "0"; state.dens = state.dens || "n"; state.fmt = state.fmt || "petit"; state.prof = state.prof || "150"; state.arro = state.arro || "1"; state.vite = state.vite || "rapide"; state.style = state.style || "libre";
+    ["style","vite","arro","prof","haut","hmax","dens","fmt","expo","sol","eau","clim","pal","taille"].forEach(k=>chips(k,false)); chips("types",true); chips("obj",true);
     document.getElementById("obj-hint").textContent = objHint();
     setZone(null, false);
     combo = restore(s.ids);
@@ -1099,7 +1105,8 @@ function applyState(st){
   Object.assign(state, JSON.parse(JSON.stringify(st)));
   state.projet = st.projet || "jardin";
   state.fmt = state.fmt || "petit"; state.prof = state.prof || "150"; state.arro = state.arro || "1"; state.vite = state.vite || "rapide"; state.style = state.style || "libre";
-  ["style","vite","arro","prof","haut","fmt","expo","sol","eau","clim","pal","taille"].forEach(k=>chips(k,false)); chips("types",true); chips("obj",true);
+  state.hmax = st.hmax || "0"; state.dens = st.dens || "n";
+  ["style","vite","arro","prof","haut","hmax","dens","fmt","expo","sol","eau","clim","pal","taille"].forEach(k=>chips(k,false)); chips("types",true); chips("obj",true);
   document.getElementById("obj-hint").textContent = objHint();
 }
 function setZone(id, load=true){
