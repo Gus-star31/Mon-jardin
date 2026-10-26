@@ -159,6 +159,10 @@
       <p class="err" id="esp-nom-err" hidden>Trois mots suffisent, par exemple « Haie du fond ».</p>
       <div class="rename-actions"><button class="btn primary sm" type="submit">Enregistrer</button><button class="link" type="button" id="esp-rename-cancel">Annuler</button></div>
     </form>
+    <section class="ideas" id="esp-ideas" aria-labelledby="ideas-h" hidden>
+      <div class="title-row"><h3 id="ideas-h">Tes <em>idées</em></h3><span class="num" id="ideas-n"></span></div>
+      <div class="ideas-row" id="ideas-row"></div>
+    </section>
     <div class="apercu" id="esp-apercu"></div>
     <div class="seg" role="tablist" aria-label="Ce coin" id="esp-seg">
       <button role="tab" type="button" id="tab-plantes" aria-controls="pane-plantes" aria-selected="true" data-pane="plantes">Plantes</button>
@@ -166,6 +170,11 @@
       <button role="tab" type="button" id="tab-details" aria-controls="pane-details" aria-selected="false" tabindex="-1" data-pane="details">Détails</button>
     </div>
     <div class="pane" role="tabpanel" id="pane-plantes" aria-labelledby="tab-plantes">
+      <div class="idea-actions">
+        <button class="btn secondary sm" type="button" id="idea-another">Une autre idée</button>
+        <button class="pill-btn" type="button" id="idea-keep" aria-pressed="false" hidden><svg aria-hidden="true" width="18" height="18" viewBox="0 0 20 20"><path d="M10 17 C 4 13, 2 10, 2 7 A 4 4 0 0 1 10 5 A 4 4 0 0 1 18 7 C 18 10, 16 13, 10 17 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>Garder cette idée</span></button>
+        <button class="pill-btn" type="button" id="idea-share"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 13 V3 M6 7 L10 3 L14 7 M4 11 V17 H16 V11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Partager</span></button>
+      </div>
       <div id="esp-rule"></div>
       <div class="plants" id="esp-plants" aria-live="polite"></div>
       <div class="budget-sum" id="esp-sum"></div>
@@ -339,7 +348,7 @@
     <div class="scrim" data-close></div>
     <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-t">
       <h2 id="sheet-t"></h2>
-      <p>Ses plantes et son budget partent avec lui. Tu pourras annuler juste après.</p>
+      <p id="sheet-p">Ses plantes et son budget partent avec lui. Tu pourras annuler juste après.</p>
       <div class="sheet-actions">
         <button class="btn ink" type="button" id="sheet-ok">Retirer ce coin</button>
         <button class="btn secondary" type="button" data-close>Annuler</button>

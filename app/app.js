@@ -580,7 +580,7 @@ async function runAnalyse(errId, back){
 }
 function dropRecord(r){
   records = records.filter(x => x !== r);
-  store.del("app-zones-" + r.id); idb.delPrefix("photo-" + r.id + "-"); idb.delPrefix("apercu-" + r.id + "-");
+  store.del("app-zones-" + r.id); store.del(ideasKey(r)); idb.delPrefix("photo-" + r.id + "-"); idb.delPrefix("apercu-" + r.id + "-");
 }
 
 // Renommer le coin ouvert, depuis sa fiche.
@@ -631,8 +631,135 @@ function openEspace(rec, zoneId){
   window.__quiet = true;
   setZone(zoneId);
   window.__quiet = false;
+  ensureIdeas();
   window.scrollTo(0, 0);
 }
+
+// ---------- Idées d'un coin : plusieurs propositions à comparer, garder et choisir ----------
+// Stockées par analyse : {zoneId: {list: [{id, n, pal, style, ids, budget, kept}], active}}. L'idée active est la proposition du coin.
+const PAL_LBL = {all: "Toutes les couleurs", chaud: "Tons chauds", froid: "Bleus et violets", rose: "Roses et pastels", blanc: "Blanc et vert"};
+const IDEAS_MAX = 3;   // idées non gardées conservées en plus des idées gardées
+const ideasKey = rec => "app-ideas-" + rec.id;
+function zoneIdeas(){
+  if(!current || current.demo || !curZone) return null;
+  const all = store.get(ideasKey(current), {});
+  return all[curZone] || (all[curZone] = {list: [], active: null});
+}
+function saveIdeas(z){ const all = store.get(ideasKey(current), {}); all[curZone] = z; store.set(ideasKey(current), all); }
+const snapIdea = n => ({id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5), n, pal: state.pal, style: state.style,
+  ids: combo.map(c => [c.plant.nom, c.role, c.layer || ""]), budget: lastBudget ? {min: lastBudget.min, max: lastBudget.max} : null, kept: false});
+let ideaBusy = false;
+// Compose n idées vraiment différentes : on écarte les plantes déjà proposées et on change de couleurs dominantes.
+function makeIdeas(z, n){
+  const st = JSON.parse(JSON.stringify(state)), keep = combo.slice(), keepBudget = lastBudget;
+  const R = RECIPE[state.style] || {}, used = new Set(z.list.map(i => i.pal));
+  const pals = [...new Set([...(R.pal || []), "chaud", "froid", "rose", "blanc", "all"])];
+  window.__ideas = true; AVOID = new Set();
+  z.list.forEach(i => restore(i.ids).forEach(c => AVOID.add(c.plant.id)));
+  let num = z.list.reduce((m, i) => Math.max(m, i.n), 0);
+  for(let k = 0; k < n; k++){
+    const order = [...pals.filter(p => !used.has(p)), ...pals.filter(p => used.has(p))];
+    let done = null;
+    for(const pal of order){
+      state.pal = pal; generate(false);
+      if(combo.length >= Math.max(2, keep.length - 1)){ done = pal; break; }
+    }
+    if(!done){ state.pal = "all"; generate(false); done = "all"; }
+    used.add(done); z.list.push(snapIdea(++num));
+    combo.forEach(c => AVOID.add(c.plant.id));
+  }
+  AVOID = new Set(); window.__ideas = false;
+  Object.assign(state, st); chips("pal", false); combo = keep; lastBudget = keepBudget;
+}
+function ensureIdeas(){
+  const z = zoneIdeas(); if(!z){ drawIdeas(); return; }
+  if(!z.list.length){
+    z.list.push(snapIdea(1)); z.active = z.list[0].id;
+    makeIdeas(z, 2); saveIdeas(z); renderCurrent();
+  }
+  drawIdeas();
+}
+function loadIdea(id){
+  const z = zoneIdeas(); if(!z) return; const i = z.list.find(x => x.id === id); if(!i) return;
+  z.active = id; saveIdeas(z);
+  state.pal = i.pal; state.style = i.style || state.style; chips("pal", false); chips("style", false);
+  combo = restore(i.ids); shownPlants = new Set(); renderCurrent(); drawIdeas();
+}
+function anotherIdea(){
+  const z = zoneIdeas(); if(!z || ideaBusy) return; ideaBusy = true;
+  makeIdeas(z, 1);
+  // On garde les idées gardées, l'idée choisie et les plus récentes.
+  const loose = z.list.filter(i => !i.kept && i.id !== z.active);
+  while(loose.length >= IDEAS_MAX){ const old = loose.shift(); z.list = z.list.filter(i => i !== old); }
+  const fresh = z.list[z.list.length - 1]; saveIdeas(z); ideaBusy = false;
+  loadIdea(fresh.id);
+  showToast(`Voici l’idée ${fresh.n} : ${PAL_LBL[fresh.pal].toLowerCase()}.`);
+  const card = $("ideas-row").querySelector(`[data-idea="${fresh.id}"]`); if(card) card.scrollIntoView({inline: "center", block: "nearest", behavior: "smooth"});
+}
+// Après une retouche (critère, plante remplacée), l'idée choisie suit.
+function syncIdea(){
+  // Pas pendant la composition en arrière-plan des autres coins (__quiet) : curZone n'est alors pas le coin ouvert.
+  if(window.__ideas || window.__quiet) return;
+  const z = zoneIdeas(); if(!z || !z.active) return;
+  const i = z.list.find(x => x.id === z.active); if(!i) return;
+  Object.assign(i, {pal: state.pal, style: state.style, ids: combo.map(c => [c.plant.nom, c.role, c.layer || ""]), budget: lastBudget ? {min: lastBudget.min, max: lastBudget.max} : i.budget});
+  saveIdeas(z); drawIdeas();
+}
+function drawIdeas(){
+  const z = zoneIdeas(), box = $("esp-ideas");
+  box.hidden = !z || !z.list.length; if(box.hidden){ $("idea-keep").hidden = true; return; }
+  const kept = z.list.filter(i => i.kept).length;
+  $("ideas-n").textContent = kept ? `${kept} gardée${kept > 1 ? "s" : ""}` : "";
+  $("ideas-row").innerHTML = z.list.map(i => {
+    const pics = restore(i.ids).map(c => photoOf(c.plant)).filter(Boolean).slice(0, 3);
+    const on = i.id === z.active;
+    return `<div class="idea${on ? " on" : ""}${i.kept ? " kept" : ""}">
+      <button class="idea-pick" type="button" data-idea="${i.id}" aria-pressed="${on}">
+        <span class="idea-pics">${pics.map(ph => `<img src="${ph.src}" alt="" loading="lazy" referrerpolicy="no-referrer">`).join("")}</span>
+        <b>Idée ${i.n}${on ? ` <em>· choisie</em>` : ""}</b><small>${esc(PAL_LBL[i.pal] || PAL_LBL.all)}</small>
+        <small>${i.ids.length} plantes${i.budget ? ` · ${eur0(i.budget.min)} – ${eur0(i.budget.max)}` : ""}</small>
+      </button>
+      <button class="idea-heart" type="button" data-keep="${i.id}" aria-pressed="${!!i.kept}" aria-label="${i.kept ? "Ne plus garder" : "Garder"} l’idée ${i.n}">${HEART}</button>
+    </div>`;
+  }).join("") + `<button class="idea-more" type="button" id="idea-more"><span aria-hidden="true">+</span>Une autre idée</button>`;
+  const act = z.list.find(i => i.id === z.active);
+  $("idea-keep").hidden = !act; if(act){ $("idea-keep").setAttribute("aria-pressed", !!act.kept); $("idea-keep").querySelector("span").textContent = act.kept ? "Idée gardée" : "Garder cette idée"; }
+}
+const HEART = `<svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20"><path d="M10 17 C 4 13, 2 10, 2 7 A 4 4 0 0 1 10 5 A 4 4 0 0 1 18 7 C 18 10, 16 13, 10 17 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+function toggleKeep(id){
+  const z = zoneIdeas(); if(!z) return; const i = z.list.find(x => x.id === (id || z.active)); if(!i) return;
+  i.kept = !i.kept; saveIdeas(z); drawIdeas();
+  showToast(i.kept ? `Idée ${i.n} gardée : tu pourras y revenir.` : `Idée ${i.n} n’est plus gardée.`);
+}
+$("esp-ideas").addEventListener("click", e => {
+  const k = e.target.closest("[data-keep]"); if(k){ toggleKeep(k.dataset.keep); return; }
+  const p = e.target.closest("[data-idea]"); if(p){ loadIdea(p.dataset.idea); return; }
+  if(e.target.closest("#idea-more")) anotherIdea();
+});
+$("idea-another").addEventListener("click", anotherIdea);
+$("idea-keep").addEventListener("click", () => toggleKeep());
+
+// ---------- Partager une idée par le téléphone (e-mail, message…) ----------
+async function shareIdea(){
+  const zo = curZoneObj(); if(!zo) return;
+  const q = {}; ((lastBudget && lastBudget.rows) || []).forEach(([nom, r, n]) => { q[nom] = [n, r]; });
+  const lines = combo.map(c => { const [n, r] = q[c.plant.nom] || [1, c.role]; return `• ${r === "bulbe" ? n + " bulbes" : n + " ×"} ${c.plant.nom}`; });
+  const text = `Mon idée pour « ${zo.label} »${prenom ? `, par ${prenom}` : ""}\n\n${lines.join("\n")}\n\nBudget estimé : ${lastBudget ? `${eur0(lastBudget.min)} – ${eur0(lastBudget.max)}` : "à calculer"}\n\nComposé avec Coup de pousse : ${location.origin}/app/`;
+  const title = `Coup de pousse · ${zo.label}`;
+  let files = [];
+  try{
+    const ap = await idb.get(apKey(current, zo, sigOf()));
+    if(ap && ap.image){ const b = await (await fetch(ap.image)).blob(); files = [new File([b], "mon-coin.jpg", {type: b.type || "image/jpeg"})]; }
+  }catch(e){}
+  try{
+    if(navigator.share){
+      const data = files.length && navigator.canShare && navigator.canShare({files}) ? {title, text, files} : {title, text};
+      await navigator.share(data); return;
+    }
+  }catch(e){ if(e.name === "AbortError") return; }
+  location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(text)}`;
+}
+$("idea-share").addEventListener("click", shareIdea);
 window.renderZoneDetail = function(z){
   if(!z){ $("esp-title").textContent = "Réglage libre"; $("esp-tags").innerHTML = ""; $("esp-warn").innerHTML = ""; $("esp-apercu").innerHTML = ""; return; }
   const d = z.z || {};
@@ -674,6 +801,7 @@ function renderProposal(){
         <div class="row"><span class="tag ${col}">${esc(role)}</span><span class="qp">${n} × ${euro((a + b) / 2)}</span></div>
         <h4>${esc(p.nom)}</h4><i>${esc(p.latin)}</i>
         <p>${esc(p.note)}</p>
+        ${(() => { const a = atouts(p); return a.plus.length || a.moins.length ? `<ul class="pc">${a.plus.map(x => `<li class="plus">${esc(x)}</li>`).join("")}${a.moins.map(x => `<li class="moins">${esc(x)}</li>`).join("")}</ul>` : ""; })()}
         <p class="plinks"><a href="${photoUrl(p)}" target="_blank" rel="noopener">Photos ↗</a><a href="${shopUrl(p)}" target="_blank" rel="noopener">Où l’acheter ↗</a></p>
         ${c.locked ? "" : `<button class="linkish" type="button" data-rep="${i}">Remplacer cette plante</button>`}
       </div></article>`;
@@ -762,6 +890,9 @@ const APERCU_PAUSE = false;
 let apTok = 0, apTimer = null, apBusy = false;
 const AP_NOTE = "Dessin par IA (Gemini, de Google) : le vrai rendu variera. Ta photo passe par Google le temps du dessin.";
 function curZoneObj(){ return ZONES.find(z => z.id === curZone); }
+// Un aperçu par combinaison : la clé contient une empreinte des plantes.
+function hashStr(s){ let h = 5381; for(let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
+const apKey = (rec, z, sig) => `apercu-${rec.id}-${z.id}-${hashStr(sig)}`;
 function sigOf(){ return combo.map(c => c.plant.nom).sort().join("|") + "#" + state.age + "#" + state.prof; }
 function scheduleApercu(){ clearTimeout(apTimer); apTimer = setTimeout(refreshApercu, 60); }
 function baHTML(before, after, illus){
@@ -792,7 +923,7 @@ async function refreshApercu(){
     actions.innerHTML = ""; note.classList.remove("err"); note.textContent = "";
     return;
   }
-  const cached = await idb.get(`apercu-${rec.id}-${z.id}`);
+  const cached = (await idb.get(apKey(rec, z, sigOf()))) || (await idb.get(`apercu-${rec.id}-${z.id}`));
   if(tk !== apTok || !$("ap-actions")) return;
   const before = ph ? `data:image/jpeg;base64,${ph.data}` : z.thumb;
   note.classList.remove("err");
@@ -848,7 +979,7 @@ async function generateApercu(z, rec, ph){
       throw new Error(msg + (d.detail ? ` Détail technique : ${d.detail}` : ""));
     }
     const image = await shrinkImage(`data:${d.mime || "image/png"};base64,${d.image}`);
-    await idb.set(`apercu-${rec.id}-${z.id}`, {sig, image, date: new Date().toISOString()});
+    await idb.set(apKey(rec, z, sig), {sig, image, date: new Date().toISOString()});
   }catch(e){
     apBusy = false; load.remove();
     await refreshApercu();
@@ -861,7 +992,7 @@ async function generateApercu(z, rec, ph){
 }
 // Après chaque recomposition du moteur : proposition et bouton d'aperçu à jour.
 const _engineRender = window.render;
-window.render = function(){ const out = _engineRender.apply(this, arguments); renderProposal(); scheduleApercu(); return out; };
+window.render = function(){ const out = _engineRender.apply(this, arguments); if(window.__ideas) return out; renderProposal(); scheduleApercu(); syncIdea(); return out; };
 document.addEventListener("input", e => {
   const r = e.target.closest(".ba-range"); if(r) r.closest(".ba").style.setProperty("--pos", r.value + "%");
 });
@@ -940,11 +1071,13 @@ $("j-add").addEventListener("click", () => {
   startSpace();
 });
 // Feuille de confirmation
-let sheetReturn = null;
+let sheetReturn = null, sheetMode = "coin";
 function openSheet(key, from){
   const sp = espaces().find(x => x.key === key); if(!sp) return;
-  pendingRemove = sp; sheetReturn = from;
+  pendingRemove = sp; sheetReturn = from; sheetMode = "coin";
   $("sheet-t").innerHTML = `Retirer <em>${esc(sp.z.nom)}</em> ?`;
+  $("sheet-p").textContent = "Ses plantes et son budget partent avec lui. Tu pourras annuler juste après.";
+  $("sheet-ok").textContent = "Retirer ce coin";
   $("sheet").hidden = false;
   $("sheet-ok").focus();
 }
@@ -967,7 +1100,22 @@ function showToast(msg, undo, done){
   toastTimer = setTimeout(hideToast, 5000);
 }
 window.addEventListener("pagehide", () => { if(toastDone) hideToast(); });
+// Supprimer son compte : tout ce que l'app garde sur ce téléphone est effacé (la connexion est encore une maquette).
+function openDeleteAccount(from){
+  sheetMode = "compte"; sheetReturn = from;
+  $("sheet-t").innerHTML = `Supprimer <em>ton compte</em> ?`;
+  $("sheet-p").textContent = "Ton jardin, tes coins, tes idées et tes photos seront effacés de ce téléphone. On ne pourra pas les retrouver.";
+  $("sheet-ok").textContent = "Supprimer mon compte";
+  $("sheet").hidden = false; $("sheet-ok").focus();
+}
+async function deleteAccount(){
+  Object.keys(localStorage).filter(k => k.startsWith("app-")).forEach(k => localStorage.removeItem(k));
+  await idb.delPrefix("");
+  try{ sessionStorage.setItem("cdp-bye", "1"); }catch(e){}
+  location.reload();
+}
 $("sheet-ok").addEventListener("click", () => {
+  if(sheetMode === "compte"){ deleteAccount(); return; }
   const sp = pendingRemove; if(!sp) return;
   const r = sp.rec, zid = sp.z.id;
   r.removed = [...new Set([...(r.removed || []), zid])];
@@ -980,6 +1128,7 @@ $("sheet-ok").addEventListener("click", () => {
     saveRecords(); renderJardin();
   }, () => {
     const zd = store.get("app-zones-" + r.id, {}); delete zd[zid]; store.set("app-zones-" + r.id, zd);
+    const zi = store.get(ideasKey(r), {}); delete zi[zid]; store.set(ideasKey(r), zi);
     idb.delPrefix(`apercu-${r.id}-${zid}`);
     if(r.analysis.zones.every(z => r.removed.includes(z.id))){ dropRecord(r); saveRecords(); renderJardin(); }
   });
@@ -1092,12 +1241,14 @@ function renderCompte(){
     <section class="acct-sec"><h3>Besoin d’aide ?</h3><p>Pour te guider quand tu ajoutes un coin.</p><button class="link" type="button" data-act="aide">Revoir les cartes d’aide</button></section>
     <section class="acct-sec"><h3>Tes données</h3><p>Ton jardin reste sur ce téléphone. Tes photos ne servent qu’à l’analyse, on ne les garde pas.</p></section>
     <section class="acct-sec"><h3>Les sources</h3><p>Photos, données des plantes et IA.</p><button class="link" type="button" data-act="sources">Voir les sources</button></section>
-    <button class="btn secondary" type="button" data-act="logout">Se déconnecter</button>`;
+    <button class="btn secondary" type="button" data-act="logout">Se déconnecter</button>
+    <button class="link danger" type="button" data-act="delete">Supprimer mon compte</button>`;
 }
 $("a-body").addEventListener("click", e => {
   const b = e.target.closest("[data-act]"); if(!b) return;
   if(b.dataset.act === "reglages"){ gardenEdit = true; renderGarden(); show("s-garden"); }
   if(b.dataset.act === "prenom") openPrenom(true);
+  if(b.dataset.act === "delete"){ openDeleteAccount(b); return; }
   if(b.dataset.act === "sources"){ renderSources(); show("s-sources"); }
   if(b.dataset.act === "aide"){ startCoach(); showToast("Les cartes d’aide reviendront quand tu ajouteras un coin."); }
   if(b.dataset.act === "logout"){ store.set("app-out", true); setLoginMode(false); loginForm(true); show("s-login"); }
@@ -1191,4 +1342,6 @@ function endSplash(){
 }
 const splashTimer = setTimeout(endSplash, still ? 900 : 2900);
 splash.addEventListener("click", () => { clearTimeout(splashTimer); endSplash(); });
+// Après la suppression du compte : un mot doux au retour sur l'accueil.
+try{ if(sessionStorage.getItem("cdp-bye")){ sessionStorage.removeItem("cdp-bye"); setTimeout(() => showToast("Ton compte est supprimé. À bientôt, peut-être !"), still ? 1200 : 3600); } }catch(e){}
 })();

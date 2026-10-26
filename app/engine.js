@@ -316,6 +316,33 @@ function water(p){
 // Vitesse de pousse des plantes ligneuses (hauteur gagnée par an) et taille à la plantation selon le format.
 const FAST = /Ceanothus arboreus|Pyracantha|Atriplex|Elaeagnus|Pittosporum tenuifolium|Ceanothus|Cistus|Escallonia|Photinia|yangii|Lavandula|Campsis|banksiae|Clematis|Lonicera|Abelia|Spiraea|Cornus|Teucrium|Hydrangea paniculata/;
 const SLOW = /Quercus ilex|Phillyrea|Myrtus|Pinus|Thuja|Arbutus|Lagerstroemia|Hydrangea anomala|Sarcococca|Pittosporum tobira|Osmanthus/;
+// Forces et points d'attention de chaque plante, en mots simples : 2 de chaque au plus.
+const CAVEATS = [
+  [/Lavandula/, "Se dégarnit après 8 à 10 ans"], [/Gaura|lindheimeri/, "Vit 3 à 4 ans"], [/Agastache/, "Vit 2 à 3 ans, craint l'hiver humide"],
+  [/Gaillardia/, "Vit 2 à 3 ans"], [/Verbena bonariensis/, "Vit peu, mais se ressème"], [/Centranthus/, "Se ressème partout"],
+  [/Erigeron/, "Se ressème volontiers"], [/Nassella|Stipa/, "Se ressème beaucoup"], [/Salvia sclarea|Digitalis/, "Vit 2 ans, se ressème"],
+  [/Miscanthus|Pennisetum|Calamagrostis/, "À rabattre chaque fin d'hiver"], [/Rosa/, "Taille et soins réguliers"],
+  [/Hydrangea macrophylla/, "Arrosage régulier l'été"], [/Cistus/, "Vit 8 à 10 ans, pas de taille sévère"],
+  [/Euphorbia/, "Sève irritante : gants pour la taille"], [/Pyracantha|Rosa rugosa|Echinops/, "Piquant"],
+  [/Wisteria|Campsis|Lonicera periclymenum|Hedera/, "Vigoureuse : à contenir"], [/Clematis/, "Taille selon la variété"],
+  [/Iris germanica|Hemerocallis|Kniphofia/, "À diviser tous les 4 à 5 ans"], [/Fargesia/, "Prend de la place avec le temps"]
+];
+function atouts(p){
+  const plus = [], moins = [];
+  if(evergreen(p)) plus.push("Belle toute l'année");
+  if(melli(p)) plus.push("Adorée des abeilles");
+  if(water(p) <= 1) plus.push("Presque pas d'arrosage");
+  if(months(p).length >= 4) plus.push("Fleurit longtemps");
+  if(["arbuste","grimpante","arbre"].includes(p.type) && growth(p) === "rapide") plus.push("Pousse vite");
+  if(p.rust <= -18) plus.push("Résiste au grand froid");
+  if(/toxique/i.test(p.note)) moins.push("Toxique : attention enfants et animaux");
+  for(const [re, txt] of CAVEATS) if(re.test(p.latin) && !moins.includes(txt)) moins.push(txt);
+  if(water(p) >= 3) moins.push("Arrosage régulier l'été");
+  if(["arbuste","grimpante","arbre"].includes(p.type) && growth(p) === "lente") moins.push("Pousse lentement");
+  if(!moins.length && p.type === "vivace" && !evergreen(p)) moins.push("Disparaît l'hiver, revient au printemps");
+  if(!moins.length && p.type === "arbuste" && !evergreen(p)) moins.push("Perd ses feuilles l'hiver");
+  return {plus: plus.slice(0, 2), moins: moins.slice(0, 2)};
+}
 function growth(p){ if(p.x && p.x.pousse) return p.x.pousse; return FAST.test(p.latin) ? "rapide" : SLOW.test(p.latin) ? "lente" : "moyenne"; }
 const RATE = {arbre:{rapide:70,moyenne:45,lente:30}, autre:{rapide:60,moyenne:40,lente:25}};
 const START = {petit:{arbre:180,arbuste:40,grimpante:50}, moyen:{arbre:280,arbuste:80,grimpante:100}};
@@ -362,6 +389,16 @@ function styleFigure(k){
   if(!ph) return "";
   return `<figure class="style-ph"><img src="${`/photos/style-${k}.jpg`}" style="object-position:${ph.pos||"50% 50%"}" alt="Exemple de style : ${ph.cap}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"><figcaption>${ph.cap} · <a href="${ph.page}" target="_blank" rel="noopener">Wikimedia Commons ↗</a></figcaption></figure>`;
 }
+// Recette de chaque style : la composition elle-même change (proportions, couleurs), pas seulement le choix des plantes.
+const RECIPE = {
+  med:{d:{structure:1, vivace:-1, bordure:1}, pal:["froid","blanc"], why:"Des boules grises et parfumées, espacées sur une terre claire."},
+  nat:{d:{graminee:2, structure:-1}, pal:["rose","froid","chaud"], why:"Des graminées en vagues, mêlées de grandes fleurs."},
+  anglais:{d:{vivace:2, bordure:1}, pal:["rose","froid","blanc"], why:"Beaucoup de fleurs serrées, en couches douces."},
+  contemporain:{d:{vivace:-2, graminee:0}, pal:["blanc","froid"], why:"Peu d'espèces, répétées en masse, aux formes nettes."},
+  sauvage:{d:{vivace:1}, mel:true, why:"Des fleurs pour les abeilles et un coin laissé libre."}
+};
+// Plantes à écarter si possible (pour qu'une nouvelle idée ne ressemble pas aux précédentes).
+let AVOID = new Set();
 const inStyle = p => !STYLES[state.style].re || (p.x ? (p.x.styles||[]).includes(state.style) : STYLES[state.style].re.test(p.latin));
 const WATER_LBL = {1:"Sans arrosage",2:"Arrosage occasionnel",3:"Arrosage régulier"};
 const isEcran = p => p.type==="arbuste" && p.h>=(+state.haut)*100 && evergreen(p);
@@ -461,7 +498,8 @@ function pick(pool, covered, colors){
   const scored = pool.map(p=>{
     const nm = months(p).filter(m=>!covered.has(m)).length;
     const colorBonus = colors.has(p.fam) ? 0.4 : 0;
-    return {p, s: Math.random()*1.4 + nm*0.18 + colorBonus - (SEEN.get(p.id)||0)*0.9};
+    const R = RECIPE[state.style], recipeBonus = R ? ((R.pal||[]).includes(p.fam) ? 0.6 : 0) + (R.mel && melli(p) ? 0.5 : 0) : 0;
+    return {p, s: Math.random()*1.4 + nm*0.18 + colorBonus + recipeBonus - (SEEN.get(p.id)||0)*0.9};
   }).sort((x,y)=>y.s-x.s);
   remember(scored[0].p);
   return scored[0].p;
@@ -495,7 +533,16 @@ function layout(){
   if(L.includes("mid")){ add("vivace","mid", n); if(T!=="p" || L.length===1) add("graminee","mid",1); }
   if(L.includes("front")) add("bordure","front", T==="g" ? 2 : 1);
   if(L.length && state.types.includes("bulbe")) add("bulbe","bulb",1);
-  return S;
+  const R = RECIPE[state.style];
+  if(R && L.length){
+    const LAYER = {structure:"back", graminee:"mid", vivace:"mid", bordure:"front"};
+    for(const [r,dv] of Object.entries(R.d)){
+      const e = S.find(x=>x.role===r);
+      if(e) e.c = Math.max(r==="vivace" ? 1 : 0, e.c+dv);
+      else if(dv>0){ const l = L.includes(LAYER[r]) ? LAYER[r] : L.includes("mid") ? "mid" : L[0]; S.push({role:r, layer:l, c:dv}); }
+    }
+  }
+  return S.filter(e=>e.c>0);
 }
 function layerName(l){ return {back:"un fond d'arbustes",mid:"une rangée de vivaces",front:"une bordure basse"}[l]||""; }
 
@@ -515,6 +562,7 @@ function generate(keepLocks=true){
   for(const e of S){
     for(let i=0;i<e.c;i++){
       let cand = pool.filter(p=>role(p)===e.role && !used.has(p.id));
+      if(AVOID.size){ const fresh = cand.filter(p=>!AVOID.has(p.id)); if(fresh.length) cand = fresh; }
       if(e.role==="ecran" && state.vite==="rapide"){
         const fast = cand.filter(p=>growth(p)==="rapide");
         const mid = cand.filter(p=>growth(p)==="moyenne");
