@@ -327,6 +327,9 @@ const CAVEATS = [
   [/Wisteria|Campsis|Lonicera periclymenum|Hedera/, "Vigoureuse : à contenir"], [/Clematis/, "Taille selon la variété"],
   [/Iris germanica|Hemerocallis|Kniphofia/, "À diviser tous les 4 à 5 ans"], [/Fargesia/, "Prend de la place avec le temps"]
 ];
+// Effort d'entretien d'une plante (0 = rien) : taille, rabattage, division, renouvellement, arrosage.
+const CARE = /Rosa|Hydrangea macrophylla|Miscanthus|Pennisetum|Calamagrostis|Iris germanica|Hemerocallis|Kniphofia|Clematis|Wisteria|Campsis|Gaura|lindheimeri|Agastache|Gaillardia|Lavandula/;
+function effort(p){ return (CARE.test(p.latin) ? 1 : 0) + (water(p) >= 3 ? 1 : 0) + (water(p) === 2 ? 0.5 : 0); }
 function atouts(p){
   const plus = [], moins = [];
   if(evergreen(p)) plus.push("Belle toute l'année");
@@ -498,8 +501,9 @@ function pick(pool, covered, colors){
   const scored = pool.map(p=>{
     const nm = months(p).filter(m=>!covered.has(m)).length;
     const colorBonus = colors.has(p.fam) ? 0.4 : 0;
+    const care = +state.arro === 1 ? -0.8*effort(p) : +state.arro === 2 ? -0.3*effort(p) : 0;
     const R = RECIPE[state.style], recipeBonus = R ? ((R.pal||[]).includes(p.fam) ? 0.6 : 0) + (R.mel && melli(p) ? 0.5 : 0) : 0;
-    return {p, s: Math.random()*1.4 + nm*0.18 + colorBonus + recipeBonus - (SEEN.get(p.id)||0)*0.9};
+    return {p, s: Math.random()*1.4 + nm*0.18 + colorBonus + recipeBonus + care - (SEEN.get(p.id)||0)*0.9};
   }).sort((x,y)=>y.s-x.s);
   remember(scored[0].p);
   return scored[0].p;

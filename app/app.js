@@ -36,7 +36,7 @@ const EAU_LBL = {d:"Sol sec en été", f:"Sol frais", w:"Sol humide"};
 const SOL_OPT = [["a","Argileux"],["ac","Argilo-calcaire"],["c","Calcaire"],["s","Sableux"],["h","Humifère"]];
 const SOL_LBL = Object.fromEntries(SOL_OPT);
 // L'entretien prévu ; le moteur s'en sert comme besoin en arrosage des plantes.
-const ARRO_OPT = [["1","Très peu","Des plantes qui se débrouillent seules après un an."],["2","Un peu","Un arrosage de temps en temps l’été."],["3","Volontiers","Arroser régulièrement l’été ne te fait pas peur."],["nsp","Je ne sais pas encore","Pas de souci, on part sur des plantes peu exigeantes."]];
+const ARRO_OPT = [["1","Très peu","On plante et on profite : presque pas d’arrosage ni de taille."],["2","Un peu","Un arrosage l’été et une petite taille par an."],["3","Volontiers","Arroser, tailler, couper les fleurs fanées : ça te fait plaisir."],["nsp","Je ne sais pas encore","Pas de souci, on part sur des plantes peu exigeantes."]];
 const ARRO_LBL = {"1":"entretien minimal","2":"un peu d’entretien","3":"entretien régulier","nsp":"entretien à préciser"};
 // « Je ne sais pas encore » : le moteur part sur des plantes sans arrosage.
 const arroOf = a => a === "nsp" ? "1" : (a || "1");
@@ -77,7 +77,7 @@ function extrasFor(rec, z){
 }
 const extraUrl = x => "https://www.google.com/search?tbm=shop&q=" + encodeURIComponent(x.nom);
 const STYLE_OPT = [["libre","Sans style imposé"],["med","Méditerranéen sec"],["nat","Naturaliste"],["anglais","Jardin anglais"],["sauvage","Refuge biodiversité"]];
-const CLIM_LBL = {med:"Méditerranéen", so:"Sud-Ouest", oc:"Océanique", co:"Continental", mo:"Montagnard"};
+const CLIM_LBL = {med:"Méditerranéen", so:"Tempéré chaud", oc:"Océanique", co:"Continental", mo:"Montagnard"};
 const ROLE_SHORT = {arbre:["Arbre","sauge"], ecran:["Haie","sauge"], grimpante:["Grimpante","sauge"], structure:["Fond","sauge"], graminee:["Graminée","peche"], vivace:["Milieu","peche"], bordure:["Devant","ciel"], bulbe:["Bulbe","ciel"]};
 const MOIS_COURT = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
 
@@ -167,7 +167,8 @@ const COACH = {
 };
 let coach = store.get("app-coach", null);
 function startCoach(){ coach = {seen: []}; store.set("app-coach", coach); }
-function drawCoach(id){
+// Cartes d'aide du premier coin retirées (jugées envahissantes) : on garde le code, sans jamais les afficher.
+function drawCoach(id){ $("coach-slot") && ($("coach-slot").innerHTML = ""); document.querySelectorAll(".coach").forEach(c => c.remove()); return;
   document.querySelectorAll(".coach").forEach(c => c.remove());
   const c = COACH[id];
   if(!coach || !c || coach.seen.includes(id)) return;
@@ -220,7 +221,7 @@ function setLoginMode(isSignup){
   signup = isSignup;
   $("login-eyebrow").textContent = signup ? "Bienvenue" : "Bon retour";
   $("login-title").innerHTML = signup ? "Ton jardin,<br><em>planté</em> sur mesure." : `Te <em>revoilà</em>${prenom ? ", " + esc(prenom) : ""} !`;
-  $("login-lede").textContent = signup ? "Une photo de ton jardin, et on choisit ensemble des plantes qui s’y sentiront bien." : "Ton jardin t’attend, il a sûrement poussé.";
+  $("login-lede").textContent = signup ? "Une photo, et on choisit tes plantes." : "Ton jardin a sûrement poussé.";
   $("login-google-lbl").textContent = signup ? "Créer mon compte avec Google" : "Continuer avec Google";
   $("login-email-go").textContent = signup ? "Commencer avec mon e-mail" : "Se connecter avec un e-mail";
   $("login-submit").textContent = signup ? "Créer mon compte" : "Se connecter";
@@ -471,9 +472,22 @@ $("env-next").addEventListener("click", () => runAnalyse("env-err", "s-envies"))
 let gdraft = {};
 // « Je ne sais pas » (nsp) est une réponse à part entière : climat déduit à l'analyse, sol estimé, entretien minimal.
 const NSP = ["nsp", "Je ne sais pas"];
-const CLIM_OPT = [...Object.entries(CLIM_LBL), NSP];
-const drawClim = appChips("a-clim", CLIM_OPT, "single", () => gdraft.clim, v => { gdraft.clim = v; gardenReady(); });
-const drawSol = appChips("a-sol", [...SOL_OPT, NSP], "single", () => gdraft.sol || "nsp", v => { gdraft.sol = v === "nsp" ? null : v; });
+// Quatre grands types de climat ; « Je ne sais pas » ouvre le code postal, qui donne le climat exact (dont le tempéré chaud du Sud-Ouest).
+const CLIM_OPT = [["med", "Méditerranéen"], ["oc", "Océanique"], ["co", "Continental"], ["mo", "Montagnard"], NSP];
+const climChip = () => gdraft.climNsp ? "nsp" : gdraft.clim;
+const drawClim = appChips("a-clim", CLIM_OPT, "single", climChip, v => {
+  gdraft.climNsp = v === "nsp";
+  if(v === "nsp"){ if(!gdraft.cp) gdraft.clim = "nsp"; }
+  else { gdraft.clim = v; gdraft.cp = null; gdraft.dept = null; $("cp").value = ""; cpHelp(); }
+  cpShow(); gardenReady();
+});
+const drawSol = appChips("a-sol", [...SOL_OPT, NSP], "single", () => gdraft.solNsp ? "nsp" : gdraft.sol, v => { gdraft.solNsp = v === "nsp"; gdraft.sol = v === "nsp" ? null : v; cpShow(); });
+// Le code postal n'apparaît que si l'on ne connaît pas son climat ou sa terre.
+function cpShow(){
+  const clim = gdraft.climNsp, sol = gdraft.solNsp && gdraft.projet !== "balcon";
+  $("cp-block").hidden = !clim && !sol;
+  $("cp-why").textContent = clim ? "Ton code postal suffit : on en déduit ton climat, et on estimera ta terre d’après ta région et ta photo." : "Ton code postal nous aide à estimer ta terre, avec ta photo.";
+}
 function drawArro(){
   $("a-arro").innerHTML = ARRO_OPT.map(([v, t, d]) => `<label class="choice"><input type="radio" name="a-arro" value="${v}" ${gdraft.arrosage === v ? "checked" : ""}><span><b>${esc(t)}</b><small>${esc(d)}</small></span></label>`).join("");
 }
@@ -491,27 +505,30 @@ function cpHelp(){
 }
 $("cp").addEventListener("input", () => {
   const d = cpHelp();
-  if(d){ Object.assign(gdraft, {clim: d[2], dept: d[0], label: d[1], cp: $("cp").value.trim()}); drawClim(); gardenReady(); }
+  if(d){ Object.assign(gdraft, {dept: d[0], label: d[1], cp: $("cp").value.trim()}); if(gdraft.climNsp || !gdraft.clim || gdraft.clim === "nsp") gdraft.clim = d[2]; gardenReady(); }
 });
 function drawProjet(){
   $("a-projet").innerHTML = PROJET_OPT.map(([v, t, d]) => `<label class="choice"><input type="radio" name="a-projet" value="${v}" ${gdraft.projet === v ? "checked" : ""}><span><b>${esc(t)}</b><small>${esc(d)}</small></span></label>`).join("");
 }
-$("a-projet").addEventListener("change", e => { gdraft.projet = e.target.value; $("garden-sol").hidden = gdraft.projet === "balcon"; gardenReady(); });
+$("a-projet").addEventListener("change", e => { gdraft.projet = e.target.value; $("garden-sol").hidden = gdraft.projet === "balcon"; cpShow(); gardenReady(); });
 // Bouton inactif tant que le projet et le climat (les deux choix obligatoires) ne sont pas donnés.
 const gardenReady = () => { $("garden-next").disabled = !gdraft.clim || !gdraft.projet; };
 function renderGarden(){
   gdraft = Object.assign({sol: null, arrosage: "1"}, garden || {});
   if(garden && !garden.clim) gdraft.clim = "nsp";
+  // Un climat venu du code postal (ou absent) s'affiche comme « Je ne sais pas » + le code postal.
+  gdraft.climNsp = !!garden && (!garden.clim || !!garden.cp || !CLIM_OPT.some(o => o[0] === garden.clim));
+  gdraft.solNsp = !!garden && !garden.sol;
   $("cp").value = gdraft.cp || "";
   gdraft.projet = projet;
-  cpHelp(); drawProjet(); drawClim(); drawSol(); drawArro();
+  cpHelp(); drawProjet(); drawClim(); drawSol(); drawArro(); cpShow();
   $("garden-sol").hidden = gdraft.projet === "balcon";
   $("step-garden").hidden = !gardenEdit;
   $("pg-garden").hidden = gardenEdit; if(!gardenEdit) setProgress("pg-garden", "Ton jardin");
   const home = gardenEdit || espaces().length ? ["s-jardin", "Ton jardin"] : ["s-login", "Accueil"];
   $("garden-back").dataset.go = home[0];
   $("garden-back").querySelector("span").textContent = home[1];
-  $("garden-lede").textContent = gardenEdit ? "Ces réglages servent aux prochains coins que tu ajouteras." : `${avec("Bienvenue, ", ". ")}Quelques questions, une seule fois, et on saura quoi planter chez toi.`;
+  $("garden-lede").textContent = gardenEdit ? "Pour tes prochains coins." : "Quelques questions, une seule fois.";
   $("garden-privacy").hidden = true;
   $("garden-next").textContent = gardenEdit ? "Enregistrer" : "Continuer";
   $("gar-err").hidden = true;
@@ -538,7 +555,7 @@ async function runAnalyse(errId, back){
   if(!photo){ show("s-photo"); return; }
   $("an-img").hidden = !photo.thumb; if(photo.thumb) $("an-img").src = photo.thumb;
   show("s-analyse");
-  $("an-wait").textContent = `On regarde ta photo avec attention${avec(", ")}. Une demi-minute, le temps de souffler, et c’est prêt.`;
+  $("an-wait").textContent = "Quelques secondes, le temps de souffler.";
   let k = 0; drawSteps(0);
   const tick = setInterval(() => { k = Math.min(k + 1, STEPS.length - 1); drawSteps(k); }, 7000);
   const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 90000);
@@ -636,7 +653,7 @@ function openEspace(rec, zoneId){
 }
 
 // ---------- Idées d'un coin : plusieurs propositions à comparer, garder et choisir ----------
-// Stockées par analyse : {zoneId: {list: [{id, n, pal, style, ids, budget, kept}], active}}. L'idée active est la proposition du coin.
+// Stockées par analyse : {zoneId: {list: [{id, n, pal, style, ids, budget}], active}}, trois au plus. L’idée active est la proposition du coin.
 const PAL_LBL = {all: "Toutes les couleurs", chaud: "Tons chauds", froid: "Bleus et violets", rose: "Roses et pastels", blanc: "Blanc et vert"};
 const IDEAS_MAX = 3;   // idées non gardées conservées en plus des idées gardées
 const ideasKey = rec => "app-ideas-" + rec.id;
@@ -688,12 +705,11 @@ function loadIdea(id){
 function anotherIdea(){
   const z = zoneIdeas(); if(!z || ideaBusy) return; ideaBusy = true;
   makeIdeas(z, 1);
-  // On garde les idées gardées, l'idée choisie et les plus récentes.
-  const loose = z.list.filter(i => !i.kept && i.id !== z.active);
-  while(loose.length >= IDEAS_MAX){ const old = loose.shift(); z.list = z.list.filter(i => i !== old); }
+  // Trois propositions au plus : la nouvelle remplace la plus ancienne qui n'est pas choisie.
+  while(z.list.length > IDEAS_MAX){ const old = z.list.find(i => i.id !== z.active && i !== z.list[z.list.length - 1]); if(!old) break; z.list = z.list.filter(i => i !== old); }
   const fresh = z.list[z.list.length - 1]; saveIdeas(z); ideaBusy = false;
   loadIdea(fresh.id);
-  showToast(`Voici l’idée ${fresh.n} : ${PAL_LBL[fresh.pal].toLowerCase()}.`);
+  showToast(`Voici la proposition ${fresh.n} : ${PAL_LBL[fresh.pal].toLowerCase()}.`);
   const card = $("ideas-row").querySelector(`[data-idea="${fresh.id}"]`); if(card) card.scrollIntoView({inline: "center", block: "nearest", behavior: "smooth"});
 }
 // Après une retouche (critère, plante remplacée), l'idée choisie suit.
@@ -705,46 +721,39 @@ function syncIdea(){
   Object.assign(i, {pal: state.pal, style: state.style, ids: combo.map(c => [c.plant.nom, c.role, c.layer || ""]), budget: lastBudget ? {min: lastBudget.min, max: lastBudget.max} : i.budget});
   saveIdeas(z); drawIdeas();
 }
+// Le nombre d'éléments se lit dans le titre : « Tes coins (3) ».
+const countOf = n => n ? ` <span class="count">(${n})</span>` : "";
 function drawIdeas(){
   const z = zoneIdeas(), box = $("esp-ideas");
-  box.hidden = !z || !z.list.length; if(box.hidden){ $("idea-keep").hidden = true; return; }
-  const kept = z.list.filter(i => i.kept).length;
-  $("ideas-n").textContent = kept ? `${kept} gardée${kept > 1 ? "s" : ""}` : "";
+  box.hidden = !z || !z.list.length; if(box.hidden) return;
+  $("ideas-h").innerHTML = "Tes <em>propositions</em>" + countOf(z.list.length);
+  const short = b => b ? `${Math.round(b.min / 5) * 5}–${eur0(b.max)}` : "";
   $("ideas-row").innerHTML = z.list.map(i => {
     const pics = restore(i.ids).map(c => photoOf(c.plant)).filter(Boolean).slice(0, 3);
     const on = i.id === z.active;
-    return `<div class="idea${on ? " on" : ""}${i.kept ? " kept" : ""}">
-      <button class="idea-pick" type="button" data-idea="${i.id}" aria-pressed="${on}">
+    return `<div class="idea${on ? " on" : z.active ? " off" : ""}">
+      <button class="idea-pick" type="button" data-idea="${i.id}" aria-pressed="${on}" aria-label="Proposition ${i.n}, ${esc(PAL_LBL[i.pal] || PAL_LBL.all)}${on ? ", choisie" : ""}">
         <span class="idea-pics">${pics.map(ph => `<img src="${ph.src}" alt="" loading="lazy" referrerpolicy="no-referrer">`).join("")}</span>
-        <b>Idée ${i.n}${on ? ` <em>· choisie</em>` : ""}</b><small>${esc(PAL_LBL[i.pal] || PAL_LBL.all)}</small>
-        <small>${i.ids.length} plantes${i.budget ? ` · ${eur0(i.budget.min)} – ${eur0(i.budget.max)}` : ""}</small>
+        <b>Proposition ${i.n}</b><small>${esc(PAL_LBL[i.pal] || PAL_LBL.all)}</small>
+        <small>${i.ids.length} plantes${i.budget ? ` · ${short(i.budget)}` : ""}</small>
+        <span class="idea-check" aria-hidden="true">${CHECK}</span>
       </button>
-      <button class="idea-heart" type="button" data-keep="${i.id}" aria-pressed="${!!i.kept}" aria-label="${i.kept ? "Ne plus garder" : "Garder"} l’idée ${i.n}">${HEART}</button>
     </div>`;
-  }).join("") + `<button class="idea-more" type="button" id="idea-more"><span aria-hidden="true">+</span>Une autre idée</button>`;
-  const act = z.list.find(i => i.id === z.active);
-  $("idea-keep").hidden = !act; if(act){ $("idea-keep").setAttribute("aria-pressed", !!act.kept); $("idea-keep").querySelector("span").textContent = act.kept ? "Idée gardée" : "Garder cette idée"; }
+  }).join("") + `<button class="idea-more" type="button" id="idea-more"><span aria-hidden="true">+</span>Une autre proposition</button>`;
 }
-const HEART = `<svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20"><path d="M10 17 C 4 13, 2 10, 2 7 A 4 4 0 0 1 10 5 A 4 4 0 0 1 18 7 C 18 10, 16 13, 10 17 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
-function toggleKeep(id){
-  const z = zoneIdeas(); if(!z) return; const i = z.list.find(x => x.id === (id || z.active)); if(!i) return;
-  i.kept = !i.kept; saveIdeas(z); drawIdeas();
-  showToast(i.kept ? `Idée ${i.n} gardée : tu pourras y revenir.` : `Idée ${i.n} n’est plus gardée.`);
-}
+const CHECK = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 8.3 L6.6 11.2 L12.5 4.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 $("esp-ideas").addEventListener("click", e => {
-  const k = e.target.closest("[data-keep]"); if(k){ toggleKeep(k.dataset.keep); return; }
   const p = e.target.closest("[data-idea]"); if(p){ loadIdea(p.dataset.idea); return; }
   if(e.target.closest("#idea-more")) anotherIdea();
 });
-$("idea-another").addEventListener("click", anotherIdea);
-$("idea-keep").addEventListener("click", () => toggleKeep());
+
 
 // ---------- Partager une idée par le téléphone (e-mail, message…) ----------
 async function shareIdea(){
   const zo = curZoneObj(); if(!zo) return;
   const q = {}; ((lastBudget && lastBudget.rows) || []).forEach(([nom, r, n]) => { q[nom] = [n, r]; });
   const lines = combo.map(c => { const [n, r] = q[c.plant.nom] || [1, c.role]; return `• ${r === "bulbe" ? n + " bulbes" : n + " ×"} ${c.plant.nom}`; });
-  const text = `Mon idée pour « ${zo.label} »${prenom ? `, par ${prenom}` : ""}\n\n${lines.join("\n")}\n\nBudget estimé : ${lastBudget ? `${eur0(lastBudget.min)} – ${eur0(lastBudget.max)}` : "à calculer"}\n\nComposé avec Coup de pousse : ${location.origin}/app/`;
+  const text = `Ma proposition pour « ${zo.label} »${prenom ? `, par ${prenom}` : ""}\n\n${lines.join("\n")}\n\nBudget estimé : ${lastBudget ? `${eur0(lastBudget.min)} – ${eur0(lastBudget.max)}` : "à calculer"}\n\nComposé avec Coup de pousse : ${location.origin}/app/`;
   const title = `Coup de pousse · ${zo.label}`;
   let files = [];
   try{
@@ -767,7 +776,7 @@ window.renderZoneDetail = function(z){
   const tags = [EXPO[d.exposition] ? [EXPO[d.exposition][0], EXPO[d.exposition][1]] : null, d.orientation ? [`Tournée vers le ${DIR_LONG[d.orientation]}`, ""] : null, EAU_LBL[d.humidite] ? [EAU_LBL[d.humidite], ""] : null,
     d.profondeur ? [`${(+d.profondeur / 100).toLocaleString("fr-FR")} m de profondeur`, ""] : null, d.hauteur_masquer ? [`Écran de ${d.hauteur_masquer} m${d.hauteur_masquer === "4" ? " et plus" : ""}`, "sauge"] : null].filter(Boolean);
   $("esp-tags").innerHTML = tags.map(([t, c]) => `<span class="tag ${c}">${esc(t)}</span>`).join("");
-  const warn = [d.attention && d.attention.length ? `<b>Avant de planter :</b> ${esc(d.attention.join(" "))}` : "", d.a_garder && d.a_garder.length ? `<b>À garder :</b> ${esc(d.a_garder.join(", "))}.` : ""].filter(Boolean).join(" ");
+  const warn = [d.attention && d.attention.length ? `<b>À faire d’abord :</b> ${esc(d.attention.join(" "))}` : "", d.a_garder && d.a_garder.length ? `<b>À garder :</b> ${esc(d.a_garder.join(", "))}.` : ""].filter(Boolean).join(" ");
   $("esp-warn").innerHTML = warn ? `<p class="warnl">${warn}</p>` : "";
   const before = z.thumb ? `<img class="ba-before" id="ba-before" src="${z.thumb}" alt="Ta photo de ce coin">` : `<div class="ba-empty">Pas de photo pour ce coin</div>`;
   $("esp-apercu").innerHTML = `<div class="ba" id="ba">${before}</div><div class="ap-row"><p class="ap-note" id="ap-note"></p><div class="ap-actions" id="ap-actions"></div></div>`;
@@ -783,7 +792,7 @@ function renderProposal(){
   const items = combo.map((c, i) => [c, i]).sort((a, b) => order.indexOf(lay(a[0])) - order.indexOf(lay(b[0])));
   const qty = {}; ((lastBudget && lastBudget.rows) || []).forEach(([nom, r, n]) => { qty[nom] = n; });
   const pieds = Object.values(qty).reduce((s, n) => s + n, 0);
-  $("esp-rule").innerHTML = combo.length ? `<div class="rule"><span>La proposition</span><i>↕</i><span>${combo.length} plante${combo.length > 1 ? "s" : ""} · ${pieds} plant${pieds > 1 ? "s" : ""}</span></div>` : "";
+  $("esp-rule").innerHTML = combo.length ? `<div class="rule"><span>Les plantes (${combo.length})</span><i>↕</i><span>${pieds} plant${pieds > 1 ? "s" : ""}</span></div>` : "";
   if(!combo.length){
     $("esp-plants").innerHTML = `<p class="empty">Ce coin est exigeant : aucune plante ne coche toutes les cases. Assouplis un critère, on trouvera.</p>`;
     $("esp-budget").hidden = true; $("esp-sum").innerHTML = ""; return;
@@ -802,8 +811,7 @@ function renderProposal(){
         <h4>${esc(p.nom)}</h4><i>${esc(p.latin)}</i>
         <p>${esc(p.note)}</p>
         ${(() => { const a = atouts(p); return a.plus.length || a.moins.length ? `<ul class="pc">${a.plus.map(x => `<li class="plus">${esc(x)}</li>`).join("")}${a.moins.map(x => `<li class="moins">${esc(x)}</li>`).join("")}</ul>` : ""; })()}
-        <p class="plinks"><a href="${photoUrl(p)}" target="_blank" rel="noopener">Photos ↗</a><a href="${shopUrl(p)}" target="_blank" rel="noopener">Où l’acheter ↗</a></p>
-        ${c.locked ? "" : `<button class="linkish" type="button" data-rep="${i}">Remplacer cette plante</button>`}
+        <p class="plinks"><a href="${shopUrl(p)}" target="_blank" rel="noopener">Acheter ↗</a>${c.locked ? "" : `<button class="linkish" type="button" data-rep="${i}">Remplacer</button>`}</p>
       </div></article>`;
   }).join("");
   $("esp-glossary").innerHTML = glossary(combo.map(c => c.plant.type));
@@ -825,7 +833,7 @@ function renderExtras(){
   if(!list.length) return;
   const min = list.reduce((s, x) => s + x.prix[0], 0), max = list.reduce((s, x) => s + x.prix[1], 0);
   $("esp-extras").innerHTML = `<h3>En plus <em>des plantes</em></h3><p class="hint">Environ ${eur0(min)} – ${eur0(max)}, à ajouter au budget des plantes.</p>
-    <ul>${list.map(x => `<li><b>${esc(x.nom)}</b><span>${esc(x.ou)}</span><span class="x-row"><span class="x-prix">${x.prix[1] ? `${eur0(x.prix[0])} – ${eur0(x.prix[1])}` : "Gratuit"}</span>${x.prix[1] ? `<a href="${extraUrl(x)}" target="_blank" rel="noopener">Où l’acheter ↗</a>` : ""}</span></li>`).join("")}</ul>`;
+    <ul>${list.map(x => `<li><b>${esc(x.nom)}</b><span>${esc(x.ou)}</span><span class="x-row"><span class="x-prix">${x.prix[1] ? `${eur0(x.prix[0])} – ${eur0(x.prix[1])}` : "Gratuit"}</span>${x.prix[1] ? `<a href="${extraUrl(x)}" target="_blank" rel="noopener">Acheter ↗</a>` : ""}</span></li>`).join("")}</ul>`;
 }
 // Les mots du jardin : une explication courte des types de plantes présents dans la proposition.
 const GLOSSAIRE = [["vivace", "Vivace", "une plante qui repousse chaque année, sans la replanter"], ["graminee", "Graminée", "une touffe de fines feuilles, comme une herbe haute, qui bouge au vent"], ["couvre-sol", "Couvre-sol", "une plante basse qui s’étale et limite les mauvaises herbes"], ["bulbe", "Bulbe", "un oignon à planter en automne, qui fleurit au printemps"], ["grimpante", "Grimpante", "une plante qui monte le long d’un mur ou d’une clôture"]];
@@ -936,7 +944,7 @@ async function refreshApercu(){
     note.textContent = stale ? "Les plantes ont changé depuis cette image." : AP_NOTE;
   } else if(ph){
     if($("ba-before")) $("ba-before").src = before;
-    const key = `${rec.id}-${z.id}`;
+    const key = `${rec.id}-${z.id}-${hashStr(sigOf())}`;
     if(!autoTried.has(key)){ autoTried.add(key); actions.innerHTML = ""; note.textContent = AP_NOTE; generateApercu(z, rec, ph); return; }
     actions.innerHTML = `<button class="linkish" type="button" id="ap-go">Créer l’image</button>`;
     note.textContent = AP_NOTE;
@@ -1012,64 +1020,66 @@ function spaceStats(rec, z){
   const b = zd ? zoneBudget(zd.budget) : null;
   return {plants: zd ? zd.ids.length : null, budget: b};
 }
+// Le jardinier du splash, en petit, qui arrose une jeune pousse : une seule scène, discrète, au trait crème.
+const JARDINIER = (() => {
+  const C = "#F3EFE6", p = (d, w = 2.2, fill = "none") => `<path d="${d}" fill="${fill}" stroke="${C}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  return `<svg class="gardener" aria-hidden="true" width="200" height="230" viewBox="8 36 200 230" fill="none" xmlns="http://www.w3.org/2000/svg">`
+    + p("M14 262 C 70 256, 150 258, 204 263")
+    // la pousse
+    + p("M34 261 V 236") + p("M34 244 C 24 244, 20 236, 22 230 C 30 230, 34 236, 34 244", 1.8, "#D5E3CF") + p("M34 240 C 42 238, 47 230, 45 224 C 37 225, 34 232, 34 240", 1.8, "#D5E3CF")
+    // les gouttes
+    + p("M24 156 v6 M30 172 v6 M22 186 v6 M31 200 v6 M25 214 v5", 1.8)
+    // le jardinier
+    + `<circle cx="146" cy="70" r="24" stroke="${C}" stroke-width="2.2"/>` + p("M124 64 C 124 40, 160 34, 170 58 C 158 52, 140 54, 132 70", 2.2, C) + p("M138 72 q 4 3 8 0 M152 72 q 4 3 8 0 M142 84 q 6 5 12 0", 1.8)
+    + p("M116 116 C 120 100, 172 100, 176 116 L 184 186 L 108 186 Z") + [124, 139, 154, 169].map(x => `<circle cx="${x}" cy="160" r="2" fill="${C}"/>`).join("")
+    + p("M124 186 L 120 250 M168 186 L 172 250 M110 252 h22 M160 252 h24")
+    + p("M116 118 C 106 126, 96 130, 86 130") + p("M176 118 C 186 138, 190 156, 192 172")
+    // l'arrosoir, penché vers la pousse
+    + `<g transform="translate(84 130) rotate(-20)">${p("M-40 -8 H-10 V14 H-40 Z")}${p("M-10 -4 C 0 -4, 2 10, -10 10", 2)}${p("M-40 4 L-62 -6", 2.2)}${p("M-62 -6 l-6 -5 l1 11 z", 1.8, C)}</g>`
+    + `</svg>`;
+})();
+// Home : un tableau de bord du jardin (saison, conseil du mois, chiffres, coins en mosaïque), distinct de la page d'un coin.
+const SAISON = m => [12, 1, 2].includes(m) ? "hiver" : m <= 5 ? "printemps" : m <= 8 ? "été" : "automne";
+const SAISON_PHRASE = {1:"Le jardin dort, profites-en.", 2:"Les premières pousses arrivent.", 3:"C’est le bon mois pour planter.", 4:"C’est le bon mois pour planter.", 5:"Garde un œil sur l’arrosage.", 6:"Profite des fleurs.", 7:"Arrose malin, le soir.", 8:"Arrose malin, le soir.", 9:"On prépare les plantations d’automne.", 10:"C’est le bon mois pour planter.", 11:"C’est le bon mois pour planter.", 12:"Le jardin dort, profites-en."};
 function renderJardin(){
-  const list = espaces(), src = demo ? DEMO : null;
-  const g = demo ? {label: "Toulouse", clim: "so", sol: "ac", arrosage: "1"} : (garden || {label: "Ton jardin", clim: null, sol: null, arrosage: "1"});
-  const last = list.length ? list[list.length - 1].rec.date : null;
-  const dt = last ? new Date(last) : null;
-  const lbls = [g.label, `${list.length} coin${list.length > 1 ? "s" : ""}`];
-  if(dt){ const d = `Mis à jour le ${dt.getDate()} ${MOIS_COURT[dt.getMonth()]}`; if((lbls.join("") + d).length <= 34) lbls.push(d); }
-  $("j-rule").innerHTML = `<div class="rule">${lbls.map(l => `<span>${esc(l)}</span>`).join("<i>↕</i>")}</div>`;
-  $("j-demo").hidden = !demo;
-  $("edit-toggle").hidden = demo || !list.length;
+  const list = espaces(), m = new Date().getMonth() + 1;
   if(!list.length) editing = false;
   $("s-jardin").classList.toggle("editing", editing);
-  $("edit-toggle").textContent = editing ? "Terminer" : "Modifier";
-  $("edit-toggle").classList.toggle("done", editing);
-  $("j-hello").textContent = avec("Bonjour "); $("j-hello").hidden = !prenom || editing || demo;
-  // Carte du jardin : la photo du dernier coin (ou d'une de ses plantes) ; un jardin vide montre un exemple à remplacer.
-  const heroPic = [...list].reverse().map(spacePhoto).find(Boolean);
-  $("j-ill").innerHTML = heroPic ? `<img src="${heroPic}" alt="Ton jardin" referrerpolicy="no-referrer">`
-    : `<img src="/photos/style-nat.jpg" alt=""><div class="ill-veil"><button class="btn cream sm" type="button" id="j-add-photo">Ajoute ta propre photo</button></div>`;
-  $("j-title").innerHTML = editing ? "Modifier <em>tes coins</em>" : "Ton <em>jardin</em>";
-  $("j-edit-lede").hidden = !editing;
-  let nPlants = 0, bmin = 0, bmax = 0, nb = 0;
-  const cards = list.map((e, i) => {
+  $("j-demo").hidden = !demo;
+  $("j-season").textContent = `En ${MOIS_NOM[m - 1]} · ${SAISON(m)}`;
+  $("j-title").innerHTML = prenom && !demo ? `Bonjour <em>${esc(prenom)}</em>` : "Bonjour";
+  $("j-lede").textContent = list.length ? SAISON_PHRASE[m] : "Une photo suffit pour commencer.";
+  // Le conseil du mois : le premier qui demande d'agir (« En fleur » ne vient qu'à défaut).
+  const P = list.length ? gardenPlants().map(o => o.p) : [];
+  const tips = P.length ? monthTips(P, m) : [], tip = tips.find(x => !/^En fleur/.test(x[0])) || tips[0];
+  $("j-tip").innerHTML = (tip ? `<article class="tip"><span class="eyebrow">Le conseil du mois</span><h3>${esc(tip[0])}</h3><p>${esc(tip[1])}</p></article>` : "")
+    + (tip && !editing ? `<button class="link" type="button" data-tab-go="s-conseils">Tous tes conseils →</button>` : "");
+  if(!$("j-gardener").innerHTML) $("j-gardener").innerHTML = JARDINIER;
+  const tiles = list.map(e => {
     const s = spaceStats(e.rec, e.z), z = e.z;
-    if(s.plants) nPlants += s.plants;
-    if(s.budget){ bmin += s.budget.min; bmax += s.budget.max; nb++; }
-    const ex = EXPO[z.exposition];
-    const tags = [ex ? `<span class="tag ${ex[1]}">${ex[0]}</span>` : "", z.hauteur_masquer ? `<span class="tag sauge">Écran ${z.hauteur_masquer} m</span>` : z.profondeur ? `<span class="tag">${(+z.profondeur / 100).toLocaleString("fr-FR")} m</span>` : ""].join("");
     const pic = spacePhoto(e);
-    const vig = `<img src="${pic || "/photos/style-nat.jpg"}" alt="" loading="lazy" referrerpolicy="no-referrer">`;
-    const meta = s.plants ? `${s.plants} plante${s.plants > 1 ? "s" : ""}${s.budget ? ` · ${eur0(s.budget.min)} – ${eur0(s.budget.max)}` : ""}` : "Proposition à découvrir";
-    return `<div class="space-wrap"><button class="space" type="button" data-open="${e.key}" ${editing ? 'tabindex="-1" aria-disabled="true"' : ""}>
-        <span class="st"><span class="num">Coin ${i + 1}</span><h4>${esc(z.nom)}</h4><span class="tags">${tags}</span><span class="meta">${meta}</span></span>
-        <span class="vig">${vig}</span>
+    return `<div class="space-wrap"><button class="tile" type="button" data-open="${e.key}" ${editing ? 'tabindex="-1" aria-disabled="true"' : ""}>
+        <span class="tile-pic"><img src="${pic || "/photos/style-nat.jpg"}" alt="" loading="lazy" referrerpolicy="no-referrer"></span>
+        <b>${esc(z.nom)}</b><small>${s.plants ? `${s.plants} plante${s.plants > 1 ? "s" : ""}` : "À découvrir"}</small>
       </button>${editing ? `<button class="rm" type="button" data-rm="${e.key}" aria-label="Retirer le coin ${esc(z.nom)}">×</button>` : ""}</div>`;
   });
-  $("j-spaces").innerHTML = cards.length ? cards.join("") : `<p class="empty">Ton jardin n’attend plus que toi. Une photo suffit pour commencer.</p>`;
-  $("j-sec").hidden = !list.length;
-  $("j-count").textContent = list.length;
-  $("j-facts").innerHTML = `<div><small>Coins</small><b>${list.length}</b></div><div><small>Plantes</small><b>${nPlants || "–"}</b></div><div><small>Budget</small><b>${nb ? `${eur0(bmin)} – ${eur0(bmax)}`.replace(/\s?€/, "") : "–"}</b></div>`;
-  const cond = [!demo && projet ? PROJET_LBL[projet].charAt(0).toUpperCase() + PROJET_LBL[projet].slice(1) : null, g.clim ? CLIM_LBL[g.clim] : null, g.sol ? `terre ${SOL_LBL[g.sol].toLowerCase()}` : "terre estimée à l’analyse", ARRO_LBL[g.arrosage || "1"]].filter(Boolean).join(" · ");
-  $("j-cond").innerHTML = `<span>${esc(cond)}</span>` + (demo ? "" : `<button class="edit-link" type="button" id="garden-edit">Modifier</button>`);
-  $("j-add").querySelector("b").textContent = demo ? "Créer ton jardin" : "Ajouter un coin";
-  $("j-add").querySelector("small").textContent = "Une photo du coin à planter suffit";
+  const add = editing ? "" : `<button class="tile-add" type="button" id="j-add"><span aria-hidden="true">+</span><b>${demo ? "Créer ton jardin" : "Ajouter un coin"}</b><small>Une photo suffit</small></button>`;
+  $("j-spaces").innerHTML = tiles.join("") + add;
+  $("j-sec-t").innerHTML = (editing ? "Modifier <em>tes coins</em>" : "Tes <em>coins</em>") + countOf(list.length);
+  $("j-edit-lede").hidden = !editing;
+  $("edit-toggle").hidden = demo || !list.length;
+  $("edit-toggle").textContent = editing ? "Terminer" : "Modifier";
+  $("edit-toggle").classList.toggle("done", editing);
 }
-$("j-ill").addEventListener("click", e => { if(e.target.closest("#j-add-photo")){ if(demo){ demo = false; show("s-login"); } else startSpace(); } });
+$("j-tip").addEventListener("click", e => { const g = e.target.closest("[data-tab-go]"); if(g){ renderConseils(); show(g.dataset.tabGo); } });
 $("j-spaces").addEventListener("click", e => {
+  if(e.target.closest("#j-add")){ if(demo){ demo = false; show("s-login"); } else startSpace(); return; }
   const rm = e.target.closest("[data-rm]");
   if(rm){ openSheet(rm.dataset.rm, rm); return; }
   const o = e.target.closest("[data-open]");
   if(o && !editing){ const sp = espaces().find(x => x.key === o.dataset.open); if(sp) openEspace(sp.rec, sp.z.id); }
 });
-$("j-cond").addEventListener("click", e => { if(e.target.closest("#garden-edit")){ gardenEdit = true; renderGarden(); show("s-garden"); } });
 $("edit-toggle").addEventListener("click", () => { editing = !editing; renderJardin(); const f = editing ? $("j-spaces").querySelector(".rm") : $("edit-toggle"); if(f) f.focus(); });
-$("j-add").addEventListener("click", () => {
-  if(demo){ demo = false; show("s-login"); return; }
-  startSpace();
-});
 // Feuille de confirmation
 let sheetReturn = null, sheetMode = "coin";
 function openSheet(key, from){
@@ -1180,12 +1190,8 @@ function gardenPlants(){
 
 // 10 · Mes conseils : ce qu'il y a à faire ce mois-ci, d'après les plantes du jardin.
 const MOIS_NOM = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
-function renderConseils(){
-  const m = new Date().getMonth() + 1;
-  $("c-mois").textContent = `En ${MOIS_NOM[m - 1]}`;
-  $("c-lede").textContent = `${avec("", ", voici ce")}${prenom ? "" : "Ce"} qui fera du bien à tes plantes ce mois-ci.`;
-  const P = gardenPlants().map(o => o.p);
-  if(!P.length){ $("c-list").innerHTML = `<p class="empty">Ajoute un premier coin : chaque mois, on te soufflera quoi faire.</p>`; return; }
+// Conseils du mois, d'après les plantes du jardin : une seule source pour Mes conseils et la home.
+function monthTips(P, m){
   const names = ps => ps.slice(0, 4).map(p => p.nom).join(", ") + (ps.length > 4 ? "…" : "");
   const of = t => P.filter(p => p.type === t), tips = [];
   const flo = P.filter(p => months(p).includes(m));
@@ -1199,7 +1205,15 @@ function renderConseils(){
   if([6, 7, 8].includes(m)) tips.push(["Arrose malin", "Plantes de moins d’un an : une fois par semaine, généreusement, le soir."]);
   if([4, 5, 10, 11].includes(m)) tips.push(["Couvre la terre", "Copeaux ou feuilles mortes au pied des plantes : la terre reste fraîche, les mauvaises herbes reculent."]);
   if([12, 1].includes(m)) tips.push(["Le jardin se repose", "Laisse les tiges sèches : elles abritent les insectes et sont jolies sous le givre. Repose-toi aussi."]);
-  $("c-list").innerHTML = tips.map(([t, d]) => `<article class="tip"><h3>${esc(t)}</h3><p>${esc(d)}</p></article>`).join("");
+  return tips;
+}
+function renderConseils(){
+  const m = new Date().getMonth() + 1;
+  $("c-mois").textContent = `En ${MOIS_NOM[m - 1]}`;
+  $("c-lede").textContent = "Ce qui fera du bien à tes plantes.";
+  const P = gardenPlants().map(o => o.p);
+  if(!P.length){ $("c-list").innerHTML = `<p class="empty">Ajoute un premier coin : chaque mois, on te soufflera quoi faire.</p>`; return; }
+  $("c-list").innerHTML = monthTips(P, m).map(([t, d]) => `<article class="tip"><h3>${esc(t)}</h3><p>${esc(d)}</p></article>`).join("");
 }
 
 // 11 · Ma liste : les plantes de tous les coins, à cocher une fois achetées.
@@ -1212,13 +1226,14 @@ function gardenExtras(){
 function renderListe(focusNom){
   const items = gardenPlants().sort((a, b) => a.p.nom.localeCompare(b.p.nom, "fr"));
   const objets = gardenExtras();
+  $("l-title").innerHTML = "Ta <em>liste</em>" + countOf(items.length);
   if(!items.length){ $("l-body").innerHTML = `<p class="empty">Ta liste se remplira avec les plantes de tes coins. Commence par ajouter un coin.</p>`; return; }
   let min = 0, max = 0; items.forEach(o => { const [a, b] = unitPrice(o.p, o.role); min += a * o.q; max += b * o.q; });
   objets.forEach(o => { min += o.x.prix[0] * o.q; max += o.x.prix[1] * o.q; });
   const left = items.filter(o => !achats.has(o.p.nom)).length + objets.filter(o => !achats.has(o.x.nom)).length;
   $("l-body").innerHTML = `<div class="budget-card"><div class="bh"><div><span class="eyebrow">Budget estimé</span><strong>${eur0(min)} – ${eur0(max)}</strong></div><span class="l-left">${left ? `${left} à acheter` : "Tout est acheté, bravo !"}</span></div></div>
-    <ul class="shop">${items.map(o => `<li><label class="shop-item"><input type="checkbox" data-nom="${esc(o.p.nom)}" ${achats.has(o.p.nom) ? "checked" : ""}><span><b>${esc(o.p.nom)}</b><small>${o.role === "bulbe" ? o.q + " bulbes" : o.q + (o.q > 1 ? " plants" : " plant")} · ${esc(o.coins.join(", "))}</small></span></label><a href="${shopUrl(o.p)}" target="_blank" rel="noopener">Où l’acheter ↗</a></li>`).join("")}</ul>
-    ${objets.length ? `<h3 class="shop-h">Objets</h3><ul class="shop">${objets.map(o => `<li><label class="shop-item"><input type="checkbox" data-nom="${esc(o.x.nom)}" ${achats.has(o.x.nom) ? "checked" : ""}><span><b>${esc(o.x.nom)}</b><small>${o.q > 1 ? o.q + " exemplaires" : "1 exemplaire"}</small></span></label>${o.x.prix[1] ? `<a href="${extraUrl(o.x)}" target="_blank" rel="noopener">Où l’acheter ↗</a>` : ""}</li>`).join("")}</ul>` : ""}
+    <ul class="shop">${items.map(o => `<li><label class="shop-item"><input type="checkbox" data-nom="${esc(o.p.nom)}" ${achats.has(o.p.nom) ? "checked" : ""}><span><b>${esc(o.p.nom)}</b><small>${o.role === "bulbe" ? o.q + " bulbes" : o.q + (o.q > 1 ? " plants" : " plant")} · ${esc(o.coins.join(", "))}</small></span></label><a href="${shopUrl(o.p)}" target="_blank" rel="noopener">Acheter ↗</a></li>`).join("")}</ul>
+    ${objets.length ? `<h3 class="shop-h">Objets${countOf(objets.length)}</h3><ul class="shop">${objets.map(o => `<li><label class="shop-item"><input type="checkbox" data-nom="${esc(o.x.nom)}" ${achats.has(o.x.nom) ? "checked" : ""}><span><b>${esc(o.x.nom)}</b><small>${o.q > 1 ? o.q + " exemplaires" : "1 exemplaire"}</small></span></label>${o.x.prix[1] ? `<a href="${extraUrl(o.x)}" target="_blank" rel="noopener">Acheter ↗</a>` : ""}</li>`).join("")}</ul>` : ""}
     <p class="hint">Prix indicatifs${objets.length ? " pour de jeunes plantes et des objets courants" : " pour de jeunes plantes en petits pots"}, hors terre, paillage et livraison.</p>`;
   if(focusNom){ const c = [...$("l-body").querySelectorAll("input[data-nom]")].find(i => i.dataset.nom === focusNom); if(c) c.focus(); }
 }
@@ -1238,7 +1253,6 @@ function renderCompte(){
     <section class="acct-sec"><div class="title-row"><h3>Ton prénom</h3><button class="edit-link" type="button" data-act="prenom">${prenom ? "Modifier" : "Ajouter"}</button></div><p>${prenom ? esc(prenom) : "Pas encore renseigné"}</p></section>
     <section class="acct-sec"><h3>Connexion</h3><p>${known === "google" ? "Connexion avec Google" : esc(known || "")}</p></section>
     <section class="acct-sec"><div class="title-row"><h3>Ton jardin</h3><button class="edit-link" type="button" data-act="reglages">Modifier</button></div><p>${esc(cond)}</p></section>
-    <section class="acct-sec"><h3>Besoin d’aide ?</h3><p>Pour te guider quand tu ajoutes un coin.</p><button class="link" type="button" data-act="aide">Revoir les cartes d’aide</button></section>
     <section class="acct-sec"><h3>Tes données</h3><p>Ton jardin reste sur ce téléphone. Tes photos ne servent qu’à l’analyse, on ne les garde pas.</p></section>
     <section class="acct-sec"><h3>Les sources</h3><p>Photos, données des plantes et IA.</p><button class="link" type="button" data-act="sources">Voir les sources</button></section>
     <button class="btn secondary" type="button" data-act="logout">Se déconnecter</button>
