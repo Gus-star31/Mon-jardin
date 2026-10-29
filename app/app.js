@@ -1055,7 +1055,6 @@ const JARDINIER = (() => {
     + `<g transform="translate(84 130) rotate(-20)">${p("M-40 -8 H-10 V14 H-40 Z")}${p("M-10 -4 C 0 -4, 2 10, -10 10", 2)}${p("M-40 4 L-62 -6", 2.2)}${p("M-62 -6 l-6 -5 l1 11 z", 1.8, C)}</g>`
     + `</svg>`;
 })();
-const SCAN_ICON = `<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8.5 15.5c0-4 2.5-6.5 7-7 0 4.5-2.5 7-7 7ZM8.5 15.5l4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 // Home : un tableau de bord du jardin (saison, conseil du mois, chiffres, coins en mosaïque), distinct de la page d'un coin.
 const SAISON = m => [12, 1, 2].includes(m) ? "hiver" : m <= 5 ? "printemps" : m <= 8 ? "été" : "automne";
 const SAISON_PHRASE = {1:"Le jardin dort, profites-en.", 2:"Les premières pousses arrivent.", 3:"C’est le bon mois pour planter.", 4:"C’est le bon mois pour planter.", 5:"Garde un œil sur l’arrosage.", 6:"Profite des fleurs.", 7:"Arrose malin, le soir.", 8:"Arrose malin, le soir.", 9:"On prépare les plantations d’automne.", 10:"C’est le bon mois pour planter.", 11:"C’est le bon mois pour planter.", 12:"Le jardin dort, profites-en."};
@@ -1071,7 +1070,8 @@ function renderJardin(){
   const P = list.length ? gardenPlants().map(o => o.p) : [];
   const tips = P.length ? monthTips(P, m) : [], tip = tips.find(x => !/^En fleur/.test(x[0])) || tips[0];
   $("j-tip").innerHTML = (tip ? `<article class="tip"><span class="eyebrow">Le conseil du mois</span><h3>${esc(tip[0])}</h3><p>${esc(tip[1])}</p></article>` : "")
-    + (editing || !list.length ? "" : `${P.length ? `<button class="link" type="button" data-tab-go="s-conseils">Tous tes conseils →</button>` : ""}<button class="home-scan" type="button" id="j-scan">${SCAN_ICON}Scanner une plante</button>`);
+    + (P.length && !editing ? `<button class="link" type="button" data-tab-go="s-conseils">Tous tes conseils →</button>` : "");
+  $("j-scan").hidden = editing || demo || !list.length;
   if(!$("j-gardener").innerHTML) $("j-gardener").innerHTML = JARDINIER;
   const tiles = list.map(e => {
     const s = spaceStats(e.rec, e.z), z = e.z;
@@ -1089,8 +1089,8 @@ function renderJardin(){
   $("edit-toggle").textContent = editing ? "Terminer" : "Modifier";
   $("edit-toggle").classList.toggle("done", editing);
 }
+$("j-scan").addEventListener("click", () => openScan());
 $("j-tip").addEventListener("click", e => {
-  if(e.target.closest("#j-scan")) return openScan();
   const g = e.target.closest("[data-tab-go]"); if(g){ renderConseils(); show(g.dataset.tabGo); }
 });
 $("j-spaces").addEventListener("click", e => {
