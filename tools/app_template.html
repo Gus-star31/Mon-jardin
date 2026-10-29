@@ -106,16 +106,17 @@
     <div class="topbar"><button class="back" type="button" data-go="s-envies" id="garden-back"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15 9 H3 M8 4 L3 9 L8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Tes envies</span></button></div>
     <header class="head"><ol class="steps" id="pg-garden" aria-label="Étapes"></ol><p class="eyebrow" id="step-garden" hidden>Réglages du jardin</p><h2>Ton <em>jardin</em></h2><p class="lede" id="garden-lede">Quelques questions, une seule fois.</p></header>
     <fieldset id="garden-projet"><legend>Que veux-tu aménager ?</legend><div class="choices" id="a-projet"></div></fieldset>
-    <fieldset><legend>Ton climat</legend><p class="hint">Pour que tes plantes passent l’hiver et l’été sans souci.</p><div class="chips" id="a-clim"></div></fieldset>
-    <fieldset id="garden-sol"><legend>Ta terre</legend><p class="hint">Petit test : une poignée de terre humide colle (argileuse), file entre les doigts (sableuse), est claire et caillouteuse (calcaire), ou noire et souple (humifère).</p><div class="chips" id="a-sol"></div></fieldset>
-    <div class="cp-help" id="cp-block" hidden>
-      <p id="cp-why"></p>
+    <fieldset id="garden-clim"><legend>Ton climat</legend><p class="hint">Remplis ton code postal pour nous aider à détecter ton climat.</p>
       <div class="field">
         <label for="cp">Code postal</label>
         <div class="input"><input id="cp" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="5" placeholder="31000" aria-describedby="cp-help"><span id="cp-help" aria-live="polite"></span></div>
       </div>
-    </div>
+      <button class="linkish" type="button" id="clim-manual" aria-expanded="false">Je préfère choisir mon climat</button>
+      <div class="chips" id="a-clim" hidden></div>
+    </fieldset>
+    <fieldset id="garden-sol"><legend>Ta terre</legend><p class="hint">Petit test : une poignée de terre humide colle (argileuse), file entre les doigts (sableuse), est claire et caillouteuse (calcaire), ou noire et souple (humifère).</p><div class="chips" id="a-sol"></div></fieldset>
     <fieldset><legend>Combien de temps veux-tu donner à ton jardin ?</legend><div class="choices" id="a-arro"></div></fieldset>
+    <fieldset><legend>Des enfants ou des animaux au jardin ?</legend><p class="hint">Si oui, on écarte les plantes toxiques.</p><div class="chips" id="a-enfants"></div></fieldset>
     <p class="err" id="gar-err" hidden></p>
     <div class="nav-block">
       <p class="privacy" id="garden-privacy"><svg class="illu" aria-hidden="true" width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="13" width="14" height="11" rx="2" fill="#F3D35B" stroke-width="1.5"/><path d="M10 13 v-3 a4 4 0 0 1 8 0 v3" stroke-width="1.5"/><circle cx="14" cy="18" r="1.4" fill="#1C1C1A" stroke="none"/></g></svg><span>Ta photo ne sert qu’à l’analyse par Claude, l’IA d’Anthropic. On ne la garde pas.</span></p>
@@ -185,6 +186,7 @@
       <section class="extras" id="esp-extras" hidden></section>
       <div id="esp-glossary"></div>
       <p class="foot">Petit conseil : avant d’acheter, va voir sur place le soleil et la place. Tailles et prix sont estimés.</p>
+      <div class="conseiller-slot" data-avis="Un conseiller en jardinerie connaît les plantes de ta région. Montre-lui cette proposition."></div>
     </div>
     <div class="crit-bar"><button class="btn primary" type="button" id="crit-toggle" aria-expanded="false" aria-controls="crit-grid">Affiner mes critères</button></div>
     <div class="crit crit-sheet" id="crit-grid" role="dialog" aria-modal="true" aria-labelledby="crit-h" hidden>
@@ -229,6 +231,7 @@
     <div class="topbar"><span class="brand"><svg class="illu" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13 C 3 6, 8 2, 14 2 C 14 9, 10 13, 3 13 Z" fill="#D5E3CF" stroke="#1C1C1A" stroke-width="1.4" stroke-linejoin="round"/><path d="M3 13 L 10 6" stroke="#1C1C1A" stroke-width="1.4" stroke-linecap="round"/></g></svg>Coup de <em>pousse</em></span></div>
     <header class="head"><h1 id="l-title">Ta <em>liste</em></h1><p class="lede">À cocher à la jardinerie.</p></header>
     <div id="l-body"></div>
+    <div class="conseiller-slot" data-avis="Montre ta liste à un conseiller : il t’aidera à choisir de beaux plants."></div>
   </section>
 
   <!-- 12 · Mon compte -->
@@ -271,6 +274,7 @@
     <div id="res-body"></div>
     <div class="scan-actions" id="res-actions"></div>
     <section class="scan-sec" id="res-pick" hidden><h3>Dans quel coin ?</h3><div class="sid-alt" id="res-coins"></div></section>
+    <div class="conseiller-slot" data-avis="Un conseiller en jardinerie connaît les plantes de ta région : demande-lui son avis."></div>
   </section>
 
   <!-- 13 · Les sources -->

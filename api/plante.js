@@ -12,7 +12,7 @@ const str = { type: "string" };
 const int = { type: "integer" };
 const CANDIDAT = {
   type: "object", additionalProperties: false,
-  required: ["nom", "latin", "confiance", "type", "expo", "sol", "eau", "rusticite", "chaleur", "hauteur", "largeur", "arrosage", "floraison_debut", "floraison_fin", "famille", "envahissante", "envahissante_pourquoi", "note"],
+  required: ["nom", "latin", "confiance", "type", "expo", "sol", "eau", "rusticite", "chaleur", "hauteur", "largeur", "arrosage", "floraison_debut", "floraison_fin", "famille", "toxique", "envahissante", "envahissante_pourquoi", "note"],
   properties: {
     nom: str, latin: str,
     confiance: { enum: ["haute", "moyenne", "faible"] },
@@ -25,6 +25,7 @@ const CANDIDAT = {
     arrosage: int,
     floraison_debut: int, floraison_fin: int,
     famille: { enum: FAMS },
+    toxique: { type: "boolean" },
     envahissante: { type: "boolean" }, envahissante_pourquoi: str,
     note: str
   }
@@ -51,6 +52,7 @@ Règles :
 - "arrosage" une fois installée : 1 presque jamais, 2 pendant les canicules, 3 régulièrement l'été.
 - "floraison_debut" et "floraison_fin" : mois de 1 à 12, ou 0 et 0 si sa floraison n'a pas d'intérêt.
 - "famille" : couleur dominante. "chaud" (jaune, orange, rouge), "froid" (bleu, violet), "rose", "blanc", ou "vert" si on la plante pour son feuillage.
+- "toxique" : true si une partie de la plante (feuilles, baies, graines, bulbes, sève) est toxique si on la mange, pour un enfant ou un animal de compagnie.
 - "envahissante" : true seulement si elle est reconnue comme espèce exotique envahissante en France, ou si elle drageonne ou se ressème au point d'envahir le jardin (bambou traçant, renouée du Japon, herbe de la pampa, buddleia, ailante, sumac). "envahissante_pourquoi" : une phrase courte qui dit pourquoi, sinon une chaîne vide.
 - "note" : une phrase de 90 caractères au plus sur ce qui la rend belle ou utile ("Fleurit de la fin de l'été aux gelées, même à l'ombre.").
 - Écris en français, en tutoyant, avec des mots simples. N'invente pas : si tu hésites, baisse la confiance.`;
@@ -72,6 +74,7 @@ function sanitize(r) {
       arrosage: clamp(c.arrosage, 1, 3, 2),
       bloom: d && f ? [d, f] : null,
       fam: FAMS.includes(c.famille) ? c.famille : "vert",
+      toxique: c.toxique === true,
       envahissante: c.envahissante === true, envahissante_pourquoi: clean(c.envahissante_pourquoi, 200),
       note: clean(c.note, 140)
     };

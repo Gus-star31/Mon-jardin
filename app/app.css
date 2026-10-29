@@ -684,3 +684,13 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 .link.center{display:block;margin:20px auto 0}
 .tile-scan svg{margin-bottom:4px}
 .scan-actions label.link{display:inline-flex;align-items:center}
+/* Besoin d’un avis ? */
+.conseiller{position:static;display:flex;flex-direction:row;gap:14px;align-items:flex-start;margin-top:24px;padding:16px;border-radius:14px;background:var(--carte);border:1px solid var(--filet)}
+.conseiller .illu{flex:none}
+.conseiller h3{margin:0;font-size:22px;line-height:26px}
+.conseiller p{margin:4px 0 0;font-size:15px;line-height:21px;color:var(--encre-douce)}
+.conseiller .link{display:inline-flex;align-items:center;min-height:36px;padding:4px 0 0;font-size:15px}
+/* Ton climat : code postal d’abord, pastilles en option */
+#garden-clim .field{margin-top:4px}
+#clim-manual{align-self:flex-start;margin-top:8px}
+#a-clim{margin-top:8px}

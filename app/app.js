@@ -468,26 +468,23 @@ function renderEnvies(){
 }
 $("env-next").addEventListener("click", () => runAnalyse("env-err", "s-envies"));
 
-// 01 · Ton jardin : projet, climat, sol, entretien, donnés une fois. Le code postal aide à trouver le climat.
+// 01 · Ton jardin : projet, climat, sol, entretien et sécurité, donnés une fois. Le code postal donne le climat ; on peut aussi le choisir.
 let gdraft = {};
-// « Je ne sais pas » (nsp) est une réponse à part entière : climat déduit à l'analyse, sol estimé, entretien minimal.
+// « Je ne sais pas » (nsp) reste possible pour la terre : on l'estime d'après la région et la photo.
 const NSP = ["nsp", "Je ne sais pas"];
-// Quatre grands types de climat ; « Je ne sais pas » ouvre le code postal, qui donne le climat exact (dont le tempéré chaud du Sud-Ouest).
-const CLIM_OPT = [["med", "Méditerranéen"], ["oc", "Océanique"], ["co", "Continental"], ["mo", "Montagnard"], NSP];
-const climChip = () => gdraft.climNsp ? "nsp" : gdraft.clim;
-const drawClim = appChips("a-clim", CLIM_OPT, "single", climChip, v => {
-  gdraft.climNsp = v === "nsp";
-  if(v === "nsp"){ if(!gdraft.cp) gdraft.clim = "nsp"; }
-  else { gdraft.clim = v; gdraft.cp = null; gdraft.dept = null; $("cp").value = ""; cpHelp(); }
-  cpShow(); gardenReady();
+const CLIM_OPT = [["med", "Méditerranéen"], ["so", "Tempéré chaud"], ["oc", "Océanique"], ["co", "Continental"], ["mo", "Montagnard"]];
+// Un climat venu du code postal ne coche aucune pastille : les pastilles servent à le choisir soi-même.
+const drawClim = appChips("a-clim", CLIM_OPT, "single", () => gdraft.cp ? null : gdraft.clim, v => {
+  Object.assign(gdraft, {clim: v, cp: null, dept: null}); $("cp").value = ""; cpHelp(); gardenReady();
 });
-const drawSol = appChips("a-sol", [...SOL_OPT, NSP], "single", () => gdraft.solNsp ? "nsp" : gdraft.sol, v => { gdraft.solNsp = v === "nsp"; gdraft.sol = v === "nsp" ? null : v; cpShow(); });
-// Le code postal n'apparaît que si l'on ne connaît pas son climat ou sa terre.
-function cpShow(){
-  const clim = gdraft.climNsp, sol = gdraft.solNsp && gdraft.projet !== "balcon";
-  $("cp-block").hidden = !clim && !sol;
-  $("cp-why").textContent = clim ? "Ton code postal suffit : on en déduit ton climat, et on estimera ta terre d’après ta région et ta photo." : "Ton code postal nous aide à estimer ta terre, avec ta photo.";
+const drawSol = appChips("a-sol", [...SOL_OPT, NSP], "single", () => gdraft.solNsp ? "nsp" : gdraft.sol, v => { gdraft.solNsp = v === "nsp"; gdraft.sol = v === "nsp" ? null : v; });
+const drawEnfants = appChips("a-enfants", [["oui", "Oui"], ["non", "Non"]], "single", () => gdraft.enfants, v => { gdraft.enfants = v; });
+function climManual(open){
+  gdraft.climManual = open; $("a-clim").hidden = !open;
+  $("clim-manual").setAttribute("aria-expanded", open);
+  $("clim-manual").textContent = open ? "Je préfère mon code postal" : "Je préfère choisir mon climat";
 }
+$("clim-manual").addEventListener("click", () => climManual(!gdraft.climManual));
 function drawArro(){
   $("a-arro").innerHTML = ARRO_OPT.map(([v, t, d]) => `<label class="choice"><input type="radio" name="a-arro" value="${v}" ${gdraft.arrosage === v ? "checked" : ""}><span><b>${esc(t)}</b><small>${esc(d)}</small></span></label>`).join("");
 }
@@ -500,28 +497,29 @@ function deptFromCp(cp){
 }
 function cpHelp(){
   const cp = $("cp").value.trim(), d = deptFromCp(cp);
-  $("cp-help").textContent = d ? `${d[1]} · ${CLIM_LBL[d[2]]}` : cp.length === 5 ? "Code inconnu" : "";
+  $("cp-help").textContent = d ? `${d[1]} · climat ${CLIM_LBL[d[2]].toLowerCase()}` : cp.length === 5 ? "Code inconnu" : "";
   return d;
 }
 $("cp").addEventListener("input", () => {
   const d = cpHelp();
-  if(d){ Object.assign(gdraft, {dept: d[0], label: d[1], cp: $("cp").value.trim()}); if(gdraft.climNsp || !gdraft.clim || gdraft.clim === "nsp") gdraft.clim = d[2]; gardenReady(); }
+  if(d){ Object.assign(gdraft, {dept: d[0], label: d[1], cp: $("cp").value.trim(), clim: d[2]}); drawClim(); }
+  else if(gdraft.cp) Object.assign(gdraft, {dept: null, cp: null, clim: null});
+  gardenReady();
 });
 function drawProjet(){
   $("a-projet").innerHTML = PROJET_OPT.map(([v, t, d]) => `<label class="choice"><input type="radio" name="a-projet" value="${v}" ${gdraft.projet === v ? "checked" : ""}><span><b>${esc(t)}</b><small>${esc(d)}</small></span></label>`).join("");
 }
-$("a-projet").addEventListener("change", e => { gdraft.projet = e.target.value; $("garden-sol").hidden = gdraft.projet === "balcon"; cpShow(); gardenReady(); });
+$("a-projet").addEventListener("change", e => { gdraft.projet = e.target.value; $("garden-sol").hidden = gdraft.projet === "balcon"; gardenReady(); });
 // Bouton inactif tant que le projet et le climat (les deux choix obligatoires) ne sont pas donnés.
 const gardenReady = () => { $("garden-next").disabled = !gdraft.clim || !gdraft.projet; };
 function renderGarden(){
-  gdraft = Object.assign({sol: null, arrosage: "1"}, garden || {});
-  if(garden && !garden.clim) gdraft.clim = "nsp";
-  // Un climat venu du code postal (ou absent) s'affiche comme « Je ne sais pas » + le code postal.
-  gdraft.climNsp = !!garden && (!garden.clim || !!garden.cp || !CLIM_OPT.some(o => o[0] === garden.clim));
+  gdraft = Object.assign({sol: null, arrosage: "1", enfants: null}, garden || {});
+  if(!CLIM_LBL[gdraft.clim]) gdraft.clim = null;
   gdraft.solNsp = !!garden && !garden.sol;
   $("cp").value = gdraft.cp || "";
   gdraft.projet = projet;
-  cpHelp(); drawProjet(); drawClim(); drawSol(); drawArro(); cpShow();
+  cpHelp(); drawProjet(); drawClim(); drawSol(); drawArro(); drawEnfants();
+  climManual(!!gdraft.clim && !gdraft.cp);
   $("garden-sol").hidden = gdraft.projet === "balcon";
   $("step-garden").hidden = !gardenEdit;
   $("pg-garden").hidden = gardenEdit; if(!gardenEdit) setProgress("pg-garden", "Ton jardin");
@@ -536,15 +534,34 @@ function renderGarden(){
 }
 $("garden-next").addEventListener("click", () => {
   if(!gdraft.clim || !gdraft.projet) return;
-  // Le département n'est gardé que s'il correspond au climat retenu.
-  const clim = gdraft.clim === "nsp" ? null : gdraft.clim;
-  const d = gdraft.dept && clim ? DEPTS.find(x => x[0] === gdraft.dept && x[2] === clim) : null;
-  garden = {label: d ? d[1] : clim ? `Climat ${CLIM_LBL[clim].toLowerCase()}` : "Ton jardin", dept: d ? d[0] : null, cp: d ? gdraft.cp : null, clim, sol: gdraft.sol || null, arrosage: gdraft.arrosage || "1"};
+  const clim = gdraft.clim, d = gdraft.cp && gdraft.dept ? DEPTS.find(x => x[0] === gdraft.dept && x[2] === clim) : null;
+  const wasSafe = securite();
+  garden = {label: d ? d[1] : `Climat ${CLIM_LBL[clim].toLowerCase()}`, dept: d ? d[0] : null, cp: d ? gdraft.cp : null, clim, sol: gdraft.sol || null, arrosage: gdraft.arrosage || "1", enfants: gdraft.enfants || "non"};
   store.set("app-garden", garden);
   projet = gdraft.projet; store.set("app-projet", projet);
-  if(gardenEdit){ renderJardin(); show("s-jardin"); return; }
+  syncSecurite();
+  drawConseiller();
+  const dropped = securite() && !wasSafe ? dropToxic() : 0;
+  if(gardenEdit){ renderJardin(); show("s-jardin"); if(dropped) showToast("C’est noté : on a retiré les plantes toxiques de tes coins."); return; }
   renderPhoto(); show("s-photo");
 });
+// Enfants ou animaux au jardin : le moteur écarte les plantes toxiques (window.securite, lu par compatible()).
+const securite = () => !!(garden && garden.enfants === "oui");
+function syncSecurite(){ window.securite = securite(); }
+syncSecurite();
+// Les coins déjà composés qui contiennent une plante toxique sont recomposés à la prochaine ouverture.
+function dropToxic(){
+  let n = 0;
+  for(const rec of records){
+    const zd = store.get("app-zones-" + rec.id, {}), ideas = store.get(ideasKey(rec), {});
+    for(const zid of Object.keys(zd)){
+      if(!(zd[zid].ids || []).some(([nom]) => { const p = PLANTS.find(x => x.nom === nom); return p && toxic(p); })) continue;
+      delete zd[zid]; delete ideas[zid]; n++;
+    }
+    store.set("app-zones-" + rec.id, zd); store.set(ideasKey(rec), ideas);
+  }
+  return n;
+}
 
 // ---------- 04 · Analyse ----------
 const STEPS = ["On lit ta photo","On repère les coins à planter","On mesure leur soleil","On estime la place","On choisit tes plantes"];
@@ -1344,7 +1361,7 @@ const PERSO_KEY = "app-perso";
 const latinKey = s => norm(s).replace(/\b(x|var|subsp)\b/g, " ").split(" ").filter(Boolean).slice(0, 2).join(" ");
 function plantFrom(c){
   return {id: -1, nom: c.nom, latin: c.latin, type: c.type, expo: c.expo, sol: c.sol, eau: c.eau, rust: c.rust, heat: c.heat, h: c.h, l: c.l, bloom: c.bloom,
-    fam: c.fam, hex: SWATCH[c.fam] || "#6E8F4E", note: c.note, x: {eau: c.arrosage, perso: true}, temp: true};
+    fam: c.fam, hex: SWATCH[c.fam] || "#6E8F4E", note: c.note, x: {eau: c.arrosage, perso: true, tox: !!c.toxique}, temp: true};
 }
 function addPerso(c){
   const p = plantFrom(c); p.id = PLANTS.length; delete p.temp;
@@ -1365,23 +1382,24 @@ function coinFit(p, e){
   if(!eauOk) return {e, st, lvl: 1, why: st.eau === "d" ? "Terre sèche : arrose bien la première année" : st.eau === "w" ? "Terre un peu trop humide pour elle" : "Terre fraîche : draine bien le trou"};
   return {e, st, lvl: 2, why: `${EXPO[st.expo][0]}, terre ${({d: "sèche", f: "fraîche", w: "humide"})[st.eau]}`};
 }
-function verdictOf(p, inv){
+function verdictOf(p, inv, tox = toxic(p)){
   const coins = espaces().map(e => coinFit(p, e)).sort((a, b) => b.lvl - a.lvl);
   const st = coins.length ? coins[0].st : {clim: (garden && garden.clim) || "so", sol: garden && garden.sol, arro: arroOf(garden && garden.arrosage), projet: garden && garden.projet};
   const min = CLIM[st.clim] ? CLIM[st.clim].min : -10, balcon = st.projet === "balcon";
   const froid = p.rust > min, chaud = !p.heat && st.clim === "med";
   const solOk = balcon || !st.sol || solFits(p, st.sol), eauOk = water(p) <= +st.arro;
   const best = coins.length ? coins[0].lvl : 0;
-  const kind = inv ? "inv" : froid || chaud || best === 0 ? "non" : !solOk || !eauOk || best === 1 ? "aide" : "ok";
-  return {coins, min, balcon, sol: st.sol, froid, chaud, solOk, eauOk, best, kind};
+  const danger = tox && securite();
+  const kind = inv ? "inv" : danger || froid || chaud || best === 0 ? "non" : !solOk || !eauOk || best === 1 ? "aide" : "ok";
+  return {coins, min, balcon, sol: st.sol, froid, chaud, solOk, eauOk, best, kind, tox, danger};
 }
-// La cousine : une plante du catalogue qui irait bien chez toi, du même type et de la même couleur si possible.
+// La cousine : une plante du catalogue qui irait bien chez toi, de la même exposition, du même type et de la même couleur si possible.
 function cousineOf(p){
   let best = null, score = -Infinity;
   for(const q of PLANTS){
     if((q.x && q.x.perso) || latinKey(q.latin) === latinKey(p.latin)) continue;
     if(verdictOf(q, false).kind !== "ok") continue;
-    const s = (q.type === p.type ? 3 : 0) + (q.fam === p.fam ? 2 : 0) + (photoOf(q) ? 1 : 0) - 2 * Math.abs(Math.log((q.h || 50) / (p.h || 50)));
+    const s = (q.type === p.type ? 3 : 0) + (q.fam === p.fam ? 2 : 0) + ([...p.expo].some(k => q.expo.includes(k)) ? 3 : 0) + (photoOf(q) ? 1 : 0) - 2 * Math.abs(Math.log((q.h || 50) / (p.h || 50)));
     if(s > score){ score = s; best = q; }
   }
   return best;
@@ -1447,6 +1465,7 @@ function needRows(p, v){
     v.balcon ? null : ["Terre", "Terre " + ouList([...p.sol].map(k => SOL_TXT[k])), v.solOk ? "ok" : "warn"],
     ["Froid", v.froid ? `Gèle sous ${degres(p.rust)}, chez toi ${degres(v.min)}` : `Jusqu’à ${degres(p.rust)}`, v.froid ? "no" : "ok"],
     v.chaud ? ["Chaleur", "Craint les étés chauds et secs", "no"] : null,
+    v.tox ? ["Sécurité", v.danger ? "Toxique si on la mange : pas avec des enfants ou des animaux" : "Toxique si on la mange", v.danger ? "no" : "warn"] : null,
     ["Place", `${mesure(p.h)} de haut${p.l ? `, ${mesure(p.l)} de large` : ""}`, null]
   ].filter(Boolean);
   return `<div class="scan-card">${rows.map(([t, d, s]) => `<div class="sc-row"><span><b>${t}</b><small>${esc(d)}</small></span>${s ? `<i class="st ${s}" role="img" aria-label="${ST_GLYPH[s][1]}">${ST_GLYPH[s][0]}</i>` : ""}</div>`).join("")}</div>`;
@@ -1470,13 +1489,13 @@ function cousineCard(q){
     </div></article>`;
 }
 function showVerdict(c){
-  const p = fromCatalog(c) || plantFrom(c), v = verdictOf(p, c.envahissante);
+  const p = fromCatalog(c) || plantFrom(c), v = verdictOf(p, c.envahissante, toxic(p) || !!c.toxique);
   scan.cand = c; scan.p = p;
   const [lbl, col] = VERDICT[v.kind];
   $("res-img").src = scan.photo || ""; $("res-tag").textContent = lbl; $("res-tag").className = "tag " + col;
   $("res-title").innerHTML = plantTitle(c.nom); $("res-latin").textContent = p.latin;
   $("res-lede").textContent = v.kind === "inv" ? "Elle poussera trop bien, justement."
-    : v.kind === "non" ? (v.froid ? "Ton hiver est trop froid pour elle." : v.chaud ? "Ton été est trop chaud pour elle." : "Aucun de tes coins ne lui convient.")
+    : v.kind === "non" ? (v.danger ? "Toxique pour enfants et animaux." : v.froid ? "Ton hiver est trop froid pour elle." : v.chaud ? "Ton été est trop chaud pour elle." : "Aucun de tes coins ne lui convient.")
     : v.kind === "aide" ? (!v.eauOk ? "Elle aura soif tout l’été." : !v.solOk ? "Ta terre ne lui plaît qu’à moitié." : "Elle demandera un peu d’attention.")
     : "Ton climat et ta terre lui plaisent.";
   const sec = (t, inner) => `<section class="scan-sec"><h3>${t}</h3>${inner}</section>`;
@@ -1484,9 +1503,9 @@ function showVerdict(c){
   let body = "";
   if(v.kind === "ok") body = sec("Où la planter", coinRows(v)) + sec("Ce qu’il lui faut", needRows(p, v));
   else if(v.kind === "aide"){ const [t, d] = aideTip(p, v); body = sec("Ce qu’il lui faut", needRows(p, v)) + `<article class="tip"><span class="eyebrow">Pour l’aider</span><h3>${t}</h3><p>${d}</p></article>` + sec("Où la planter", coinRows(v)); }
-  else if(v.kind === "non") body = sec("Ce qu’il lui faut", needRows(p, v)) + (!v.froid && !v.chaud && v.coins.length ? sec("Où la planter", coinRows(v)) : "");
+  else if(v.kind === "non") body = sec("Ce qu’il lui faut", needRows(p, v)) + (!v.danger && !v.froid && !v.chaud && v.coins.length ? sec("Où la planter", coinRows(v)) : "");
   else body = `<p class="scan-why">${esc(c.envahissante_pourquoi || "Elle s’échappe du jardin et s’installe dans la nature, où elle étouffe les plantes d’ici.")}</p>`;
-  if(q) body += sec(v.kind === "inv" ? "Une cousine plus sage" : "Une cousine plus solide", cousineCard(q));
+  if(q) body += sec(v.kind === "inv" ? "Une cousine plus sage" : v.danger ? "Une cousine sans danger" : "Une cousine plus solide", cousineCard(q));
   $("res-body").innerHTML = body;
   $("res-actions").innerHTML = v.kind === "ok" || v.kind === "aide"
     ? `<button class="btn primary" type="button" id="res-add">L’ajouter à un coin</button><a class="link" href="${shopUrl(p)}" target="_blank" rel="noopener">Acheter ↗</a>`
@@ -1520,6 +1539,18 @@ $("s-scan-res").addEventListener("click", e => {
   const cz = e.target.closest("[data-cousine]"); if(cz) return pickCoin(PLANTS[+cz.dataset.cousine]);
   const k = e.target.closest("[data-key]"); if(k){ const sp = espaces().find(x => x.key === k.dataset.key); if(sp) addToCoin(scan.pickFor, sp); }
 });
+
+// ---------- Un lien humain ----------
+// « Besoin d’un avis ? » : une jardinerie près de chez toi, trouvée par le code postal du jardin (ou là où tu es).
+function drawConseiller(){
+  const q = "jardinerie" + (garden && garden.cp ? " " + garden.cp : garden && garden.dept ? " " + garden.label : "");
+  const url = "https://www.google.com/maps/search/" + encodeURIComponent(q);
+  document.querySelectorAll(".conseiller-slot").forEach(el => {
+    el.innerHTML = `<aside class="conseiller"><svg class="illu" aria-hidden="true" width="40" height="40" viewBox="0 0 40 40" fill="none"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="20" cy="20" r="19" fill="#D5E3CF" stroke-width="1.5"/><circle cx="20" cy="15" r="5"/><path d="M11 31 C 12 24, 28 24, 29 31"/></g></svg>
+      <div><h3>Besoin d’un avis ?</h3><p>${esc(el.dataset.avis)}</p><a class="link" href="${url}" target="_blank" rel="noopener">Trouver une jardinerie ↗</a></div></aside>`;
+  });
+}
+drawConseiller();
 
 // ---------- Démarrage ----------
 // Splash à chaque ouverture, puis l'écran de départ. Un toucher le passe.

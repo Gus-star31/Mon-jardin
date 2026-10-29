@@ -325,8 +325,18 @@ const CAVEATS = [
   [/Hydrangea macrophylla/, "Arrosage régulier l'été"], [/Cistus/, "Vit 8 à 10 ans, pas de taille sévère"],
   [/Euphorbia/, "Sève irritante : gants pour la taille"], [/Pyracantha|Rosa rugosa|Echinops/, "Piquant"],
   [/Wisteria|Campsis|Lonicera periclymenum|Hedera/, "Vigoureuse : à contenir"], [/Clematis/, "Taille selon la variété"],
-  [/Iris germanica|Hemerocallis|Kniphofia/, "À diviser tous les 4 à 5 ans"], [/Fargesia/, "Prend de la place avec le temps"]
+  [/Iris germanica|Hemerocallis|Kniphofia/, "À diviser tous les 4 à 5 ans"], [/Fargesia/, "Prend de la place avec le temps"],
+  // Fragilités et maladies fréquentes
+  [/Photinia/, "Sensible aux taches des feuilles"], [/Euonymus japonicus/, "Sensible à l'oïdium"], [/Lagerstroemia/, "Fait de l'oïdium en climat humide"],
+  [/Pyracantha|Crataegus|Cotoneaster/, "Sensible au feu bactérien"], [/Lonicera periclymenum/, "Sensible aux pucerons et à l'oïdium"],
+  [/Acanthus|Pulmonaria|Symphyotrichum/, "Fait souvent de l'oïdium l'été"], [/Vitis/, "Sensible à l'oïdium et au mildiou"],
+  [/Hosta|Echinacea/, "Adorée des limaces"], [/Heuchera/, "Se dégarnit après 4 à 5 ans"], [/Thuja/, "Roussit en cas de sécheresse"],
+  [/Ceanothus/, "Vit 10 à 15 ans"], [/Penstemon/, "Vit 3 à 4 ans, craint l'hiver humide"], [/Leucanthemum|Linum perenne/, "Vit 3 à 4 ans"],
+  [/Lychnis/, "Vit 2 à 3 ans, se ressème"]
 ];
+// Plantes toxiques si on les mange (feuilles, baies, graines ou bulbes) : écartées quand il y a des enfants ou des animaux au jardin.
+const TOXIC = /Nerium|Taxus|Digitalis|Helleborus|Euphorbia|Narcissus|Galanthus|Tulipa|Sternbergia|Hedera|Ilex|Prunus lusitanica|Wisteria|Lathyrus|Solanum|Melia|Euonymus|Hydrangea|Agapanthus|Lonicera|Viburnum|Thuja|Iris|Ruscus|Anemone|Clematis|Cyclamen|Rhamnus|Hemerocallis|Parthenocissus|Vinca|Coronilla/;
+const toxic = p => p.x && "tox" in p.x ? !!p.x.tox : TOXIC.test(p.latin);
 // Effort d'entretien d'une plante (0 = rien) : taille, rabattage, division, renouvellement, arrosage.
 const CARE = /Rosa|Hydrangea macrophylla|Miscanthus|Pennisetum|Calamagrostis|Iris germanica|Hemerocallis|Kniphofia|Clematis|Wisteria|Campsis|Gaura|lindheimeri|Agastache|Gaillardia|Lavandula/;
 function effort(p){ return (CARE.test(p.latin) ? 1 : 0) + (water(p) >= 3 ? 1 : 0) + (water(p) === 2 ? 0.5 : 0); }
@@ -338,7 +348,7 @@ function atouts(p){
   if(months(p).length >= 4) plus.push("Fleurit longtemps");
   if(["arbuste","grimpante","arbre"].includes(p.type) && growth(p) === "rapide") plus.push("Pousse vite");
   if(p.rust <= -18) plus.push("Résiste au grand froid");
-  if(/toxique/i.test(p.note)) moins.push("Toxique : attention enfants et animaux");
+  if(toxic(p)) moins.push("Toxique si on la mange");
   for(const [re, txt] of CAVEATS) if(re.test(p.latin) && !moins.includes(txt)) moins.push(txt);
   if(water(p) >= 3) moins.push("Arrosage régulier l'été");
   if(["arbuste","grimpante","arbre"].includes(p.type) && growth(p) === "lente") moins.push("Pousse lentement");
@@ -446,6 +456,7 @@ function solOk(p){
 function compatible(p){
   // Une plante repérée et ajoutée à la main n'est jamais proposée d'office.
   if(p.x && p.x.perso) return false;
+  if(window.securite && toxic(p)) return false;
   const c = CLIM[state.clim];
   if(!p.expo.includes(state.expo)) return false;
   // Balcon : seulement des plantes en pot, plantées en terreau (le sol du jardin ne compte pas).
