@@ -643,3 +643,44 @@ body.crit-on::after{content:"";position:fixed;inset:0;z-index:44;background:rgba
 @keyframes drops{from{stroke-dasharray:6 10;stroke-dashoffset:16}to{stroke-dasharray:6 10;stroke-dashoffset:0}}
 h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-weight:inherit;letter-spacing:inherit;font-style:normal;color:var(--encre-douce);font-variant-numeric:tabular-nums}
 .home-head .count{color:inherit}
+/* 14 · Une plante repérée */
+.viseur{position:relative;height:400px;margin-top:20px;border-radius:20px;background:var(--encre);overflow:hidden}
+.viseur img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.92}
+.viseur-coins{position:absolute;inset:0;width:100%;height:100%}
+.viseur-hint{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);margin:0;padding:6px 12px;border-radius:99px;background:rgba(28,28,26,.85);color:var(--papier);font-size:14px;font-weight:500;white-space:nowrap}
+.viseur-trait{position:absolute;left:56px;right:56px;top:72px;height:2px;background:var(--papier);box-shadow:0 0 12px 2px rgba(243,239,230,.7);opacity:0}
+.viseur.busy .viseur-trait{opacity:1;animation:scan-line 1.6s ease-in-out infinite alternate}
+@keyframes scan-line{to{top:318px}}
+@media (prefers-reduced-motion: reduce){.viseur.busy .viseur-trait{animation:none;top:50%}}
+.scan-actions{display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:24px}
+.scan-actions .btn{width:100%}
+.scan-actions input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.scan-actions label{position:relative;cursor:pointer}
+.scan-photo{margin:16px 0 0;height:240px;border-radius:16px;overflow:hidden;background:var(--filet)}
+.scan-photo img{display:block;width:100%;height:100%;object-fit:cover}
+#s-scan-res .scan-photo{height:220px}
+#s-scan-res .head{margin-top:16px}
+#s-scan-res .head .tag{align-self:flex-start}
+.head .latin{display:block;font-family:var(--f-serif);font-size:18px;line-height:22px;color:var(--encre-douce)}
+#sid-yes{width:100%;margin-top:20px}
+.scan-sec{display:flex;flex-direction:column;gap:10px;margin-top:24px}
+.scan-sec h3{font-size:22px;line-height:28px}
+.scan-card{padding:2px 16px;border:1.3px solid var(--encre);border-radius:14px;background:var(--carte)}
+.sc-row{display:flex;align-items:center;gap:12px;padding:12px 0}
+.sc-row + .sc-row{border-top:1px solid var(--filet)}
+.sc-row > span:first-child{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:15px;line-height:20px}
+.sc-row b{font-weight:500}
+.sc-row small{font-size:15px;color:var(--encre-douce)}
+.sc-row .tag{flex:none}
+.st{flex:none;display:grid;place-items:center;width:26px;height:26px;border-radius:50%;font-style:normal;font-size:13px;font-weight:600}
+.st.ok{background:var(--sauge)}.st.warn{background:var(--soleil)}.st.no{background:var(--peche)}
+#s-scan-res .tip{margin-top:24px}
+.scan-why{margin:20px 0 0;font-size:17px;line-height:24px}
+.sid-alt{display:flex;flex-direction:column;gap:10px}
+.pick{display:flex;flex-direction:column;gap:2px;padding:12px 16px;border:1.3px solid var(--encre);border-radius:14px;background:var(--carte);font:inherit;color:inherit;text-align:left;cursor:pointer}
+.pick b{font-size:17px;line-height:23px;font-weight:600}
+.pick small{font-size:16px;line-height:23px;color:var(--encre-douce)}
+.pick:active{transform:scale(.985)}
+.link.center{display:block;margin:20px auto 0}
+.tile-scan svg{margin-bottom:4px}
+.scan-actions label.link{display:inline-flex;align-items:center}

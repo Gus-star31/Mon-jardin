@@ -444,6 +444,8 @@ function solOk(p){
   return p.sol.includes(state.sol);
 }
 function compatible(p){
+  // Une plante repérée et ajoutée à la main n'est jamais proposée d'office.
+  if(p.x && p.x.perso) return false;
   const c = CLIM[state.clim];
   if(!p.expo.includes(state.expo)) return false;
   // Balcon : seulement des plantes en pot, plantées en terreau (le sol du jardin ne compte pas).

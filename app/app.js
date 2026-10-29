@@ -127,7 +127,7 @@ const espaces = () => {
 };
 
 // ---------- Navigation ----------
-const SCREENS = ["s-ouverture","s-login","s-prenom","s-conseils","s-liste","s-compte","s-sources","s-photo","s-envies","s-garden","s-analyse","s-espace","s-jardin"];
+const SCREENS = ["s-ouverture","s-login","s-prenom","s-conseils","s-liste","s-compte","s-sources","s-photo","s-envies","s-garden","s-analyse","s-espace","s-jardin","s-scan","s-scan-id","s-scan-res"];
 function show(id, push = true){
   const was = SCREENS.find(s => !$(s).hidden);
   SCREENS.forEach(s => { $(s).hidden = s !== id; });
@@ -1064,7 +1064,8 @@ function renderJardin(){
       </button>${editing ? `<button class="rm" type="button" data-rm="${e.key}" aria-label="Retirer le coin ${esc(z.nom)}">×</button>` : ""}</div>`;
   });
   const add = editing ? "" : `<button class="tile-add" type="button" id="j-add"><span aria-hidden="true">+</span><b>${demo ? "Créer ton jardin" : "Ajouter un coin"}</b><small>Une photo suffit</small></button>`;
-  $("j-spaces").innerHTML = tiles.join("") + add;
+  const scanTile = editing || demo || !list.length ? "" : `<button class="tile-add tile-scan" type="button" id="j-scan">${CAMERA}<b>Une plante repérée</b><small>On te dit si elle ira</small></button>`;
+  $("j-spaces").innerHTML = tiles.join("") + add + scanTile;
   $("j-sec-t").innerHTML = (editing ? "Modifier <em>tes coins</em>" : "Tes <em>coins</em>") + countOf(list.length);
   $("j-edit-lede").hidden = !editing;
   $("edit-toggle").hidden = demo || !list.length;
@@ -1073,6 +1074,7 @@ function renderJardin(){
 }
 $("j-tip").addEventListener("click", e => { const g = e.target.closest("[data-tab-go]"); if(g){ renderConseils(); show(g.dataset.tabGo); } });
 $("j-spaces").addEventListener("click", e => {
+  if(e.target.closest("#j-scan")){ openScan(); return; }
   if(e.target.closest("#j-add")){ if(demo){ demo = false; show("s-login"); } else startSpace(); return; }
   const rm = e.target.closest("[data-rm]");
   if(rm){ openSheet(rm.dataset.rm, rm); return; }
@@ -1270,7 +1272,7 @@ $("a-body").addEventListener("click", e => {
 
 // Les sources : toutes les photos (auteur, licence, page d'origine), l'IA et les données des plantes, réunies en un seul écran.
 function renderSources(){
-  const plantes = PLANTS.map(p => [p, photoOf(p)]).filter(([, ph]) => ph).sort(([a], [b]) => a.nom.localeCompare(b.nom, "fr"))
+  const plantes = PLANTS.map(p => [p, photoOf(p)]).filter(([, ph]) => ph && !ph.perso).sort(([a], [b]) => a.nom.localeCompare(b.nom, "fr"))
     .map(([p, ph]) => `<li><a href="${ph.page}" target="_blank" rel="noopener">${esc(p.nom)} ↗</a><small>${ph.artist ? `${esc(ph.artist)} · ${esc(ph.license || "licence libre")}` : "Auteur et licence sur la page de la photo"}</small></li>`).join("");
   const ambiances = Object.values(STYLE_PHOTOS).map(s => `<li><a href="${s.page}" target="_blank" rel="noopener">${esc(s.cap)} ↗</a></li>`).join("");
   $("src-body").innerHTML = `
@@ -1334,6 +1336,190 @@ function warmDemo(){
   window.__quiet = false;
   ZONES = saveZ; ZKEY = saveK; zoneData = saveD; curZone = saveCur; combo = saveCombo; Object.assign(state, saveState);
 }
+
+// ---------- 14 · Une plante repérée ----------
+// Une photo d'une plante aimée ailleurs : Claude la reconnaît, puis les règles du moteur disent si elle irait chez toi, coin par coin.
+// Une plante hors catalogue ajoutée à un coin est gardée sur le téléphone (app-perso) et rejoint PLANTS à chaque ouverture.
+const PERSO_KEY = "app-perso";
+const latinKey = s => norm(s).replace(/\b(x|var|subsp)\b/g, " ").split(" ").filter(Boolean).slice(0, 2).join(" ");
+function plantFrom(c){
+  return {id: -1, nom: c.nom, latin: c.latin, type: c.type, expo: c.expo, sol: c.sol, eau: c.eau, rust: c.rust, heat: c.heat, h: c.h, l: c.l, bloom: c.bloom,
+    fam: c.fam, hex: SWATCH[c.fam] || "#6E8F4E", note: c.note, x: {eau: c.arrosage, perso: true}, temp: true};
+}
+function addPerso(c){
+  const p = plantFrom(c); p.id = PLANTS.length; delete p.temp;
+  PLANTS.push(p);
+  if(c.thumb) PHOTOS[slugify(p.nom)] = {remote: c.thumb, perso: true};
+  return p;
+}
+store.get(PERSO_KEY, []).forEach(addPerso);
+const fromCatalog = c => { const k = latinKey(c.latin); return PLANTS.find(p => latinKey(p.latin) === k) || null; };
+
+// Le verdict : d'abord le jardin (froid, chaleur, terre, arrosage), puis chaque coin (soleil, humidité).
+const solFits = (p, sol) => sol === "ac" ? p.sol.includes("c") && (p.sol.includes("a") || !p.sol.includes("s") || p.sol.length > 1) : p.sol.includes(sol);
+function coinFit(p, e){
+  const st = zoneState(e.z, e.rec);
+  const expoOk = p.expo.includes(st.expo), hot = !p.heat && st.clim === "so" && st.expo === "s", eauOk = p.eau.includes(st.eau);
+  if(!expoOk) return {e, st, lvl: 0, why: st.expo === "s" ? "Trop de soleil pour elle" : p.expo === "s" ? "Pas assez de soleil" : "Trop d’ombre pour elle"};
+  if(hot) return {e, st, lvl: 0, why: "Trop chaud l’été, en plein soleil"};
+  if(!eauOk) return {e, st, lvl: 1, why: st.eau === "d" ? "Terre sèche : arrose bien la première année" : st.eau === "w" ? "Terre un peu trop humide pour elle" : "Terre fraîche : draine bien le trou"};
+  return {e, st, lvl: 2, why: `${EXPO[st.expo][0]}, terre ${({d: "sèche", f: "fraîche", w: "humide"})[st.eau]}`};
+}
+function verdictOf(p, inv){
+  const coins = espaces().map(e => coinFit(p, e)).sort((a, b) => b.lvl - a.lvl);
+  const st = coins.length ? coins[0].st : {clim: (garden && garden.clim) || "so", sol: garden && garden.sol, arro: arroOf(garden && garden.arrosage), projet: garden && garden.projet};
+  const min = CLIM[st.clim] ? CLIM[st.clim].min : -10, balcon = st.projet === "balcon";
+  const froid = p.rust > min, chaud = !p.heat && st.clim === "med";
+  const solOk = balcon || !st.sol || solFits(p, st.sol), eauOk = water(p) <= +st.arro;
+  const best = coins.length ? coins[0].lvl : 0;
+  const kind = inv ? "inv" : froid || chaud || best === 0 ? "non" : !solOk || !eauOk || best === 1 ? "aide" : "ok";
+  return {coins, min, balcon, sol: st.sol, froid, chaud, solOk, eauOk, best, kind};
+}
+// La cousine : une plante du catalogue qui irait bien chez toi, du même type et de la même couleur si possible.
+function cousineOf(p){
+  let best = null, score = -Infinity;
+  for(const q of PLANTS){
+    if((q.x && q.x.perso) || latinKey(q.latin) === latinKey(p.latin)) continue;
+    if(verdictOf(q, false).kind !== "ok") continue;
+    const s = (q.type === p.type ? 3 : 0) + (q.fam === p.fam ? 2 : 0) + (photoOf(q) ? 1 : 0) - 2 * Math.abs(Math.log((q.h || 50) / (p.h || 50)));
+    if(s > score){ score = s; best = q; }
+  }
+  return best;
+}
+
+const VERDICT = {ok: ["Elle ira bien chez toi", "sauge"], aide: ["Avec un peu d’aide", "soleil"], non: ["Pas chez toi", "peche"], inv: ["Envahissante", "peche"]};
+const LVL = [["À éviter", "peche"], ["Possible", "soleil"], ["Idéal", "sauge"]];
+const ST_GLYPH = {ok: ["✓", "Ça lui va"], warn: ["!", "À surveiller"], no: ["✕", "Ça ne lui va pas"]};
+const EXPO_TXT = {s: "plein soleil", m: "mi-ombre", o: "ombre"};
+const SOL_TXT = {a: "argileuse", c: "calcaire", s: "sableuse", h: "riche"};
+const WATER_TXT = ["", "Presque pas d’arrosage", "Un arrosage pendant les canicules", "Un arrosage régulier l’été"];
+const TYPE_LBL = {arbre: "Arbre", arbuste: "Arbuste", graminee: "Graminée", vivace: "Vivace", "couvre-sol": "Couvre-sol", bulbe: "Bulbe", aromatique: "Aromatique", grimpante: "Grimpante"};
+const capFirst = s => s.charAt(0).toUpperCase() + s.slice(1);
+const ouList = a => a.length > 1 ? a.slice(0, -1).join(", ") + " ou " + a[a.length - 1] : a[0] || "";
+const degres = n => `${n < 0 ? "−" : ""}${Math.abs(n)} °C`;
+const mesure = cm => cm >= 100 ? `${(cm / 100).toLocaleString("fr-FR", {maximumFractionDigits: 1})} m` : `${cm} cm`;
+const plantTitle = n => { const w = String(n).split(" "); return w.length > 1 ? `${esc(w[0])} <em>${esc(w.slice(1).join(" "))}</em>` : esc(n); };
+const CAMERA = `<svg aria-hidden="true" width="40" height="34" viewBox="0 0 40 34" fill="none"><rect x="2" y="8" width="36" height="24" rx="5" fill="#F3D35B" stroke="#1C1C1A" stroke-width="2"/><path d="M13 8 L16 3 H24 L27 8" stroke="#1C1C1A" stroke-width="2" stroke-linejoin="round"/><circle cx="20" cy="20" r="6.5" fill="#FBF9F3" stroke="#1C1C1A" stroke-width="2"/></svg>`;
+
+let scan = {photo: null, thumb: null, cands: [], cand: null, p: null};
+function scanErr(m){ $("scan-err").textContent = m; $("scan-err").hidden = !m; }
+function scanIdle(){ $("scan-view").classList.remove("busy"); $("scan-hint").textContent = "Une seule plante à la fois"; $("scan-actions").hidden = false; }
+function openScan(){
+  scan = {photo: null, thumb: null, cands: [], cand: null, p: null};
+  $("scan-img").hidden = true; $("scan-img").removeAttribute("src"); $("scan-view").classList.remove("has");
+  scanIdle(); scanErr(""); show("s-scan");
+}
+async function onScanFile(e){
+  const f = e.target.files[0]; e.target.value = ""; if(!f) return; scanErr("");
+  let img; try{ img = await loadImage(f); }catch(err){ return scanErr("Cette photo ne s’ouvre pas. Essaie avec une autre."); }
+  const big = toJpeg(img, 1024, .82); scan.thumb = toJpeg(img, 360, .72);
+  $("scan-img").src = big; $("scan-img").hidden = false;
+  $("scan-view").classList.add("has", "busy"); $("scan-hint").textContent = "On la regarde de près…"; $("scan-actions").hidden = true;
+  const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 45000);
+  try{
+    const r = await fetch("/api/plante", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({photo: big.split(",")[1]}), signal: ctrl.signal});
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(d.erreur || "On n’a pas pu regarder ta photo. Réessaie.");
+    if(!d.plante || !(d.candidats || []).length) throw new Error("On ne voit pas bien de plante sur cette photo. Rapproche-toi d’elle.");
+    scan.photo = big; scan.cands = d.candidats;
+    scanIdle(); renderScanId(); show("s-scan-id");
+  }catch(err){
+    scanIdle(); scanErr(err.name === "AbortError" ? "Ça prend trop de temps. Réessaie dans un instant." : err.message);
+  }finally{ clearTimeout(t); }
+}
+$("scan-cam").addEventListener("change", onScanFile);
+$("scan-file").addEventListener("change", onScanFile);
+
+function renderScanId(){
+  const [c, ...alt] = scan.cands;
+  $("sid-title").innerHTML = plantTitle(c.nom); $("sid-latin").textContent = c.latin; $("sid-img").src = scan.photo;
+  $("sid-alt-sec").hidden = !alt.length;
+  $("sid-alt").innerHTML = alt.map((a, i) => `<button class="pick" type="button" data-cand="${i + 1}"><b>${esc(a.nom)}</b><small>${esc(a.latin)}</small></button>`).join("");
+}
+$("sid-yes").addEventListener("click", () => showVerdict(scan.cands[0]));
+$("sid-alt").addEventListener("click", e => { const b = e.target.closest("[data-cand]"); if(b) showVerdict(scan.cands[+b.dataset.cand]); });
+$("sid-retry").addEventListener("click", openScan);
+
+function needRows(p, v){
+  const rows = [
+    ["Soleil", capFirst(ouList([...p.expo].map(k => EXPO_TXT[k]))), v.coins.some(c => p.expo.includes(c.st.expo)) ? "ok" : "no"],
+    ["Eau", WATER_TXT[water(p)], v.eauOk ? "ok" : "warn"],
+    v.balcon ? null : ["Terre", "Terre " + ouList([...p.sol].map(k => SOL_TXT[k])), v.solOk ? "ok" : "warn"],
+    ["Froid", v.froid ? `Gèle sous ${degres(p.rust)}, chez toi ${degres(v.min)}` : `Jusqu’à ${degres(p.rust)}`, v.froid ? "no" : "ok"],
+    v.chaud ? ["Chaleur", "Craint les étés chauds et secs", "no"] : null,
+    ["Place", `${mesure(p.h)} de haut${p.l ? `, ${mesure(p.l)} de large` : ""}`, null]
+  ].filter(Boolean);
+  return `<div class="scan-card">${rows.map(([t, d, s]) => `<div class="sc-row"><span><b>${t}</b><small>${esc(d)}</small></span>${s ? `<i class="st ${s}" role="img" aria-label="${ST_GLYPH[s][1]}">${ST_GLYPH[s][0]}</i>` : ""}</div>`).join("")}</div>`;
+}
+const coinRows = v => `<div class="scan-card">${v.coins.map(c => `<div class="sc-row"><span><b>${esc(c.e.z.nom)}</b><small>${esc(c.why)}</small></span><span class="tag ${LVL[c.lvl][1]}">${LVL[c.lvl][0]}</span></div>`).join("")}</div>`;
+function aideTip(p, v){
+  if(!v.eauOk) return ["Paillage et arrosage", "Paille le pied et arrose le soir quand il fait chaud."];
+  if(!v.solOk) return ["Une terre à préparer", !p.sol.includes("c") && /c/.test(v.sol || "") ? "Elle craint le calcaire : mélange du terreau de feuilles à la terre du trou." : "Ajoute du compost au trou de plantation pour l’aider à démarrer."];
+  return ["La première année", "Arrose bien la première année, le temps qu’elle s’installe."];
+}
+function cousineCard(q){
+  const ph = photoOf(q), [a, b] = unitPrice(q, role(q)), at = atouts(q);
+  return `<article class="plant">
+    ${ph ? `<figure><img src="${ph.src}" alt="${esc(q.nom)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></figure>` : ""}
+    <div class="pt">
+      <div class="row"><span class="tag">${TYPE_LBL[q.type] || ""}</span><span class="qp">1 × ${euro((a + b) / 2)}</span></div>
+      <h4>${esc(q.nom)}</h4><i>${esc(q.latin)}</i>
+      <p>${esc(q.note)}</p>
+      ${at.plus.length ? `<ul class="pc">${at.plus.map(x => `<li class="plus">${esc(x)}</li>`).join("")}</ul>` : ""}
+      <p class="plinks"><a href="${shopUrl(q)}" target="_blank" rel="noopener">Acheter ↗</a><button class="linkish" type="button" data-cousine="${q.id}">L’ajouter</button></p>
+    </div></article>`;
+}
+function showVerdict(c){
+  const p = fromCatalog(c) || plantFrom(c), v = verdictOf(p, c.envahissante);
+  scan.cand = c; scan.p = p;
+  const [lbl, col] = VERDICT[v.kind];
+  $("res-img").src = scan.photo || ""; $("res-tag").textContent = lbl; $("res-tag").className = "tag " + col;
+  $("res-title").innerHTML = plantTitle(c.nom); $("res-latin").textContent = p.latin;
+  $("res-lede").textContent = v.kind === "inv" ? "Elle poussera trop bien, justement."
+    : v.kind === "non" ? (v.froid ? "Ton hiver est trop froid pour elle." : v.chaud ? "Ton été est trop chaud pour elle." : "Aucun de tes coins ne lui convient.")
+    : v.kind === "aide" ? (!v.eauOk ? "Elle aura soif tout l’été." : !v.solOk ? "Ta terre ne lui plaît qu’à moitié." : "Elle demandera un peu d’attention.")
+    : "Ton climat et ta terre lui plaisent.";
+  const sec = (t, inner) => `<section class="scan-sec"><h3>${t}</h3>${inner}</section>`;
+  const q = v.kind === "non" || v.kind === "inv" ? cousineOf(p) : null;
+  let body = "";
+  if(v.kind === "ok") body = sec("Où la planter", coinRows(v)) + sec("Ce qu’il lui faut", needRows(p, v));
+  else if(v.kind === "aide"){ const [t, d] = aideTip(p, v); body = sec("Ce qu’il lui faut", needRows(p, v)) + `<article class="tip"><span class="eyebrow">Pour l’aider</span><h3>${t}</h3><p>${d}</p></article>` + sec("Où la planter", coinRows(v)); }
+  else if(v.kind === "non") body = sec("Ce qu’il lui faut", needRows(p, v)) + (!v.froid && !v.chaud && v.coins.length ? sec("Où la planter", coinRows(v)) : "");
+  else body = `<p class="scan-why">${esc(c.envahissante_pourquoi || "Elle s’échappe du jardin et s’installe dans la nature, où elle étouffe les plantes d’ici.")}</p>`;
+  if(q) body += sec(v.kind === "inv" ? "Une cousine plus sage" : "Une cousine plus solide", cousineCard(q));
+  $("res-body").innerHTML = body;
+  $("res-actions").innerHTML = v.kind === "ok" || v.kind === "aide"
+    ? `<button class="btn primary" type="button" id="res-add">L’ajouter à un coin</button><a class="link" href="${shopUrl(p)}" target="_blank" rel="noopener">Acheter ↗</a>`
+    : `<button class="btn secondary" type="button" id="res-again">Scanner une autre plante</button>`;
+  $("res-pick").hidden = true;
+  show("s-scan-res");
+}
+// Ajouter à un coin : directement s'il n'y a qu'un coin possible, sinon on demande lequel.
+function pickCoin(p){
+  const ok = verdictOf(p, false).coins.filter(c => c.lvl > 0);
+  if(!ok.length){ showToast("Aucun de tes coins ne lui convient vraiment."); return; }
+  if(ok.length === 1){ addToCoin(p, ok[0].e); return; }
+  scan.pickFor = p;
+  $("res-coins").innerHTML = ok.map(c => `<button class="pick" type="button" data-key="${c.e.key}"><b>${esc(c.e.z.nom)}</b><small>${esc(c.why)}</small></button>`).join("");
+  $("res-pick").hidden = false; $("res-pick").scrollIntoView({behavior: "smooth", block: "start"});
+}
+function addToCoin(p, e){
+  const nom = p === scan.p && scan.cand ? scan.cand.nom : p.nom;
+  if(p.temp){
+    const c = {...scan.cand, thumb: scan.thumb};
+    const saved = store.get(PERSO_KEY, []); saved.push(c); store.set(PERSO_KEY, saved);
+    p = addPerso(c);
+  }
+  openEspace(e.rec, e.z.id);
+  if(!combo.some(x => x.plant.nom === p.nom)){ combo.push({plant: p, role: role(p), locked: true}); renderCurrent(); }
+  showToast(`C’est noté, ${nom} rejoint ton coin « ${e.z.nom} ».`);
+}
+$("s-scan-res").addEventListener("click", e => {
+  if(e.target.closest("#res-add")) return pickCoin(scan.p);
+  if(e.target.closest("#res-again")) return openScan();
+  const cz = e.target.closest("[data-cousine]"); if(cz) return pickCoin(PLANTS[+cz.dataset.cousine]);
+  const k = e.target.closest("[data-key]"); if(k){ const sp = espaces().find(x => x.key === k.dataset.key); if(sp) addToCoin(scan.pickFor, sp); }
+});
 
 // ---------- Démarrage ----------
 // Splash à chaque ouverture, puis l'écran de départ. Un toucher le passe.

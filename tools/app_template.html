@@ -238,6 +238,41 @@
     <div class="acct" id="a-body"></div>
   </section>
 
+  <!-- 14 · Une plante repérée : photo, confirmation, verdict -->
+  <section class="screen" id="s-scan" hidden>
+    <div class="topbar"><button class="back" type="button" data-go="s-jardin"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15 9 H3 M8 4 L3 9 L8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Ton jardin</span></button></div>
+    <header class="head"><h2>Une plante <em>repérée</em></h2><p class="lede">Les feuilles et les fleurs, bien nettes.</p></header>
+    <div class="viseur" id="scan-view">
+      <img id="scan-img" alt="" hidden>
+      <svg class="viseur-coins" aria-hidden="true" viewBox="0 0 342 400" preserveAspectRatio="none" fill="none"><g stroke="#F3EFE6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M56 100 V72 H84"/><path d="M258 72 H286 V100"/><path d="M56 292 V320 H84"/><path d="M286 292 V320 H258"/></g></svg>
+      <span class="viseur-trait" aria-hidden="true"></span>
+      <p class="viseur-hint" id="scan-hint" aria-live="polite">Une seule plante à la fois</p>
+    </div>
+    <p class="err" id="scan-err" hidden></p>
+    <div class="scan-actions" id="scan-actions">
+      <label class="btn primary" for="scan-cam"><input type="file" id="scan-cam" accept="image/*" capture="environment">Prendre la photo</label>
+      <label class="link" for="scan-file"><input type="file" id="scan-file" accept="image/*">Choisir dans mes photos</label>
+    </div>
+  </section>
+
+  <section class="screen" id="s-scan-id" hidden>
+    <div class="topbar"><button class="back" type="button" data-go="s-scan"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15 9 H3 M8 4 L3 9 L8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Ta photo</span></button></div>
+    <header class="head"><p class="eyebrow">On pense à</p><h2 id="sid-title"></h2><i class="latin" id="sid-latin"></i><p class="lede">C’est bien elle ?</p></header>
+    <figure class="scan-photo"><img id="sid-img" alt=""></figure>
+    <button class="btn primary" type="button" id="sid-yes">Oui, c’est elle</button>
+    <section class="scan-sec" id="sid-alt-sec"><h3>Ou peut-être</h3><div class="sid-alt" id="sid-alt"></div></section>
+    <button class="link center" type="button" id="sid-retry">Reprendre la photo</button>
+  </section>
+
+  <section class="screen" id="s-scan-res" hidden>
+    <div class="topbar"><button class="back" type="button" data-go="s-jardin"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15 9 H3 M8 4 L3 9 L8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Ton jardin</span></button></div>
+    <figure class="scan-photo"><img id="res-img" alt=""></figure>
+    <header class="head"><span class="tag" id="res-tag"></span><h2 id="res-title"></h2><i class="latin" id="res-latin"></i><p class="lede" id="res-lede"></p></header>
+    <div id="res-body"></div>
+    <div class="scan-actions" id="res-actions"></div>
+    <section class="scan-sec" id="res-pick" hidden><h3>Dans quel coin ?</h3><div class="sid-alt" id="res-coins"></div></section>
+  </section>
+
   <!-- 13 · Les sources -->
   <section class="screen" id="s-sources" hidden>
     <div class="topbar"><button class="back" type="button" data-go="s-compte"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15 9 H3 M8 4 L3 9 L8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Ton compte</span></button></div>
