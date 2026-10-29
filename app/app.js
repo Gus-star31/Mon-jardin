@@ -127,7 +127,7 @@ const espaces = () => {
 };
 
 // ---------- Navigation ----------
-const SCREENS = ["s-ouverture","s-login","s-prenom","s-conseils","s-liste","s-compte","s-sources","s-photo","s-envies","s-garden","s-analyse","s-espace","s-jardin","s-scan","s-scan-id","s-scan-res"];
+const SCREENS = ["s-ouverture","s-login","s-prenom","s-conseils","s-liste","s-compte","s-sources","s-photo","s-envies","s-garden","s-analyse","s-espace","s-jardin","s-scan","s-scan-id","s-scan-res","s-commu"];
 function show(id, push = true){
   const was = SCREENS.find(s => !$(s).hidden);
   SCREENS.forEach(s => { $(s).hidden = s !== id; });
@@ -1055,6 +1055,7 @@ const JARDINIER = (() => {
     + `<g transform="translate(84 130) rotate(-20)">${p("M-40 -8 H-10 V14 H-40 Z")}${p("M-10 -4 C 0 -4, 2 10, -10 10", 2)}${p("M-40 4 L-62 -6", 2.2)}${p("M-62 -6 l-6 -5 l1 11 z", 1.8, C)}</g>`
     + `</svg>`;
 })();
+const SCAN_ICON = `<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8.5 15.5c0-4 2.5-6.5 7-7 0 4.5-2.5 7-7 7ZM8.5 15.5l4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 // Home : un tableau de bord du jardin (saison, conseil du mois, chiffres, coins en mosaïque), distinct de la page d'un coin.
 const SAISON = m => [12, 1, 2].includes(m) ? "hiver" : m <= 5 ? "printemps" : m <= 8 ? "été" : "automne";
 const SAISON_PHRASE = {1:"Le jardin dort, profites-en.", 2:"Les premières pousses arrivent.", 3:"C’est le bon mois pour planter.", 4:"C’est le bon mois pour planter.", 5:"Garde un œil sur l’arrosage.", 6:"Profite des fleurs.", 7:"Arrose malin, le soir.", 8:"Arrose malin, le soir.", 9:"On prépare les plantations d’automne.", 10:"C’est le bon mois pour planter.", 11:"C’est le bon mois pour planter.", 12:"Le jardin dort, profites-en."};
@@ -1070,7 +1071,7 @@ function renderJardin(){
   const P = list.length ? gardenPlants().map(o => o.p) : [];
   const tips = P.length ? monthTips(P, m) : [], tip = tips.find(x => !/^En fleur/.test(x[0])) || tips[0];
   $("j-tip").innerHTML = (tip ? `<article class="tip"><span class="eyebrow">Le conseil du mois</span><h3>${esc(tip[0])}</h3><p>${esc(tip[1])}</p></article>` : "")
-    + (tip && !editing ? `<button class="link" type="button" data-tab-go="s-conseils">Tous tes conseils →</button>` : "");
+    + (editing || !list.length ? "" : `${P.length ? `<button class="link" type="button" data-tab-go="s-conseils">Tous tes conseils →</button>` : ""}<button class="home-scan" type="button" id="j-scan">${SCAN_ICON}Scanner une plante</button>`);
   if(!$("j-gardener").innerHTML) $("j-gardener").innerHTML = JARDINIER;
   const tiles = list.map(e => {
     const s = spaceStats(e.rec, e.z), z = e.z;
@@ -1081,17 +1082,18 @@ function renderJardin(){
       </button>${editing ? `<button class="rm" type="button" data-rm="${e.key}" aria-label="Retirer le coin ${esc(z.nom)}">×</button>` : ""}</div>`;
   });
   const add = editing ? "" : `<button class="tile-add" type="button" id="j-add"><span aria-hidden="true">+</span><b>${demo ? "Créer ton jardin" : "Ajouter un coin"}</b><small>Une photo suffit</small></button>`;
-  const scanTile = editing || demo || !list.length ? "" : `<button class="tile-add tile-scan" type="button" id="j-scan">${CAMERA}<b>Une plante repérée</b><small>On te dit si elle ira</small></button>`;
-  $("j-spaces").innerHTML = tiles.join("") + add + scanTile;
+  $("j-spaces").innerHTML = tiles.join("") + add;
   $("j-sec-t").innerHTML = (editing ? "Modifier <em>tes coins</em>" : "Tes <em>coins</em>") + countOf(list.length);
   $("j-edit-lede").hidden = !editing;
   $("edit-toggle").hidden = demo || !list.length;
   $("edit-toggle").textContent = editing ? "Terminer" : "Modifier";
   $("edit-toggle").classList.toggle("done", editing);
 }
-$("j-tip").addEventListener("click", e => { const g = e.target.closest("[data-tab-go]"); if(g){ renderConseils(); show(g.dataset.tabGo); } });
+$("j-tip").addEventListener("click", e => {
+  if(e.target.closest("#j-scan")) return openScan();
+  const g = e.target.closest("[data-tab-go]"); if(g){ renderConseils(); show(g.dataset.tabGo); }
+});
 $("j-spaces").addEventListener("click", e => {
-  if(e.target.closest("#j-scan")){ openScan(); return; }
   if(e.target.closest("#j-add")){ if(demo){ demo = false; show("s-login"); } else startSpace(); return; }
   const rm = e.target.closest("[data-rm]");
   if(rm){ openSheet(rm.dataset.rm, rm); return; }
@@ -1164,7 +1166,7 @@ $("sheet-ok").addEventListener("click", () => {
 });
 
 // ---------- Menu : Mon jardin, Mes conseils, Ma liste, Mon compte ----------
-const TABS = ["s-jardin", "s-conseils", "s-liste", "s-compte"];
+const TABS = ["s-jardin", "s-liste", "s-commu", "s-compte"];
 function drawTabbar(id){
   const on = TABS.includes(id) && !demo;
   $("tabbar").hidden = !on; document.body.classList.toggle("has-tabbar", on);
@@ -1173,7 +1175,7 @@ function drawTabbar(id){
 $("tabbar").addEventListener("click", e => {
   const b = e.target.closest("[data-tab]"); if(!b) return;
   editing = false;
-  ({"s-jardin": renderJardin, "s-conseils": renderConseils, "s-liste": renderListe, "s-compte": renderCompte})[b.dataset.tab]();
+  ({"s-jardin": renderJardin, "s-liste": renderListe, "s-commu": renderCommu, "s-compte": renderCompte})[b.dataset.tab]();
   show(b.dataset.tab);
 });
 // Compose en silence les coins jamais ouverts, pour que la liste et les conseils comptent toutes leurs plantes.
@@ -1417,7 +1419,6 @@ const ouList = a => a.length > 1 ? a.slice(0, -1).join(", ") + " ou " + a[a.leng
 const degres = n => `${n < 0 ? "−" : ""}${Math.abs(n)} °C`;
 const mesure = cm => cm >= 100 ? `${(cm / 100).toLocaleString("fr-FR", {maximumFractionDigits: 1})} m` : `${cm} cm`;
 const plantTitle = n => { const w = String(n).split(" "); return w.length > 1 ? `${esc(w[0])} <em>${esc(w.slice(1).join(" "))}</em>` : esc(n); };
-const CAMERA = `<svg aria-hidden="true" width="40" height="34" viewBox="0 0 40 34" fill="none"><rect x="2" y="8" width="36" height="24" rx="5" fill="#F3D35B" stroke="#1C1C1A" stroke-width="2"/><path d="M13 8 L16 3 H24 L27 8" stroke="#1C1C1A" stroke-width="2" stroke-linejoin="round"/><circle cx="20" cy="20" r="6.5" fill="#FBF9F3" stroke="#1C1C1A" stroke-width="2"/></svg>`;
 
 let scan = {photo: null, thumb: null, cands: [], cand: null, p: null};
 function scanErr(m){ $("scan-err").textContent = m; $("scan-err").hidden = !m; }
@@ -1538,6 +1539,42 @@ $("s-scan-res").addEventListener("click", e => {
   if(e.target.closest("#res-again")) return openScan();
   const cz = e.target.closest("[data-cousine]"); if(cz) return pickCoin(PLANTS[+cz.dataset.cousine]);
   const k = e.target.closest("[data-key]"); if(k){ const sp = espaces().find(x => x.key === k.dataset.key); if(sp) addToCoin(scan.pickFor, sp); }
+});
+
+// ---------- 15 · La communauté ----------
+// On prépare un message (photo du coin, son soleil, sa terre, ta question) ; le téléphone le partage au groupe de ton choix. Rien ne passe par nous.
+let coKey = null;
+function renderCommu(){
+  const list = espaces();
+  if(!list.some(e => e.key === coKey)) coKey = list.length ? list[0].key : null;
+  $("co-coins").innerHTML = list.length ? list.map(e => `<label class="choice"><input type="radio" name="co-coin" value="${e.key}" ${e.key === coKey ? "checked" : ""}><span><b>${esc(e.z.nom)}</b><small>${esc(EXPO[e.z.exposition][0])} · ${esc(EAU_LBL[e.z.humidite] || "")}</small></span></label>`).join("")
+    : `<p class="empty">Ajoute d’abord un coin : on joindra sa photo.</p>`;
+  $("co-send").disabled = !list.length;
+  $("co-jardins").href = "https://www.google.com/maps/search/" + encodeURIComponent("jardin partagé" + (garden && garden.cp ? " " + garden.cp : ""));
+}
+$("co-coins").addEventListener("change", e => { coKey = e.target.value; });
+$("co-send").addEventListener("click", async () => {
+  const e = espaces().find(x => x.key === coKey); if(!e) return;
+  const st = zoneState(e.z, e.rec), q = $("co-q").value.trim();
+  const zd = store.get("app-zones-" + e.rec.id, {})[e.z.id];
+  const plantes = ((zd && zd.ids) || []).map(([nom]) => nom);
+  const lieu = garden && garden.dept ? `, ${garden.label} (${garden.dept})` : "";
+  const terre = ({d: "terre sèche l’été", f: "terre fraîche", w: "terre humide"})[st.eau];
+  const text = [`Bonjour ! J’aimerais votre avis sur un coin de mon jardin${lieu}.`, "",
+    `« ${e.z.nom} » : ${EXPO[st.expo][0].toLowerCase()}, ${terre}${SOL_LBL[st.sol] ? `, sol ${SOL_LBL[st.sol].toLowerCase()}` : ""}${CLIM_LBL[st.clim] ? `, climat ${CLIM_LBL[st.clim].toLowerCase()}` : ""}.`,
+    ...(plantes.length ? [`Plantes prévues : ${plantes.join(", ")}.`] : []), "",
+    q ? `Ma question : ${q}` : "Qu’en pensez-vous ?", "", `Préparé avec Coup de pousse : ${location.origin}/app/`].join("\n");
+  let files = [];
+  try{ const src = spacePhoto(e); if(src && src.startsWith("data:")){ const b = await (await fetch(src)).blob(); files = [new File([b], "mon-coin.jpg", {type: b.type || "image/jpeg"})]; } }catch(err){}
+  try{
+    if(navigator.share){
+      const data = {title: "Un avis sur mon coin", text};
+      if(files.length && navigator.canShare && navigator.canShare({files})) data.files = files;
+      await navigator.share(data); return;
+    }
+  }catch(err){ if(err.name === "AbortError") return; }
+  try{ await navigator.clipboard.writeText(text); showToast("Message copié : colle-le dans ton groupe de jardiniers."); }
+  catch(err){ showToast("Le partage n’est pas possible ici."); }
 });
 
 // ---------- Un lien humain ----------

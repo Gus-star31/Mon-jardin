@@ -682,7 +682,6 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 .pick small{font-size:16px;line-height:23px;color:var(--encre-douce)}
 .pick:active{transform:scale(.985)}
 .link.center{display:block;margin:20px auto 0}
-.tile-scan svg{margin-bottom:4px}
 .scan-actions label.link{display:inline-flex;align-items:center}
 /* Besoin d’un avis ? */
 .conseiller{position:static;display:flex;flex-direction:row;gap:14px;align-items:flex-start;margin-top:24px;padding:16px;border-radius:14px;background:var(--carte);border:1px solid var(--filet)}
@@ -694,3 +693,16 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 #garden-clim .field{margin-top:4px}
 #clim-manual{align-self:flex-start;margin-top:8px}
 #a-clim{margin-top:8px}
+/* En-tête de la home : scanner une plante, et les conseils */
+.home-scan{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;margin-top:4px;padding:10px 16px;border:0;border-radius:99px;background:var(--papier);color:var(--prusse);font:inherit;font-size:16px;font-weight:600;white-space:nowrap;cursor:pointer}
+.home-scan:active{transform:scale(.98)}
+/* 15 · La communauté */
+.commu-ask{display:flex;flex-direction:column;gap:14px;margin-top:24px;padding:18px 16px;border:1.3px solid var(--encre);border-radius:14px;background:var(--carte)}
+.commu-ask h3{margin:0;font-size:22px;line-height:28px}
+.commu-ask > p{margin:0;font-size:15px;line-height:21px;color:var(--encre-douce)}
+.commu-ask fieldset{margin:0}
+.commu-ask .choices{display:flex;flex-direction:column;gap:8px}
+.commu-ask textarea{width:100%;box-sizing:border-box;padding:10px 12px;border:1.3px solid var(--encre);border-radius:10px;background:var(--papier);font:inherit;font-size:16px;line-height:22px;color:var(--encre);resize:vertical}
+.co-privacy{margin:0;padding:10px 12px;border-radius:10px;background:var(--soleil-pale);font-size:14px;line-height:20px}
+.co-near{margin:0;font-size:15px;line-height:21px;color:var(--encre-douce)}
+#s-commu .scan-sec .link{align-self:flex-start;font-size:15px}
