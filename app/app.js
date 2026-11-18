@@ -26,6 +26,8 @@ const idb = (() => {
     delPrefix: p => op("readwrite", st => { const rq = st.openCursor(); rq.onsuccess = () => { const c = rq.result; if(!c) return; if(String(c.key).startsWith(p)) c.delete(); c.continue(); }; return null; }).catch(() => null)
   };
 })();
+// Sur l'aperçu local, les fonctions /api de Vercel n'existent pas : le serveur répond 501.
+const NO_API = "L’IA ne répond pas dans l’aperçu local : teste cette étape sur coupdepousse.vercel.app.";
 const esc = t => String(t ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const norm = t => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
 
@@ -127,7 +129,7 @@ const espaces = () => {
 };
 
 // ---------- Navigation ----------
-const SCREENS = ["s-ouverture","s-login","s-prenom","s-conseils","s-plantes","s-plante","s-compte","s-sources","s-photo","s-envies","s-garden","s-analyse","s-espace","s-jardin","s-scan","s-scan-id","s-scan-res","s-notifs","s-cherche"];
+const SCREENS = ["s-ouverture","s-login","s-prenom","s-conseils","s-plantes","s-plante","s-compte","s-sources","s-photo","s-envies","s-garden","s-analyse","s-espace","s-jardin","s-scan","s-scan-id","s-scan-res","s-notifs","s-cherche","s-credits","s-paiement"];
 function show(id, push = true){
   const was = SCREENS.find(s => !$(s).hidden);
   SCREENS.forEach(s => { $(s).hidden = s !== id; });
@@ -361,17 +363,17 @@ function renderPhoto(){
         <span class="ph-hint" id="ph-nom-hint">3 mots au plus</span></div>
       <button class="ph-del" type="button" id="ph-del" aria-label="Retirer la photo">×</button>
     </div>
+    ${canMeasure ? `<div class="compass" id="compass" ${p.direction ? "hidden" : ""}>${COMPASS}<div class="cp-txt"><b>Oriente ton coin avec la boussole</b>
+      <span class="ph-live" id="live">Téléphone à plat, face au coin : on en déduit son soleil.</span>
+      <p class="cp-read" id="cp-read" aria-live="polite" hidden><span class="cp-dir" id="cp-dir"></span><span class="cp-deg" id="cp-deg"></span></p>
+      <button class="btn primary sm" type="button" id="measure" hidden></button></div></div>` : ""}
     <div class="ph-side ph-dir">
-      <label class="ph-q" for="dir">Ton coin regarde vers…</label>
+      <label class="ph-q" for="dir" id="dir-lbl">${canMeasure && !p.direction ? "Ou choisis dans la liste" : "Ton coin regarde vers…"}</label>
       <select id="dir">
         <option value="" ${!p.direction ? "selected" : ""}>Je ne sais pas</option>
         ${DIRS.map(d => `<option value="${d}" ${p.direction === d ? "selected" : ""}>${DIR_LONG[d].charAt(0).toUpperCase() + DIR_LONG[d].slice(1)}</option>`).join("")}
       </select>
     </div>
-    ${canMeasure ? `<div class="compass" id="compass" ${p.direction ? "hidden" : ""}>${COMPASS}<div class="cp-txt"><b>Ou laisse la boussole t’aider</b>
-      <span class="ph-live" id="live">Mets-toi face au coin.</span>
-      <p class="cp-read" id="cp-read" aria-live="polite" hidden><span class="cp-dir" id="cp-dir"></span><span class="cp-deg" id="cp-deg"></span></p>
-      <button class="linkish" type="button" id="measure" hidden></button></div></div>` : ""}
     ${p.note || p.showNote ? `<textarea id="note" maxlength="300" aria-label="Précision sur ce coin" placeholder="Par exemple : je veux cacher le balcon du voisin">${esc(p.note)}</textarea>`
       : `<button class="linkish add" type="button" id="add-note">+ Ajouter une précision</button>`}
   </article>` : "";
@@ -387,7 +389,7 @@ $("ph-card").addEventListener("click", e => {
 $("ph-card").addEventListener("change", e => {
   if(e.target.id !== "dir") return;
   photo.direction = e.target.value || null;
-  if($("compass")){ $("compass").hidden = !!photo.direction; startCompass(); }
+  if($("compass")){ $("compass").hidden = !!photo.direction; $("dir-lbl").textContent = photo.direction ? "Ton coin regarde vers…" : "Ou choisis dans la liste"; startCompass(); }
 });
 $("ph-card").addEventListener("input", e => { if(e.target.id === "note") photo.note = e.target.value; if(e.target.id === "ph-nom"){ photo.nom = e.target.value; $("ph-nom-hint").classList.toggle("err", mots(e.target.value).length > 3); } });
 // Boussole : téléphone à plat, le haut tourné vers le coin photographié. La rose tourne, le repère du haut montre l'orientation.
@@ -464,6 +466,7 @@ function styleWarn(){
 styleHint();
 function renderEnvies(){
   setProgress("pg-envies", "Tes envies");
+  drawCost("env-cost", 2, "l’analyse et l’image de ce coin");
   $("env-err").hidden = true;
   styleWarn();
 }
@@ -596,15 +599,17 @@ async function runAnalyse(errId, back){
     const raw = await r.text(); let d = {}; try{ d = JSON.parse(raw); }catch(e){}
     if(!r.ok){
       let msg = d.erreur;
+      if(!msg && r.status === 501) msg = NO_API;
       if(!msg){
         if(r.status === 504 || /TIMEOUT/i.test(raw)) msg = "Pardon, ça a pris trop de temps. Rien de grave : réessaie dans un instant.";
         else if(r.status === 413 || /PAYLOAD_TOO_LARGE/i.test(raw)) msg = "Cette photo est trop lourde. Essaie avec une capture d’écran.";
         else msg = `Pardon, l’analyse n’a pas abouti (erreur ${r.status}).`;
       }
-      const vcode = (raw.match(/[A-Z_]{8,}/) || [""])[0];
+      const vcode = r.status === 501 ? "" : (raw.match(/[A-Z_]{8,}/) || [""])[0];
       show(back); err(msg + (d.detail ? ` Détail technique : ${d.detail}` : vcode ? ` Code Vercel : ${vcode}` : ""));
       return;
     }
+    spendCredit(`Analyse d’un coin`);
     const rec = {id: Date.now().toString(36), date: new Date().toISOString(), ville, prefs: {projet: projet || "jardin", sol: garden.sol || "inconnu", arrosage: arroOf(garden.arrosage), objectifs, style: envies.style, silhouette: envies.silhouette || "nsp", extras: envies.extras || []}, analysis: d, thumbs: [photo.thumb], removed: []};
     if(!garden.clim && d.climat){ garden.clim = d.climat.zone; store.set("app-garden", garden); }
     // Le nom donné par la personne prime sur celui de l'analyse ; une photo découpée en plusieurs coins les numérote.
@@ -1042,10 +1047,11 @@ async function generateApercu(z, rec, ph){
     const r = await fetch("/api/apercu", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(payload), signal: ctrl.signal});
     const raw = await r.text(); let d = {}; try{ d = JSON.parse(raw); }catch(e){}
     if(!r.ok || !d.image){
-      const msg = d.erreur || (r.status === 504 || /TIMEOUT/i.test(raw) ? "Le dessin a pris trop de temps. Réessaie." : `Pardon, le dessin n’a pas abouti (erreur ${r.status}).`);
+      const msg = d.erreur || (r.status === 501 ? NO_API : r.status === 504 || /TIMEOUT/i.test(raw) ? "Le dessin a pris trop de temps. Réessaie." : `Pardon, le dessin n’a pas abouti (erreur ${r.status}).`);
       throw new Error(msg + (d.detail ? ` Détail technique : ${d.detail}` : ""));
     }
     const image = await shrinkImage(`data:${d.mime || "image/png"};base64,${d.image}`);
+    spendCredit(`Image de « ${z.label} » dans ${state.age} an${+state.age > 1 ? "s" : ""}`);
     await idb.set(apKey(rec, z, sig), {sig, image, date: new Date().toISOString()});
   }catch(e){
     apBusy = false; load.remove();
@@ -1117,6 +1123,7 @@ function renderJardin(){
   const todo = demo ? [] : aPlanter();
   $("j-todo").innerHTML = todo.length && !editing ? `<button class="todo-card" type="button" data-tab-go="s-plantes"><span><b>${todo.length} plante${todo.length > 1 ? "s" : ""} à planter</b><small>Ta liste pour la jardinerie</small></span><span aria-hidden="true">→</span></button>` : "";
   $("j-notif").hidden = $("j-search").hidden = editing || demo || !list.length;
+  $("j-credits").hidden = editing || demo; drawCredits();
   drawBadge();
   if(!$("j-gardener").innerHTML) $("j-gardener").innerHTML = JARDINIER;
   const tiles = list.map(e => {
@@ -1215,7 +1222,7 @@ $("sheet-ok").addEventListener("click", () => {
 // ---------- Menu : Mon jardin, Mes plantes, Mon compte (les conseils s'ouvrent depuis l'accueil) ----------
 const TABS = ["s-jardin", "s-plantes", "s-compte"];
 // Écrans qui se redessinent à chaque arrivée (menu, retour, lien interne).
-const RENDER = {"s-jardin": () => renderJardin(), "s-plantes": () => renderPlantes(), "s-conseils": () => renderConseils(), "s-compte": () => renderCompte(), "s-plante": () => renderPlante(), "s-notifs": () => renderNotifs(), "s-cherche": () => renderCherche()};
+const RENDER = {"s-jardin": () => renderJardin(), "s-plantes": () => renderPlantes(), "s-conseils": () => renderConseils(), "s-compte": () => renderCompte(), "s-plante": () => renderPlante(), "s-notifs": () => renderNotifs(), "s-cherche": () => renderCherche(), "s-credits": () => renderCredits(), "s-paiement": () => renderPaiement()};
 function goTab(id){ editing = false; RENDER[id](); show(id); }
 function drawTabbar(id){
   const on = TABS.includes(id) && !demo;
@@ -1488,6 +1495,7 @@ function renderCompte(){
     <section class="acct-sec"><div class="title-row"><h3>Ton prénom</h3><button class="edit-link" type="button" data-act="prenom">${prenom ? "Modifier" : "Ajouter"}</button></div><p>${prenom ? esc(prenom) : "Pas encore renseigné"}</p></section>
     <section class="acct-sec"><h3>Connexion</h3><p>${known === "google" ? "Connexion avec Google" : esc(known || "")}</p></section>
     <section class="acct-sec"><div class="title-row"><h3>Ton jardin</h3><button class="edit-link" type="button" data-act="reglages">Modifier</button></div><p>${esc(cond)}</p></section>
+    <section class="acct-sec"><div class="title-row"><h3>Tes crédits</h3><button class="edit-link" type="button" data-act="credits">Recharger</button></div><p>${credits.solde} crédit${credits.solde > 1 ? "s" : ""} restant${credits.solde > 1 ? "s" : ""}</p></section>
     <section class="acct-sec"><h3>Tes données</h3><p>Ton jardin reste sur ce téléphone. Tes photos ne servent qu’à l’analyse, on ne les garde pas.</p></section>
     <section class="acct-sec"><h3>Les sources</h3><p>Photos, données des plantes et IA.</p><button class="link" type="button" data-act="sources">Voir les sources</button></section>
     <button class="btn secondary" type="button" data-act="logout">Se déconnecter</button>
@@ -1499,6 +1507,7 @@ $("a-body").addEventListener("click", e => {
   if(b.dataset.act === "prenom") openPrenom(true);
   if(b.dataset.act === "delete"){ openDeleteAccount(b); return; }
   if(b.dataset.act === "sources"){ renderSources(); show("s-sources"); }
+  if(b.dataset.act === "credits") openCredits("s-compte");
   if(b.dataset.act === "aide"){ startCoach(); showToast("Les cartes d’aide reviendront quand tu ajouteras un coin."); }
   if(b.dataset.act === "logout"){ store.set("app-out", true); setLoginMode(false); loginForm(true); show("s-login"); }
 });
@@ -1641,6 +1650,7 @@ function openScan(from = "s-jardin"){
   scanFrom = from;
   const back = $("s-scan").querySelector(".back"); back.dataset.go = from; back.querySelector("span").textContent = from === "s-cherche" ? "Ta recherche" : "Ton jardin";
   scan = {photo: null, thumb: null, cands: [], cand: null, p: null};
+  drawCost("scan-cost", 1, "la reconnaissance");
   $("scan-img").hidden = true; $("scan-img").removeAttribute("src"); $("scan-view").classList.remove("has");
   scanIdle(); scanErr(""); show("s-scan");
 }
@@ -1654,9 +1664,10 @@ async function onScanFile(e){
   try{
     const r = await fetch("/api/plante", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({photo: big.split(",")[1]}), signal: ctrl.signal});
     const d = await r.json().catch(() => ({}));
-    if(!r.ok) throw new Error(d.erreur || "On n’a pas pu regarder ta photo. Réessaie.");
+    if(!r.ok) throw new Error(d.erreur || (r.status === 501 ? NO_API : "On n’a pas pu regarder ta photo. Réessaie."));
     if(!d.plante || !(d.candidats || []).length) throw new Error("On ne voit pas bien de plante sur cette photo. Rapproche-toi d’elle.");
     scan.photo = big; scan.cands = d.candidats;
+    spendCredit(`Reconnaissance d’une plante`);
     scanIdle(); renderScanId(); show("s-scan-id");
   }catch(err){
     scanIdle(); scanErr(err.name === "AbortError" ? "Ça prend trop de temps. Réessaie dans un instant." : err.message);
@@ -1817,6 +1828,87 @@ $("q-res").addEventListener("click", e => {
   showVerdict({nom: p.nom, latin: p.latin});
 });
 $("q-scan").addEventListener("click", () => openScan("s-cherche"));
+
+// ---------- 18 · Crédits ----------
+// 1 crédit = 1 action faite par une IA (analyse d'un coin, image avant/après, reconnaissance d'une plante) ; le reste est gratuit.
+// Gardés sur le téléphone le temps des tests (rien n'est bloqué à 0) ; ils passeront côté serveur avec les comptes et le paiement.
+const CREDITS_OFFERTS = 6;
+const PACKS = [
+  {id: "pot", nom: "Petit pot", credits: 10, prix: 2.99, pour: "Un coin de plus et quelques images"},
+  {id: "jardiniere", nom: "Jardinière", credits: 30, prix: 6.99, pour: "Tout un jardin, plusieurs saisons", pop: true},
+  {id: "massif", nom: "Grand massif", credits: 80, prix: 14.99, pour: "Pour les grands terrains et les curieux"}
+];
+const COUTS = [["Analyse d’un coin par photo", 1], ["Image avant/après (par âge)", 1], ["Reconnaissance d’une plante", 1], ["Propositions, plan, conseils, suivi", 0]];
+let credits = store.get("app-credits", null) || {solde: CREDITS_OFFERTS, hist: [{d: new Date().toISOString(), t: "Crédits de bienvenue", n: CREDITS_OFFERTS}]};
+const saveCredits = () => store.set("app-credits", credits);
+saveCredits();
+const prixTxt = n => new Intl.NumberFormat("fr-FR", {style: "currency", currency: "EUR"}).format(n);
+function addCredits(n, t){ credits.solde += n; credits.hist.unshift({d: new Date().toISOString(), t, n}); credits.hist = credits.hist.slice(0, 30); saveCredits(); drawCredits(); }
+function spendCredit(t){
+  const vide = credits.solde <= 0;
+  credits.solde = Math.max(0, credits.solde - 1);
+  credits.hist.unshift({d: new Date().toISOString(), t, n: vide ? 0 : -1}); credits.hist = credits.hist.slice(0, 30);
+  saveCredits(); drawCredits();
+  // Pas de blocage pendant les tests : à 0, l'action reste offerte, avec un rappel discret.
+  if(vide) setTimeout(() => showToast("Plus de crédits : c’est offert pendant les tests."), 1200);
+}
+function drawCredits(){
+  const n = credits.solde, el = $("j-credits");
+  $("j-credits-n").textContent = n;
+  el.classList.toggle("low", n <= 1);
+  el.setAttribute("aria-label", `${n} crédit${n > 1 ? "s" : ""}, recharger`);
+}
+// Le coût, dit avant d'agir : « 2 crédits · il t'en reste 6 ».
+function drawCost(id, n, quoi){
+  const s = credits.solde, box = $(id);
+  box.className = "cost" + (s < n ? " low" : "");
+  box.innerHTML = `${LEAF_SVG}<span>${s < n ? `Plus assez de crédits pour ${quoi} : c’est offert pendant les tests.` : `${n} crédit${n > 1 ? "s" : ""} pour ${quoi} · il t’en reste ${s}`}</span>`;
+}
+const LEAF_SVG = `<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13 C 3 6, 8 2, 14 2 C 14 9, 10 13, 3 13 Z" fill="#D5E3CF" stroke="#1C1C1A" stroke-width="1.4" stroke-linejoin="round"/><path d="M3 13 L 10 6" stroke="#1C1C1A" stroke-width="1.4" stroke-linecap="round"/></svg>`;
+let crFrom = "s-jardin", packChoisi = null, payDone = false;
+function openCredits(from){
+  crFrom = from || "s-jardin";
+  $("cr-back").dataset.go = crFrom; $("cr-back").querySelector("span").textContent = crFrom === "s-compte" ? "Ton compte" : "Ton jardin";
+  renderCredits(); show("s-credits");
+}
+$("j-credits").addEventListener("click", () => openCredits("s-jardin"));
+function renderCredits(){
+  const n = credits.solde;
+  $("cr-body").innerHTML = `<div class="cr-solde${n <= 1 ? " low" : ""}"><span class="eyebrow">Il te reste</span><strong>${n}</strong><span>crédit${n > 1 ? "s" : ""}</span></div>
+    <section class="scan-sec"><h3>Ça coûte</h3><div class="scan-card">${COUTS.map(([t, c]) => `<div class="sc-row"><span><b>${t}</b></span><span class="tag ${c ? "" : "sauge"}">${c ? `${c} crédit` : "Gratuit"}</span></div>`).join("")}</div></section>
+    <section class="scan-sec"><h3>Recharger</h3><p class="hint">Sans abonnement : tu paies une fois, tes crédits ne périment pas.</p>
+      <div class="packs">${PACKS.map(p => `<button class="pack${p.pop ? " pop" : ""}" type="button" data-pack="${p.id}">
+        ${p.pop ? `<span class="pack-pop">Le plus choisi</span>` : ""}
+        <span class="pack-txt"><b>${p.nom}</b><small>${p.pour}</small></span>
+        <span class="pack-num"><strong>${p.credits}</strong><small>crédits</small></span>
+        <span class="pack-prix">${prixTxt(p.prix)}</span></button>`).join("")}</div></section>
+    <section class="scan-sec"><h3>Historique</h3><div class="scan-card">${credits.hist.slice(0, 8).map(h => `<div class="sc-row"><span><b>${esc(h.t)}</b><small>${new Date(h.d).toLocaleDateString("fr-FR", {day: "numeric", month: "long"})}</small></span><span class="cr-mv${h.n > 0 ? " plus" : ""}">${h.n > 0 ? "+" + h.n : h.n < 0 ? h.n : "offert"}</span></div>`).join("")}</div></section>`;
+}
+$("cr-body").addEventListener("click", e => { const b = e.target.closest("[data-pack]"); if(!b) return; packChoisi = PACKS.find(p => p.id === b.dataset.pack); payDone = false; renderPaiement(); show("s-paiement"); });
+
+// ---------- 19 · Paiement ----------
+// Mode test : aucun moyen de paiement n'est demandé ni enregistré. Le vrai paiement passera par un prestataire (Stripe par exemple), sur sa propre page.
+function renderPaiement(){
+  const p = packChoisi; if(!p){ $("pay-body").innerHTML = ""; return; }
+  if(payDone){
+    $("pay-body").innerHTML = `<div class="pay-ok"><span class="pay-check">${CHECK}</span><h1>Merci <em>!</em></h1>
+      <p class="lede">${p.credits} crédits ajoutés. Il t’en reste ${credits.solde}.</p>
+      <button class="btn primary" type="button" data-pay="home">Retour à mon jardin</button></div>`;
+    return;
+  }
+  $("pay-body").innerHTML = `<header class="head"><h1>Ton <em>pack</em></h1></header>
+    <div class="pay-recap"><div><b>${p.nom}</b><small>${p.credits} crédits · ${p.pour.charAt(0).toLowerCase() + p.pour.slice(1)}</small></div><strong>${prixTxt(p.prix)}</strong></div>
+    <div class="scan-card"><div class="sc-row"><span><b>Après l’achat</b><small>${credits.solde} + ${p.credits} = ${credits.solde + p.credits} crédits</small></span></div>
+      <div class="sc-row"><span><b>Paiement unique</b><small>Pas d’abonnement, pas de renouvellement automatique.</small></span></div></div>
+    <p class="pay-test">Mode test : aucun paiement n’est encaissé et aucune carte n’est demandée. Les crédits sont ajoutés pour essayer le parcours.</p>
+    <button class="btn primary pay-go" type="button" data-pay="go">Payer ${prixTxt(p.prix)}</button>
+    <p class="hint pay-note">Le paiement se fera sur la page sécurisée de notre prestataire. Coup de pousse ne voit jamais ta carte.</p>`;
+}
+$("pay-body").addEventListener("click", e => {
+  const b = e.target.closest("[data-pay]"); if(!b) return;
+  if(b.dataset.pay === "go" && packChoisi && !payDone){ payDone = true; addCredits(packChoisi.credits, `Pack ${packChoisi.nom} (test)`); renderPaiement(); window.scrollTo(0, 0); }
+  if(b.dataset.pay === "home") goTab("s-jardin");
+});
 
 // ---------- Un lien humain ----------
 // « Besoin d’un avis ? » : une jardinerie près de chez toi, trouvée par le code postal du jardin (ou là où tu es).

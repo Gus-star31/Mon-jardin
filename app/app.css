@@ -780,3 +780,56 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 .sol-test summary{cursor:pointer;color:var(--prusse);text-decoration:underline;text-underline-offset:3px;list-style:none}
 .sol-test summary::-webkit-details-marker{display:none}
 .sol-test p{margin:8px 0 0}
+
+/* Ta photo : la boussole en premier, bien visible */
+.ph .compass{flex-direction:row;align-items:flex-start;gap:14px;padding:14px;border:1.3px solid var(--encre);border-radius:14px;background:var(--soleil-pale)}
+.ph .compass[hidden]{display:none}
+.ph .compass .dial{width:64px;height:64px}
+.ph .cp-txt{gap:4px}
+.ph .cp-txt .btn{align-self:flex-start;margin-top:6px}
+
+/* Crédits : compteur dans l'en-tête de l'accueil */
+.top-credits{display:flex;align-items:center;gap:5px;margin-left:auto;min-height:32px;padding:0 10px;border:1.3px solid var(--papier);border-radius:16px;background:transparent;color:var(--papier);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+.top-credits[hidden]{display:none}
+.top-credits.low{background:var(--peche);border-color:var(--peche);color:var(--encre)}
+.top-credits:not([hidden]) + .top-scan{margin-left:6px}
+/* Coût d'une action, dit avant d'agir */
+.cost{display:flex;align-items:center;gap:8px;margin:0;font-size:14px;line-height:19px;color:var(--encre-douce)}
+.cost:empty{display:none}
+.cost svg{flex:none}
+.cost.low{color:var(--terre)}
+#scan-cost{margin-top:12px}
+/* Tes crédits */
+.cr-solde{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:18px;border-radius:14px;background:var(--prusse);color:var(--papier)}
+.cr-solde .eyebrow{width:100%;color:var(--prusse-pale)}
+.cr-solde strong{font-family:var(--f-serif);font-weight:400;font-size:56px;line-height:56px}
+.cr-solde span:last-child{font-size:17px}
+.cr-solde.low{background:var(--peche);color:var(--encre)}
+.cr-solde.low .eyebrow{color:var(--encre-douce)}
+.packs{display:flex;flex-direction:column;gap:10px}
+.pack{position:relative;display:grid;grid-template-columns:1fr auto;grid-template-areas:"txt num" "prix num";gap:4px 12px;align-items:center;width:100%;padding:14px 16px;border:1.3px solid var(--encre);border-radius:14px;background:var(--carte);font:inherit;color:var(--encre);text-align:left;cursor:pointer}
+.pack.pop{border-width:2px;border-color:var(--prusse);background:var(--ciel-pale)}
+.pack-pop{position:absolute;top:-11px;left:14px;padding:2px 10px;border-radius:11px;background:var(--prusse);color:var(--papier);font-size:12px;font-weight:600}
+.pack-txt{grid-area:txt;display:flex;flex-direction:column;gap:2px}
+.pack-txt b{font-size:17px;font-weight:600}
+.pack-txt small{font-size:15px;line-height:20px;color:var(--encre-douce)}
+.pack-num{grid-area:num;display:flex;flex-direction:column;align-items:center}
+.pack-num strong{font-family:var(--f-serif);font-weight:400;font-size:34px;line-height:36px}
+.pack-num small{font-size:13px;color:var(--encre-douce)}
+.pack-prix{grid-area:prix;font-size:16px;font-weight:600;color:var(--prusse)}
+.pack:active{transform:scale(.985)}
+.cr-mv{font-weight:600;font-variant-numeric:tabular-nums;color:var(--encre-douce)}
+.cr-mv.plus{color:var(--prusse)}
+/* Paiement */
+.pay-recap{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;padding:16px;border-radius:14px;background:var(--prusse);color:var(--papier)}
+.pay-recap div{display:flex;flex-direction:column;gap:2px}
+.pay-recap b{font-size:18px}
+.pay-recap small{font-size:15px;color:var(--prusse-pale)}
+.pay-recap strong{font-family:var(--f-serif);font-weight:400;font-size:32px;white-space:nowrap}
+.pay-test{margin:16px 0 0;padding:10px 12px;border-radius:10px;background:var(--soleil-pale);font-size:14px;line-height:20px}
+.pay-go{width:100%;margin-top:16px}
+.pay-note{margin-top:10px;text-align:center}
+.pay-ok{display:flex;flex-direction:column;align-items:center;gap:12px;padding-top:40px;text-align:center}
+.pay-check{display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:var(--sauge);border:1.5px solid var(--encre)}
+.pay-check svg{width:28px;height:28px}
+.pay-ok .btn{margin-top:12px;align-self:stretch}
