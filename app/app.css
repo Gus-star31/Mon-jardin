@@ -731,7 +731,7 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 .pl-chev{flex:none;font-size:26px;line-height:1;color:var(--encre-douce)}
 .pl-cta{align-self:center;margin-top:16px}
 /* Conseils plante par plante */
-.tip .tip-for{font-size:15px;line-height:20px;color:var(--prusse)}
+.tip .tip-for{margin:2px 0 2px;font-size:17px;line-height:23px;font-weight:600;color:var(--encre)}
 .tip.later{background:none}
 .sc-row.now b{color:var(--prusse);font-weight:600}
 .pd-actions{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-top:24px}
@@ -746,16 +746,6 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 .home-search span{flex:1}
 .home-search .hs-scan{color:var(--prusse)}
 .home-search:active{transform:scale(.99)}
-/* Centre de notifications */
-.notifs{display:flex;flex-direction:column;gap:10px}
-.notif{position:relative;display:flex;align-items:flex-start;gap:12px;width:100%;padding:14px;border:1px solid var(--filet);border-radius:14px;background:var(--carte);font:inherit;color:var(--encre);text-align:left;cursor:pointer}
-.notif.new{border:1.3px solid var(--encre)}
-.n-ico{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--sauge)}
-.n-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-.n-txt b{font-size:17px;line-height:22px;font-weight:600}
-.n-txt small{font-size:15px;line-height:20px;color:var(--encre-douce)}
-.n-cta{margin-top:4px;font-size:15px;color:var(--prusse)}
-.n-dot{flex:none;width:10px;height:10px;margin-top:6px;border-radius:50%;background:var(--prusse)}
 /* Une plante en tête */
 .q-scan{align-self:flex-start;margin-top:16px}
 .q-res{margin-top:20px}
@@ -843,3 +833,47 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 .deja-item .pl-pic{width:44px;height:44px}
 .deja-item .btn{flex:none;min-height:34px}
 .ph-deja .chips{margin-top:6px}
+
+/* Une plante en tête : champ avec bouton Chercher */
+.q-box{display:flex;align-items:center;gap:10px;padding:6px 6px 6px 14px;border:1.5px solid var(--encre);border-radius:28px;background:var(--carte);color:var(--encre-douce)}
+.q-box input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:17px;color:var(--encre);padding:8px 0}
+.q-box input:focus-visible{outline:none}
+.q-box:focus-within{box-shadow:0 0 0 3px var(--ciel-pale)}
+.q-box .btn{flex:none}
+.q-or{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--discret);font-size:14px}
+.q-or::before,.q-or::after{content:"";flex:1;height:1px;background:var(--filet)}
+#s-cherche .q-scan{width:100%;margin-top:0}
+#q-cost{margin-top:10px;justify-content:center}
+.q-h{margin:4px 0 10px;font-family:var(--f-serif);font-weight:400;font-size:22px;line-height:26px}
+.q-more{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0 0;font-size:15px;color:var(--encre-douce)}
+.q-none{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:16px;border:1px dashed var(--filet);border-radius:14px}
+.q-none p{margin:0;font-size:16px;line-height:22px;color:var(--encre-douce)}
+.q-wait{margin:0;font-size:16px;color:var(--encre-douce)}
+.q-ai{white-space:normal;text-align:center}
+
+/* Fiche verdict : le verdict en clair, puis pourquoi */
+.verdict{display:flex;gap:12px;align-items:flex-start;margin-top:4px;padding:14px 16px;border:1.3px solid var(--encre);border-radius:14px;background:var(--carte)}
+.verdict.sauge{background:var(--sauge)}.verdict.soleil{background:var(--soleil-pale)}.verdict.peche{background:var(--peche)}
+.v-ico{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--papier);border:1.3px solid var(--encre);font-size:15px;font-weight:700}
+.verdict b{display:block;font-size:19px;line-height:24px;font-weight:600}
+.v-why{margin:6px 0 0;font-size:16px;line-height:22px}
+.v-why span{font-weight:600}
+.cousines{display:flex;flex-direction:column;gap:12px}
+
+/* Accueil : le conseil du mois, court et cliquable (le détail est dans Tes conseils) */
+.tip-link{width:100%;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.tip-link:active{transform:scale(.99)}
+
+/* Vignettes de coin : ce qui demande de l'attention */
+.tile-pic{position:relative}
+.tile-flag{position:absolute;left:8px;top:8px;display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 4px;border:1.3px solid var(--encre);border-radius:14px;font-size:13px;font-weight:600;line-height:18px;color:var(--encre)}
+.tile-flag.soin{background:var(--soleil)}
+.tile-flag.pot{background:var(--papier);padding-left:9px}
+.tile-flag i{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--encre);color:var(--soleil);font-style:normal;font-size:12px}
+/* Dans le coin : ce mois-ci */
+.coin-soins{display:flex;flex-direction:column;gap:6px;width:100%;margin-bottom:16px;padding:14px 16px;border:1.3px solid var(--encre);border-radius:14px;background:var(--soleil-pale);font:inherit;color:var(--encre);text-align:left;cursor:pointer}
+.coin-soins[hidden]{display:none}
+.cs-row{display:flex;flex-direction:column;gap:1px}
+.cs-row b{font-size:17px;font-weight:600}
+.cs-row span{font-size:15px;line-height:20px;color:var(--encre-douce)}
+.cs-more{align-self:flex-end;font-size:15px;color:var(--prusse)}

@@ -129,7 +129,7 @@ const espaces = () => {
 };
 
 // ---------- Navigation ----------
-const SCREENS = ["s-ouverture","s-login","s-prenom","s-conseils","s-plantes","s-plante","s-compte","s-sources","s-photo","s-envies","s-garden","s-analyse","s-espace","s-jardin","s-scan","s-scan-id","s-scan-res","s-notifs","s-cherche","s-credits","s-paiement"];
+const SCREENS = ["s-ouverture","s-login","s-prenom","s-conseils","s-plantes","s-plante","s-compte","s-sources","s-photo","s-envies","s-garden","s-analyse","s-espace","s-jardin","s-scan","s-scan-id","s-scan-res","s-cherche","s-credits","s-paiement"];
 function show(id, push = true){
   const was = SCREENS.find(s => !$(s).hidden);
   SCREENS.forEach(s => { $(s).hidden = s !== id; });
@@ -556,7 +556,6 @@ $("garden-next").addEventListener("click", () => {
   store.set("app-garden", garden);
   projet = gdraft.projet; store.set("app-projet", projet);
   syncSecurite();
-  drawConseiller();
   const dropped = securite() && !wasSafe ? dropToxic() : 0;
   if(gardenEdit){ renderJardin(); show("s-jardin"); if(dropped) showToast("C’est noté : on a retiré les plantes toxiques de tes coins."); return; }
   renderPhoto(); show("s-photo");
@@ -706,7 +705,18 @@ function openEspace(rec, zoneId, silent = false){
   if(state.age !== apAge){ state.age = apAge; renderCurrent(); }
   ensureIdeas();
   drawDeja();
+  drawSoins();
   window.scrollTo(0, 0);
+}
+
+// ---------- Ce mois-ci dans ce coin ----------
+function drawSoins(){
+  const box = $("esp-soins");
+  if(!current || current.demo || !curZone){ box.hidden = true; return; }
+  const s = coinSoins(current.id + ":" + curZone);
+  box.hidden = !s.soins.length;
+  if(box.hidden) return;
+  box.innerHTML = `<span class="eyebrow">Ce mois-ci dans ce coin</span>${s.soins.map(o => `<span class="cs-row"><b>${esc(o.t)}</b><span>${esc(nomsTxt(o.noms))}</span></span>`).join("")}<span class="cs-more">Comment faire →</span>`;
 }
 
 // ---------- Plantes déjà là ----------
@@ -1150,6 +1160,20 @@ function spaceStats(rec, z){
   const b = zd ? zoneBudget(zd.budget) : null;
   return {plants: zd ? zd.ids.length : null, budget: b};
 }
+// Ce que demande un coin ce mois-ci : les gestes de ses plantes en terre, puis les plantes qui attendent d'être plantées.
+function coinSoins(key, m = new Date().getMonth() + 1){
+  const by = new Map();
+  for(const e of enTerre().filter(x => x.coin === key)) for(const c of gestes(e, m)){ const o = by.get(c.t) || {t: c.t, d: c.d, noms: []}; if(!o.noms.includes(e.nom)) o.noms.push(e.nom); by.set(c.t, o); }
+  return {soins: [...by.values()], aPlanter: aPlanter().filter(x => x.coin === key).length};
+}
+// Le repère sur la vignette : d'abord ce qui demande de l'attention, sinon ce qui reste à planter.
+function tileFlag(key){
+  const s = coinSoins(key);
+  const n = new Set(s.soins.flatMap(o => o.noms)).size;
+  if(n) return `<span class="tile-flag soin"><i aria-hidden="true">!</i>${n} à soigner</span>`;
+  if(s.aPlanter) return `<span class="tile-flag pot">${s.aPlanter} à planter</span>`;
+  return "";
+}
 // Le jardinier du splash, en petit, qui arrose une jeune pousse : une seule scène, discrète, au trait crème.
 const JARDINIER = (() => {
   const C = "#F3EFE6", p = (d, w = 2.2, fill = "none") => `<path d="${d}" fill="${fill}" stroke="${C}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
@@ -1183,19 +1207,18 @@ function renderJardin(){
   const care = demo ? [] : monthCare(m);
   const P = demo ? gardenPlants().map(o => o.p) : [...new Set(aPlanter().map(e => e.nom))].map(PLANT_OF).filter(Boolean);
   const tips = care.length ? care.map(o => [o.t, o.d, nomsTxt(o.noms)]) : P.length ? monthTips(P, m) : [], tip = tips.find(x => !/^En fleur/.test(x[0])) || tips[0];
-  $("j-tip").innerHTML = (tip ? `<article class="tip"><span class="eyebrow">Le conseil du mois</span><h3>${esc(tip[0])}</h3><p>${esc(tip[1])}</p>${tip[2] ? `<p class="tip-for">${esc(tip[2])}</p>` : ""}</article>` : "")
+  $("j-tip").innerHTML = (tip ? `<button class="tip tip-link" type="button" data-tab-go="s-conseils"><span class="eyebrow">Le conseil du mois</span><h3>${esc(tip[0])}</h3>${tip[2] ? `<p class="tip-for">${esc(tip[2])}</p>` : `<p>${esc(tip[1])}</p>`}</button>` : "")
     + (tip && !editing && !demo ? `<button class="link" type="button" data-tab-go="s-conseils">Tous tes conseils →</button>` : "");
   const todo = demo ? [] : aPlanter();
   $("j-todo").innerHTML = todo.length && !editing ? `<button class="todo-card" type="button" data-tab-go="s-plantes"><span><b>${todo.length} plante${todo.length > 1 ? "s" : ""} à planter</b><small>Ta liste pour la jardinerie</small></span><span aria-hidden="true">→</span></button>` : "";
-  $("j-notif").hidden = $("j-search").hidden = editing || demo || !list.length;
+  $("j-search").hidden = editing || demo || !list.length;
   $("j-credits").hidden = editing || demo; drawCredits();
-  drawBadge();
   if(!$("j-gardener").innerHTML) $("j-gardener").innerHTML = JARDINIER;
   const tiles = list.map(e => {
     const s = spaceStats(e.rec, e.z), z = e.z;
     const pic = spacePhoto(e);
     return `<div class="space-wrap"><button class="tile" type="button" data-open="${e.key}" ${editing ? 'tabindex="-1" aria-disabled="true"' : ""}>
-        <span class="tile-pic"><img src="${pic || "/photos/style-nat.jpg"}" alt="" loading="lazy" referrerpolicy="no-referrer"></span>
+        <span class="tile-pic"><img src="${pic || "/photos/style-nat.jpg"}" alt="" loading="lazy" referrerpolicy="no-referrer">${demo || editing ? "" : tileFlag(e.key)}</span>
         <b>${esc(z.nom)}</b><small>${s.plants ? `${s.plants} plante${s.plants > 1 ? "s" : ""}${demo ? "" : selections[e.key] ? (s.plants > 1 ? " validées" : " validée") : " à valider"}` : "À découvrir"}</small>
       </button>${editing ? `<button class="rm" type="button" data-rm="${e.key}" aria-label="Retirer le coin ${esc(z.nom)}">×</button>` : ""}</div>`;
   });
@@ -1207,7 +1230,6 @@ function renderJardin(){
   $("edit-toggle").textContent = editing ? "Terminer" : "Modifier";
   $("edit-toggle").classList.toggle("done", editing);
 }
-$("j-notif").addEventListener("click", () => goTab("s-notifs"));
 $("j-search").addEventListener("click", () => { dejaFor = null; goTab("s-cherche"); $("q-plante").focus(); });
 // Liens internes vers un onglet (conseils, plantes à planter, coins).
 document.addEventListener("click", e => { const g = e.target.closest("[data-tab-go]"); if(g) goTab(g.dataset.tabGo); });
@@ -1287,7 +1309,7 @@ $("sheet-ok").addEventListener("click", () => {
 // ---------- Menu : Mon jardin, Mes plantes, Mon compte (les conseils s'ouvrent depuis l'accueil) ----------
 const TABS = ["s-jardin", "s-plantes", "s-compte"];
 // Écrans qui se redessinent à chaque arrivée (menu, retour, lien interne).
-const RENDER = {"s-jardin": () => renderJardin(), "s-plantes": () => renderPlantes(), "s-conseils": () => renderConseils(), "s-compte": () => renderCompte(), "s-plante": () => renderPlante(), "s-notifs": () => renderNotifs(), "s-cherche": () => renderCherche(), "s-credits": () => renderCredits(), "s-paiement": () => renderPaiement()};
+const RENDER = {"s-jardin": () => renderJardin(), "s-plantes": () => renderPlantes(), "s-conseils": () => renderConseils(), "s-compte": () => renderCompte(), "s-plante": () => renderPlante(), "s-cherche": () => renderCherche(), "s-credits": () => renderCredits(), "s-paiement": () => renderPaiement()};
 function goTab(id){ editing = false; RENDER[id](); show(id); }
 function drawTabbar(id){
   const on = TABS.includes(id) && !demo;
@@ -1355,17 +1377,17 @@ function careFor(p, e){
   const balcon = projet === "balcon", clim = (garden && garden.clim) || "so", min = CLIM[clim] ? CLIM[clim].min : -10;
   const mois = e && e.deja ? 99 : e && e.planted ? (Date.now() - Date.parse(e.planted)) / 864e5 / 30.4 : 0;
   const w = water(p), fl = months(p), end = p.bloom ? p.bloom[1] % 12 + 1 : null;
-  if(balcon) add([5, 6, 7, 8, 9], "Arrose ses pots", "En pot, la terre sèche vite : deux à trois fois par semaine l’été, le soir.");
-  else if(mois < 12) add([5, 6, 7, 8, 9], "Arrose bien, c’est sa première année", "Une fois par semaine, généreusement, le soir : ses racines s’installent.");
-  else if(w >= 3) add([6, 7, 8], "Arrose l’été", "Elle aime la fraîcheur : un bon arrosage par semaine quand il fait chaud.");
-  else if(w === 2) add([7, 8], "Un arrosage pendant les canicules", "Le reste du temps, elle se débrouille.");
-  if(p.type === "graminee") add([2, 3], evergreen(p) ? "Peigne ses feuilles sèches" : "Coupe ses tiges", evergreen(p) ? "Avec des gants, passe les doigts dans la touffe : le vieux part, le neuf respire." : "À 10 cm du sol, avant les nouvelles pousses.");
-  if(p.type === "vivace" && !evergreen(p)) add([2, 3], "Fais place aux nouvelles pousses", "Coupe au ras les tiges sèches de l’an dernier.");
-  if(p.type === "vivace" && fl.length) add(fl, "Coupe les fleurs fanées", "Elle refleurira plus longtemps.");
-  if(end && /taill/i.test(p.note || "") && ["arbuste", "grimpante", "aromatique"].includes(p.type)) add([end], "Une petite taille", "Floraison finie : raccourcis ses rameaux d’un tiers, elle repartira plus touffue.");
-  if(e && e.role === "ecran") add([6, 9], "Taille ta haie", "Une taille légère en juin et en septembre la garde dense.");
-  if(p.type === "bulbe" && end) add([end], "Laisse jaunir ses feuilles", "Elles nourrissent le bulbe pour l’an prochain : coupe-les une fois sèches.");
-  if(p.rust > min - (balcon ? 8 : 3)) add([11, 12, 1, 2], "Protège-la du froid", balcon ? "En pot, ses racines craignent le gel : serre les pots contre le mur et entoure-les d’un voile." : `Chez toi, l’hiver peut descendre à ${degres(min)} : un voile d’hivernage et un paillage épais les nuits de gel.`);
+  if(balcon) add([5, 6, 7, 8, 9], "À arroser 2 à 3 fois par semaine", "En pot, la terre sèche vite : arrose le soir, tout l’été.");
+  else if(mois < 12) add([5, 6, 7, 8, 9], "À arroser chaque semaine", "C’est sa première année : un arrosage généreux par semaine, le soir, le temps que ses racines s’installent.");
+  else if(w >= 3) add([6, 7, 8], "À arroser l’été", "Elle aime la fraîcheur : un bon arrosage par semaine quand il fait chaud.");
+  else if(w === 2) add([7, 8], "À arroser pendant les canicules", "Le reste du temps, elle se débrouille.");
+  if(p.type === "graminee") add([2, 3], evergreen(p) ? "À peigner" : "À rabattre à 10 cm", evergreen(p) ? "Avec des gants, passe les doigts dans la touffe : les feuilles sèches partent, les nouvelles respirent." : "Coupe toute la touffe à 10 cm du sol, avant les nouvelles pousses.");
+  if(p.type === "vivace" && !evergreen(p)) add([2, 3], "Tiges sèches à couper", "Coupe au ras les tiges de l’an dernier pour laisser place aux nouvelles pousses.");
+  if(p.type === "vivace" && fl.length) add(fl, "Fleurs fanées à couper", "En les coupant au fur et à mesure, elle refleurit plus longtemps.");
+  if(end && /taill/i.test(p.note || "") && ["arbuste", "grimpante", "aromatique"].includes(p.type)) add([end], "À tailler légèrement", "Floraison finie : raccourcis ses rameaux d’un tiers, elle repartira plus touffue.");
+  if(e && e.role === "ecran") add([6, 9], "Haie à tailler", "Une taille légère en juin et en septembre la garde bien dense.");
+  if(p.type === "bulbe" && end) add([end], "Feuilles à laisser jaunir", "Elles nourrissent le bulbe pour l’an prochain : coupe-les seulement une fois sèches.");
+  if(p.rust > min - (balcon ? 8 : 3)) add([11, 12, 1, 2], "À couvrir cet hiver", balcon ? "En pot, les racines craignent le gel : serre les pots contre le mur et entoure-les d’un voile." : `Chez toi, l’hiver peut descendre à ${degres(min)} : un voile d’hivernage et un paillage épais les nuits de gel.`);
   if(fl.length) add(fl, "En fleur", "Profite-en !", true);
   return out;
 }
@@ -1548,7 +1570,7 @@ function renderConseils(){
   }
   $("c-lede").textContent = "Ce qui fera du bien à tes plantes.";
   const now = monthCare(m), later = monthCare(next);
-  const card = o => `<article class="tip"><h3>${esc(o.t)}</h3><p>${esc(o.d)}</p><p class="tip-for">${esc(nomsTxt(o.noms))}</p></article>`;
+  const card = o => `<article class="tip"><h3>${esc(o.t)}</h3><p class="tip-for">${esc(nomsTxt(o.noms))}</p><p>${esc(o.d)}</p></article>`;
   $("c-list").innerHTML = (now.length ? now.map(card).join("") : `<p class="empty">Rien à faire en ${MOIS_NOM[m - 1]} : tes plantes se débrouillent. Profite.</p>`)
     + (later.length ? `<h3 class="shop-h">En ${MOIS_NOM[next - 1]}</h3>` + later.map(o => `<article class="tip later"><h3>${esc(o.t)}</h3><p class="tip-for">${esc(nomsTxt(o.noms))}</p></article>`).join("") : "");
 }
@@ -1687,15 +1709,16 @@ function verdictOf(p, inv, tox = toxic(p)){
   return {coins, min, balcon, sol: st.sol, froid, chaud, solOk, eauOk, best, kind, tox, danger};
 }
 // La cousine : une plante du catalogue qui irait bien chez toi, de la même exposition, du même type et de la même couleur si possible.
-function cousineOf(p){
-  let best = null, score = -Infinity;
+// Des plantes de remplacement qui iraient bien chez toi : même exposition, même type et même couleur si possible.
+function cousinesOf(p, n = 3){
+  const out = [];
   for(const q of PLANTS){
     if((q.x && q.x.perso) || latinKey(q.latin) === latinKey(p.latin)) continue;
     if(verdictOf(q, false).kind !== "ok") continue;
     const s = (q.type === p.type ? 3 : 0) + (q.fam === p.fam ? 2 : 0) + ([...p.expo].some(k => q.expo.includes(k)) ? 3 : 0) + (photoOf(q) ? 1 : 0) - 2 * Math.abs(Math.log((q.h || 50) / (p.h || 50)));
-    if(s > score){ score = s; best = q; }
+    out.push([s, q]);
   }
-  return best;
+  return out.sort((a, b) => b[0] - a[0]).slice(0, n).map(x => x[1]);
 }
 
 const VERDICT = {ok: ["Elle ira bien chez toi", "sauge"], aide: ["Avec un peu d’aide", "soleil"], non: ["Pas chez toi", "peche"], inv: ["Envahissante", "peche"]};
@@ -1784,29 +1807,45 @@ function cousineCard(q){
       <p class="plinks"><a href="${shopUrl(q)}" target="_blank" rel="noopener">Acheter ↗</a><button class="linkish" type="button" data-cousine="${q.id}">L’ajouter</button></p>
     </div></article>`;
 }
+// La fiche verdict se lit dans l'ordre : la plante → le verdict → pourquoi → quoi faire (ou quoi planter à la place).
+const VERDICT_TXT = {ok: "Elle ira bien chez toi", aide: "Possible, avec un peu d’aide", non: "Elle ne poussera pas bien chez toi", inv: "À éviter : elle envahit tout"};
+function whyOf(p, v, c){
+  const why = [];
+  if(v.kind === "inv") why.push(c.envahissante_pourquoi || "Elle s’échappe du jardin et s’installe dans la nature, où elle étouffe les plantes d’ici.");
+  if(v.danger) why.push("Elle est toxique si on la mange, et il y a des enfants ou des animaux chez toi.");
+  if(v.froid) why.push(`Elle gèle sous ${degres(p.rust)} ; chez toi, l’hiver peut descendre à ${degres(v.min)}.`);
+  if(v.chaud) why.push("Elle supporte mal les étés chauds et secs de ta région.");
+  if(v.kind === "non" && !v.danger && !v.froid && !v.chaud) why.push(v.coins.length ? `Aucun de tes coins ne lui convient : ${v.coins[0].why.charAt(0).toLowerCase() + v.coins[0].why.slice(1)}.` : "Ajoute d’abord un coin : on vérifiera s’il lui convient.");
+  if(v.kind === "aide"){
+    if(!v.eauOk) why.push("Elle aura soif tout l’été : il faudra l’arroser.");
+    if(!v.solOk) why.push("Ta terre ne lui plaît qu’à moitié : il faudra l’améliorer à la plantation.");
+    if(v.eauOk && v.solOk && v.best === 1) why.push(`${v.coins[0].why}.`);
+  }
+  if(v.kind === "ok") why.push("Ton climat et ta terre lui plaisent, et au moins un de tes coins lui convient.");
+  return why;
+}
 function showVerdict(c){
   const p = fromCatalog(c) || plantFrom(c), v = verdictOf(p, c.envahissante, toxic(p) || !!c.toxique);
   scan.cand = c; scan.p = p;
-  const [lbl, col] = VERDICT[v.kind];
+  const col = VERDICT[v.kind][1];
   const cat = photoOf(p);
   $("res-img").src = scan.photo || (cat ? cat.src : ""); $("res-img").parentNode.hidden = !scan.photo && !cat;
   $("res-back").dataset.go = scanFrom; $("res-back").querySelector("span").textContent = scanFrom === "s-cherche" ? "Ta recherche" : "Ton jardin";
-  $("res-tag").textContent = lbl; $("res-tag").className = "tag " + col;
   $("res-title").innerHTML = plantTitle(c.nom); $("res-latin").textContent = p.latin;
-  $("res-lede").textContent = v.kind === "inv" ? "Elle poussera trop bien, justement."
-    : v.kind === "non" ? (v.danger ? "Toxique pour enfants et animaux." : v.froid ? "Ton hiver est trop froid pour elle." : v.chaud ? "Ton été est trop chaud pour elle." : "Aucun de tes coins ne lui convient.")
-    : v.kind === "aide" ? (!v.eauOk ? "Elle aura soif tout l’été." : !v.solOk ? "Ta terre ne lui plaît qu’à moitié." : "Elle demandera un peu d’attention.")
-    : "Ton climat et ta terre lui plaisent.";
+  const ok = v.kind === "ok" || v.kind === "aide", why = whyOf(p, v, c);
+  $("res-verdict").className = "verdict " + col;
+  $("res-verdict").innerHTML = `<span class="v-ico" aria-hidden="true">${ok ? (v.kind === "ok" ? "✓" : "!") : "✕"}</span><div><b>${VERDICT_TXT[v.kind]}</b>
+    ${why.length ? `<p class="v-why"><span>Pourquoi</span> ${why.map(esc).join(" ")}</p>` : ""}</div>`;
   const sec = (t, inner) => `<section class="scan-sec"><h3>${t}</h3>${inner}</section>`;
-  const q = v.kind === "non" || v.kind === "inv" ? cousineOf(p) : null;
   let body = "";
-  if(v.kind === "ok") body = sec("Où la planter", coinRows(v)) + sec("Ce qu’il lui faut", needRows(p, v));
-  else if(v.kind === "aide"){ const [t, d] = aideTip(p, v); body = sec("Ce qu’il lui faut", needRows(p, v)) + `<article class="tip"><span class="eyebrow">Pour l’aider</span><h3>${t}</h3><p>${d}</p></article>` + sec("Où la planter", coinRows(v)); }
-  else if(v.kind === "non") body = sec("Ce qu’il lui faut", needRows(p, v)) + (!v.danger && !v.froid && !v.chaud && v.coins.length ? sec("Où la planter", coinRows(v)) : "");
-  else body = `<p class="scan-why">${esc(c.envahissante_pourquoi || "Elle s’échappe du jardin et s’installe dans la nature, où elle étouffe les plantes d’ici.")}</p>`;
-  if(q) body += sec(v.kind === "inv" ? "Une cousine plus sage" : v.danger ? "Une cousine sans danger" : "Une cousine plus solide", cousineCard(q));
+  if(v.kind === "aide"){ const [t, d] = aideTip(p, v); body += `<article class="tip"><span class="eyebrow">Pour l’aider</span><h3>${t}</h3><p>${d}</p></article>`; }
+  if(ok) body += sec("Où la planter", coinRows(v)) + sec("Ses besoins", needRows(p, v));
+  else {
+    const qs = cousinesOf(p, 3);
+    if(qs.length) body += sec(v.danger ? "Essaie plutôt, sans danger" : "Essaie plutôt", `<div class="cousines">${qs.map(cousineCard).join("")}</div>`);
+  }
   $("res-body").innerHTML = body;
-  $("res-actions").innerHTML = v.kind === "ok" || v.kind === "aide"
+  $("res-actions").innerHTML = ok
     ? `<button class="btn primary" type="button" id="res-add">L’ajouter à un coin</button><a class="link" href="${shopUrl(p)}" target="_blank" rel="noopener">Acheter ↗</a>`
     : `<button class="btn secondary" type="button" id="res-again">${scanFrom === "s-cherche" && !scan.photo ? "Chercher une autre plante" : "Scanner une autre plante"}</button>`;
   $("res-pick").hidden = true;
@@ -1839,42 +1878,6 @@ $("s-scan-res").addEventListener("click", e => {
   const k = e.target.closest("[data-key]"); if(k){ const sp = espaces().find(x => x.key === k.dataset.key); if(sp) addToCoin(scan.pickFor, sp); }
 });
 
-// ---------- 16 · Notifications ----------
-// Des nouvelles calculées d'après tes plantes, à chaque ouverture : rien ne passe par un serveur.
-// Chaque nouvelle a un identifiant stable (mois, nombre) : lue une fois, elle ne revient plus en « nouveau ».
-let lues = new Set(store.get("app-notifs-lues", []));
-function notifs(){
-  const d = new Date(), m = d.getMonth() + 1, ym = `${d.getFullYear()}-${m}`, out = [];
-  const care = monthCare(m), todo = aPlanter(), ground = enTerre();
-  if(care.length){
-    const noms = [...new Set(care.flatMap(o => o.noms))];
-    out.push({id: `care-${ym}`, ico: "soin", t: `${noms.length > 1 ? "Elles sont" : "Elle est"} à entretenir ce mois-ci`, d: nomsTxt(noms), go: "s-conseils", cta: "Voir quoi faire"});
-  }
-  if(todo.length) out.push({id: `todo-${ym}-${todo.length}`, ico: "pot", t: `${todo.length} plante${todo.length > 1 ? "s t’attendent" : " t’attend"} pour être plantée${todo.length > 1 ? "s" : ""}`, d: [...new Set(todo.map(e => e.nom))].slice(0, 3).join(", ") + (todo.length > 3 ? "…" : ""), go: "s-plantes", cta: "Ta liste"});
-  const fleur = [...new Set(ground.filter(e => months(PLANT_OF(e.nom)).includes(m)).map(e => e.nom))];
-  if(fleur.length) out.push({id: `fleur-${ym}`, ico: "fleur", t: "En fleur ce mois-ci", d: `Profite-en : ${nomsTxt(fleur)}.`, go: "s-plantes", cta: "Tes plantes"});
-  const next = m % 12 + 1, later = monthCare(next);
-  if(later.length && d.getDate() >= 20) out.push({id: `next-${ym}`, ico: "soin", t: `En ${MOIS_NOM[next - 1]}, pense à…`, d: later.map(o => o.t.charAt(0).toLowerCase() + o.t.slice(1)).slice(0, 2).join(", ") + ".", go: "s-conseils", cta: "Voir les conseils"});
-  return out;
-}
-const unread = () => notifs().filter(n => !lues.has(n.id)).length;
-function drawBadge(){ const n = demo ? 0 : unread(); $("j-notif-n").hidden = !n; $("j-notif-n").textContent = n > 9 ? "9+" : n; $("j-notif").setAttribute("aria-label", n ? `Notifications, ${n} nouvelle${n > 1 ? "s" : ""}` : "Notifications"); }
-const N_ICO = {
-  soin: `<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 9h11v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V9Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M15 11l5-4M7 9V7a2 2 0 0 1 2-2h2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`,
-  pot: `<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6 13h12l-1.6 7H7.6L6 13Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 13V8.5M12 9c-.2-2.6-1.8-4.3-4.6-4.5.1 2.7 1.8 4.3 4.6 4.5Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-  fleur: `<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="9" r="2.2" stroke="currentColor" stroke-width="1.6"/><path d="M12 6.8c0-2 1-3.3 0-3.8-1 .5 0 1.8 0 3.8ZM12 11.2V21M14.2 9c2 0 3.3-1 3.8 0-.5 1-1.8 0-3.8 0ZM9.8 9c-2 0-3.3 1-3.8 0 .5-1 1.8 0 3.8 0ZM12 17c2-2.4 4-2.6 5-2-1 2-3 2.4-5 2Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-};
-function renderNotifs(){
-  const list = notifs();
-  $("n-list").innerHTML = list.length ? list.map(n => `<button class="notif${lues.has(n.id) ? "" : " new"}" type="button" data-n-go="${n.go}">
-      <span class="n-ico">${N_ICO[n.ico]}</span><span class="n-txt"><b>${esc(n.t)}</b><small>${esc(n.d)}</small><span class="n-cta">${esc(n.cta)} →</span></span>
-      ${lues.has(n.id) ? "" : `<span class="n-dot"><span class="sr">Nouveau</span></span>`}</button>`).join("")
-    : `<p class="empty">Rien de neuf pour l’instant. Dès que tes plantes ont besoin de toi, on te le dit ici.</p>`;
-  // Ouvrir le centre vaut lecture : le point « nouveau » reste affiché jusqu'à la prochaine visite.
-  list.forEach(n => lues.add(n.id)); store.set("app-notifs-lues", [...lues].slice(-60));
-}
-$("n-list").addEventListener("click", e => { const b = e.target.closest("[data-n-go]"); if(b) goTab(b.dataset.nGo); });
-
 // ---------- 17 · Une plante en tête ----------
 // Par son nom, dans le catalogue de l'app (nom courant ou latin, sans accents) ; sinon en photo, avec la reconnaissance de Claude.
 function renderCherche(){
@@ -1884,18 +1887,50 @@ function renderCherche(){
   const back = s.querySelector(".back"); back.dataset.go = dejaFor ? "s-espace" : "s-jardin"; back.querySelector("span").textContent = dejaFor ? "Ton coin" : "Ton jardin";
   drawResults();
 }
+// Le catalogue d'abord (gratuit, immédiat), puis Claude quand la plante n'y est pas (1 crédit, comme une photo).
+let aiCands = [], aiQuery = "";
 function drawResults(){
-  const q = norm($("q-plante").value);
-  if(q.length < 2){ $("q-res").innerHTML = `<p class="hint">Tape au moins deux lettres. Une plante qui n’est pas dans notre catalogue ? Prends-la en photo, on la reconnaîtra.</p>`; return; }
-  const score = p => { const n = norm(p.nom), l = norm(p.latin); return n.startsWith(q) ? 0 : n.split(" ").some(w => w.startsWith(q)) ? 1 : l.startsWith(q) ? 2 : n.includes(q) || l.includes(q) ? 3 : 9; };
-  const hits = PLANTS.filter(p => !p.temp).map(p => [p, score(p)]).filter(([, sc]) => sc < 9).sort((a, b) => a[1] - b[1] || a[0].nom.localeCompare(b[0].nom, "fr")).slice(0, 12).map(([p]) => p);
-  $("q-res").innerHTML = hits.length ? `<div class="pl-cards">${hits.map(p => { const v = verdictOf(p, false), [lbl, col] = VERDICT[v.kind]; return `<button class="pl-card" type="button" data-q="${p.id}">
-      <span class="pl-pic">${thumbOf(p.nom)}</span><span class="pl-txt"><b>${esc(p.nom)}</b><small><i>${esc(p.latin)}</i></small><span class="tag ${col}">${lbl}</span></span><span class="pl-chev" aria-hidden="true">›</span></button>`; }).join("")}</div>`
-    : `<p class="empty">Pas de « ${esc($("q-plante").value.trim())} » dans notre catalogue. Prends-la en photo : on la reconnaîtra et on te dira si elle irait chez toi.</p>`;
+  const raw = $("q-plante").value.trim(), q = norm(raw);
+  drawCost("q-cost", 1, "une recherche par l’IA ou une photo");
+  if(q.length < 2){ $("q-res").innerHTML = `<p class="hint">Tape le nom d’une plante (courant ou latin), puis « Chercher ». Ou prends-la en photo.</p>`; return; }
+  // Plusieurs mots (« agapanthe bleue de Mazelle ») : à défaut du nom entier, le premier mot suffit.
+  const w1 = q.split(" ")[0], multi = q.includes(" ") && w1.length >= 4;
+  const score = p => { const n = norm(p.nom), l = norm(p.latin); return n.startsWith(q) ? 0 : n.split(" ").some(w => w.startsWith(q)) ? 1 : l.startsWith(q) ? 2 : n.includes(q) || l.includes(q) ? 3 : multi && (n.startsWith(w1) || l.startsWith(w1)) ? 4 : 9; };
+  const hits = PLANTS.filter(p => !p.temp && !(p.x && p.x.perso)).map(p => [p, score(p)]).filter(([, sc]) => sc < 9).sort((a, b) => a[1] - b[1] || a[0].nom.localeCompare(b[0].nom, "fr")).slice(0, 12).map(([p]) => p);
+  const card = (attr, p, nom, latin) => { const v = verdictOf(p, false), [lbl, col] = VERDICT[v.kind]; return `<button class="pl-card" type="button" ${attr}>
+      <span class="pl-pic">${thumbOf(p.nom)}</span><span class="pl-txt"><b>${esc(nom)}</b><small><i>${esc(latin)}</i></small><span class="tag ${col}">${lbl}</span></span><span class="pl-chev" aria-hidden="true">›</span></button>`; };
+  const aiBtn = (primary) => `<button class="btn ${primary ? "primary" : "secondary"} sm q-ai" type="button" data-ai-go>Chercher avec l’IA</button>`;
+  let html = hits.length ? `<h3 class="q-h">Dans notre catalogue${countOf(hits.length)}</h3><div class="pl-cards">${hits.map(p => card(`data-q="${p.id}"`, p, p.nom, p.latin)).join("")}</div>
+      <p class="q-more">Pas celle que tu cherches ? ${aiBtn(false)}</p>`
+    : aiQuery === q ? "" : `<div class="q-none"><p>« ${esc(raw)} » n’est pas dans notre catalogue. L’IA connaît bien plus de plantes.</p>${aiBtn(true)}</div>`;
+  if(aiQuery === q && aiCands.length) html = `<h3 class="q-h">Trouvé par l’IA</h3><div class="pl-cards">${aiCands.map((c, i) => card(`data-ai="${i}"`, fromCatalog(c) || plantFrom(c), c.nom, c.latin)).join("")}</div>` + (hits.length ? `<h3 class="q-h">Dans notre catalogue${countOf(hits.length)}</h3><div class="pl-cards">${hits.map(p => card(`data-q="${p.id}"`, p, p.nom, p.latin)).join("")}</div>` : "");
+  $("q-res").innerHTML = html;
 }
-$("q-plante").addEventListener("input", drawResults);
-$("q-plante").addEventListener("keydown", e => { if(e.key === "Enter"){ const f = $("q-res").querySelector("[data-q]"); if(f){ e.preventDefault(); f.click(); } } });
+async function askAI(){
+  const raw = $("q-plante").value.trim(); if(raw.length < 2) return;
+  $("q-res").innerHTML = `<p class="q-wait" role="status">On cherche « ${esc(raw)} »…</p>`;
+  try{
+    const r = await fetch("/api/plante", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({nom: raw})});
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(d.erreur || (r.status === 501 ? NO_API : "La recherche n’a pas abouti. Réessaie."));
+    if(!d.plante || !(d.candidats || []).length) throw new Error(`On ne connaît pas de plante de jardin appelée « ${raw} ». Vérifie l’orthographe, ou prends-la en photo.`);
+    spendCredit(`Recherche de « ${raw} »`);
+    aiCands = d.candidats; aiQuery = norm(raw); drawResults();
+  }catch(err){ $("q-res").innerHTML = `<p class="err">${esc(err.message)}</p>`; }
+}
+$("q-plante").addEventListener("input", () => { if(norm($("q-plante").value) !== aiQuery){ aiCands = []; aiQuery = ""; } drawResults(); });
+$("q-form").addEventListener("submit", e => {
+  e.preventDefault(); $("q-plante").blur();
+  // « Chercher » : si le catalogue a déjà la plante, on la montre ; sinon on demande à l'IA.
+  if($("q-res").querySelector("[data-q], [data-ai]")) return;
+  askAI();
+});
 $("q-res").addEventListener("click", e => {
+  if(e.target.closest("[data-ai-go]")) return askAI();
+  const a = e.target.closest("[data-ai]");
+  if(a){ const c = aiCands[+a.dataset.ai]; if(!c) return;
+    if(dejaFor) return addExisting(c);
+    scanFrom = "s-cherche"; scan = {photo: null, thumb: null, cands: aiCands, cand: null, p: null}; showVerdict(c); return; }
   const b = e.target.closest("[data-q]"); if(!b) return;
   const p = PLANTS[+b.dataset.q]; if(!p) return;
   if(dejaFor) return addExisting({nom: p.nom, latin: p.latin, type: p.type, h: p.h});
@@ -1907,11 +1942,11 @@ $("q-scan").addEventListener("click", () => openScan("s-cherche"));
 // ---------- 18 · Crédits ----------
 // 1 crédit = 1 action faite par une IA (analyse d'un coin, image avant/après, reconnaissance d'une plante) ; le reste est gratuit.
 // Gardés sur le téléphone le temps des tests (rien n'est bloqué à 0) ; ils passeront côté serveur avec les comptes et le paiement.
-const CREDITS_OFFERTS = 6;
+const CREDITS_OFFERTS = 3;
 const PACKS = [
-  {id: "pot", nom: "Petit pot", credits: 10, prix: 2.99, pour: "Un coin de plus et quelques images"},
-  {id: "jardiniere", nom: "Jardinière", credits: 30, prix: 6.99, pour: "Tout un jardin, plusieurs saisons", pop: true},
-  {id: "massif", nom: "Grand massif", credits: 80, prix: 14.99, pour: "Pour les grands terrains et les curieux"}
+  {id: "pot", nom: "Petit pot", credits: 15, prix: 3.99, pour: "Quelques coins et leurs images"},
+  {id: "jardiniere", nom: "Jardinière", credits: 40, prix: 8.99, pour: "Tout un jardin, plusieurs saisons", pop: true},
+  {id: "massif", nom: "Grand massif", credits: 100, prix: 17.99, pour: "Pour les grands terrains et les curieux"}
 ];
 const COUTS = [["Analyse d’un coin par photo", 1], ["Image avant/après (par âge)", 1], ["Reconnaissance d’une plante", 1], ["Propositions, plan, conseils, suivi", 0]];
 let credits = store.get("app-credits", null) || {solde: CREDITS_OFFERTS, hist: [{d: new Date().toISOString(), t: "Crédits de bienvenue", n: CREDITS_OFFERTS}]};
@@ -1985,17 +2020,6 @@ $("pay-body").addEventListener("click", e => {
   if(b.dataset.pay === "home") goTab("s-jardin");
 });
 
-// ---------- Un lien humain ----------
-// « Besoin d’un avis ? » : une jardinerie près de chez toi, trouvée par le code postal du jardin (ou là où tu es).
-function drawConseiller(){
-  const q = "jardinerie" + (garden && garden.cp ? " " + garden.cp : garden && garden.dept ? " " + garden.label : "");
-  const url = "https://www.google.com/maps/search/" + encodeURIComponent(q);
-  document.querySelectorAll(".conseiller-slot").forEach(el => {
-    el.innerHTML = `<aside class="conseiller"><svg class="illu" aria-hidden="true" width="40" height="40" viewBox="0 0 40 40" fill="none"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="20" cy="20" r="19" fill="#D5E3CF" stroke-width="1.5"/><circle cx="20" cy="15" r="5"/><path d="M11 31 C 12 24, 28 24, 29 31"/></g></svg>
-      <div><h3>Besoin d’un avis ?</h3><p>${esc(el.dataset.avis)}</p><a class="link" href="${url}" target="_blank" rel="noopener">Trouver une jardinerie ↗</a></div></aside>`;
-  });
-}
-drawConseiller();
 
 // ---------- Démarrage ----------
 // Splash à chaque ouverture, puis l'écran de départ. Un toucher le passe.

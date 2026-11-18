@@ -1,4 +1,4 @@
-// Reconnaissance d'une plante à partir d'une photo, avec Claude (API Anthropic).
+// Reconnaissance d'une plante à partir d'une photo, ou retrouvée par son nom, avec Claude (API Anthropic).
 // Renvoie 1 à 3 plantes possibles et leurs besoins ; l'app compare ensuite avec le jardin de la personne.
 // Mêmes variables d'environnement que /api/analyse : ANTHROPIC_API_KEY, CLAUDE_MODEL, ANTHROPIC_WORKSPACE_ID.
 
@@ -39,7 +39,8 @@ const SCHEMA = {
 const SYSTEM = `Tu es jardinier-botaniste. On te montre la photo d'une plante qu'une personne a repérée (chez une voisine, en jardinerie, en promenade). Tu la reconnais et tu décris ses besoins pour un jardin en France, afin qu'un outil vérifie si elle conviendrait au jardin de la personne.
 
 Règles :
-- "plante" : false si la photo ne montre pas de plante reconnaissable (flou, objet, personne, paysage trop large). Dans ce cas, "candidats" est vide.
+- Si on te donne un nom au lieu d'une photo, retrouve la ou les plantes qu'il désigne : nom courant, nom latin, nom régional ou faute de frappe ("hortensia", "lavandin", "laurier rose", "agapante"). Si le nom est vague (« palmier »), propose les 3 plantes les plus courantes en jardin en France.
+- "plante" : false si la photo ne montre pas de plante reconnaissable, ou si le nom ne correspond à aucune plante de jardin (flou, objet, personne, paysage trop large). Dans ce cas, "candidats" est vide.
 - "candidats" : 1 à 3 plantes, de la plus probable à la moins probable. Une seule si tu es sûr. Ne propose que des plantes cultivables en pleine terre ou en pot dans un jardin.
 - "nom" : le nom courant en français, tel qu'en jardinerie, 1 à 3 mots, sans cultivar ("Anémone du Japon", "Hortensia", "Herbe de la pampa"). "latin" : genre et espèce ("Anemone × hybrida").
 - "confiance" : "haute" si les fleurs ou les feuilles ne laissent pas de doute, sinon "moyenne" ou "faible".
@@ -89,14 +90,19 @@ async function handler(req, res) {
   if (!key) return res.status(503).json({ erreur: "La reconnaissance n'est pas encore configurée : il manque ANTHROPIC_API_KEY dans Vercel." });
 
   const body = typeof req.body === "string" ? (() => { try { return JSON.parse(req.body); } catch (e) { return {}; } })() : (req.body || {});
+  const nom = clean(body.nom, 80);
   const data = body.photo;
-  if (typeof data !== "string" || !/^[A-Za-z0-9+/=]+$/.test(data.slice(0, 200))) return res.status(400).json({ erreur: "La photo est illisible. Réessaie avec une autre photo." });
-  if (data.length * 0.75 > MAX_PHOTO_BYTES) return res.status(413).json({ erreur: "La photo est trop lourde. Réessaie avec une photo plus petite." });
-
-  const content = [
-    { type: "image", source: { type: "base64", media_type: "image/jpeg", data } },
-    { type: "text", text: "Quelle est cette plante ? Renvoie les candidats et leurs besoins selon les règles." }
-  ];
+  let content;
+  if (nom) {
+    content = [{ type: "text", text: `La personne cherche la plante « ${nom} ». Quelle plante est-ce ? Renvoie les candidats et leurs besoins selon les règles.` }];
+  } else {
+    if (typeof data !== "string" || !/^[A-Za-z0-9+/=]+$/.test(data.slice(0, 200))) return res.status(400).json({ erreur: "La photo est illisible. Réessaie avec une autre photo." });
+    if (data.length * 0.75 > MAX_PHOTO_BYTES) return res.status(413).json({ erreur: "La photo est trop lourde. Réessaie avec une photo plus petite." });
+    content = [
+      { type: "image", source: { type: "base64", media_type: "image/jpeg", data } },
+      { type: "text", text: "Quelle est cette plante ? Renvoie les candidats et leurs besoins selon les règles." }
+    ];
+  }
   const call = structured => fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json",
@@ -125,7 +131,7 @@ async function handler(req, res) {
     console.error("Anthropic", r.status, out && out.error && out.error.message);
     const msg = r.status === 429 ? "Trop de demandes en même temps. Réessaie dans une minute."
       : r.status === 529 || r.status === 503 ? "Le service est surchargé. Réessaie dans quelques minutes."
-      : "On n'a pas pu regarder ta photo. Réessaie.";
+      : nom ? "On n'a pas pu chercher cette plante. Réessaie." : "On n'a pas pu regarder ta photo. Réessaie.";
     return res.status(502).json({ erreur: msg });
   }
   if (out.stop_reason === "refusal") return res.status(422).json({ erreur: "Cette photo n'a pas pu être regardée. Essaie avec une autre." });
