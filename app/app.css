@@ -702,7 +702,7 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 /* Coin : affiner + valider ses plantes */
 .crit-bar{display:flex;gap:10px}
 .crit-bar .btn{flex:1;width:auto}
-.crit-bar #crit-toggle.secondary{flex:0 0 auto}
+.crit-bar .btn{flex:1 1 0;min-width:0}
 /* Home : les plantes qui attendent d'être plantées */
 .todo-card{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin-top:20px;padding:14px 16px;border:1.3px solid var(--encre);border-radius:14px;background:var(--soleil-pale);font:inherit;color:var(--encre);text-align:left;cursor:pointer}
 .todo-card span:first-child{display:flex;flex-direction:column;gap:2px}
@@ -752,10 +752,6 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 .q-res .pl-txt .tag{align-self:flex-start;margin-top:4px}
 #s-scan-res .scan-photo[hidden]{display:none}
 
-/* Aperçu : l'âge du jardin montré sur l'image « après » */
-.ap-age{display:flex;gap:6px;margin-top:10px}
-.ap-age button{flex:1;min-height:36px;padding:0 8px;border:1.3px solid var(--encre);border-radius:18px;background:var(--carte);font:inherit;font-size:15px;color:var(--encre);cursor:pointer}
-.ap-age button[aria-pressed="true"]{background:var(--encre);color:var(--papier)}
 
 /* Ton jardin : le climat retenu, bien visible */
 .clim-card{display:flex;gap:12px;align-items:flex-start;margin-top:12px;padding:14px 16px;border:1.3px solid var(--encre);border-radius:14px;background:var(--soleil-pale)}
@@ -824,15 +820,6 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 .pay-check svg{width:28px;height:28px}
 .pay-ok .btn{margin-top:12px;align-self:stretch}
 
-/* Plantes déjà là, dans un coin */
-.deja{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
-.deja h3{margin:0;font-family:var(--f-serif);font-weight:400;font-size:26px;line-height:30px}
-.deja-list{display:flex;flex-direction:column;gap:8px}
-.deja-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--filet);border-radius:14px;background:var(--carte)}
-.deja-item.off{opacity:.55}
-.deja-item .pl-pic{width:44px;height:44px}
-.deja-item .btn{flex:none;min-height:34px}
-.ph-deja .chips{margin-top:6px}
 
 /* Une plante en tête : champ avec bouton Chercher */
 .q-box{display:flex;align-items:center;gap:10px;padding:6px 6px 6px 14px;border:1.5px solid var(--encre);border-radius:28px;background:var(--carte);color:var(--encre-douce)}
@@ -868,6 +855,7 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 .tile-pic{position:relative}
 .tile-flag{position:absolute;left:8px;top:8px;display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 4px;border:1.3px solid var(--encre);border-radius:14px;font-size:13px;font-weight:600;line-height:18px;color:var(--encre)}
 .tile-flag.soin{background:var(--papier);border-color:transparent;padding-left:8px;font-weight:500}
+.tile-flag{white-space:nowrap;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis}
 .tile-flag svg{flex:none;color:var(--prusse)}
 .tile-flag.pot{background:var(--papier);padding-left:9px}
 .tile-flag i{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--encre);color:var(--soleil);font-style:normal;font-size:12px}
@@ -895,3 +883,32 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 .pot-txt small{font-size:14px;color:var(--encre-douce)}
 .pot-pl{font-size:15px;line-height:20px;color:var(--encre)}
 .pot-prix{flex:none;font-size:14px;font-weight:600;white-space:nowrap}
+
+/* Ton balcon : les sous-questions */
+#garden-balcon .q-sub{margin:10px 0 6px;font-size:16px;font-weight:600}
+#garden-balcon .q-sub:first-of-type{margin-top:0}
+
+/* ===== Contours allégés : l'encre reste sur les illustrations, les boutons et ce qui est choisi ;
+   les photos et les cartes de contenu n'ont plus de cadre, juste de grands arrondis et une ombre très légère. ===== */
+:root{--ombre:0 2px 10px rgba(28,28,26,.07),0 1px 2px rgba(28,28,26,.05)}
+:is(.ph,.plant,.garden-card,.space,.crit .card,.plan-card,.extras li,.scan-card,.pick,.todo-card,.pl-card,.clim-card,.ph .compass,.pack,.verdict,.coin-soins,.pot-item,.idea-pick,.home-facts,.tip,.glossary,.cr-solde,.pay-recap,.budget-card){border-color:transparent;box-shadow:var(--ombre);border-radius:18px}
+.pack.pop{border-color:var(--prusse);box-shadow:var(--ombre)}
+:is(.tile-pic,.ba,.scan,.pl-pic,.garden-ill,.scan-photo img){border-color:transparent;border-radius:18px}
+.tile-pic{box-shadow:var(--ombre)}
+.plant figure{border-right:0}
+.tile-flag{border-color:transparent;box-shadow:0 1px 4px rgba(28,28,26,.12)}
+.chip span{border-color:var(--filet)}
+.choice span{border-color:var(--filet);box-shadow:var(--ombre)}
+.choice input:checked + span{border-color:var(--prusse);box-shadow:inset 0 0 0 1px var(--prusse)}
+.q-box{border-color:var(--filet);box-shadow:var(--ombre)}
+
+/* Cartes d'info : fond carte et pictogramme dans une pastille sauge (plus de fonds jaune pâle) */
+:is(.todo-card,.clim-card,.ph .compass,.coin-soins){background:var(--carte)}
+.card-ico{flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--sauge)}
+.card-ico svg{width:22px;height:22px;color:var(--encre)}
+.todo-card{justify-content:flex-start}
+.todo-card > span:nth-child(2){flex:1;display:flex;flex-direction:column;gap:2px}
+.coin-soins{flex-direction:row;align-items:flex-start;gap:12px}
+.cs-body{flex:1;display:flex;flex-direction:column;gap:6px}
+.pay-test{background:var(--ciel-pale)}
+.todo-card .card-ico{display:grid;gap:0}

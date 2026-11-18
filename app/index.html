@@ -104,7 +104,7 @@
   <!-- 03 · Ton jardin -->
   <section class="screen" id="s-garden" hidden>
     <div class="topbar"><button class="back" type="button" data-go="s-envies" id="garden-back"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15 9 H3 M8 4 L3 9 L8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Tes envies</span></button></div>
-    <header class="head"><ol class="steps" id="pg-garden" aria-label="Étapes"></ol><p class="eyebrow" id="step-garden" hidden>Réglages du jardin</p><h2>Ton <em>jardin</em></h2><p class="lede" id="garden-lede">Quelques questions, une seule fois.</p></header>
+    <header class="head"><ol class="steps" id="pg-garden" aria-label="Étapes"></ol><p class="eyebrow" id="step-garden" hidden>Réglages du jardin</p><h2 id="garden-h">Ton <em>jardin</em></h2><p class="lede" id="garden-lede">Quelques questions, une seule fois.</p></header>
     <fieldset id="garden-projet"><legend>Que veux-tu aménager ?</legend><div class="choices" id="a-projet"></div></fieldset>
     <fieldset id="garden-clim"><legend>Ton climat</legend>
       <div class="field">
@@ -116,6 +116,12 @@
       <div class="chips" id="a-clim" hidden></div>
     </fieldset>
     <fieldset id="garden-sol"><legend>Ta terre</legend><div class="chips" id="a-sol"></div><details class="sol-test"><summary>Comment savoir ?</summary><p>Petit test : une poignée de terre humide colle (argileuse), file entre les doigts (sableuse), est claire et caillouteuse (calcaire), ou noire et souple (humifère).</p></details></fieldset>
+    <fieldset id="garden-balcon" hidden><legend>Ton balcon</legend>
+      <p class="q-sub">À quel étage ?</p><div class="chips" id="a-etage"></div>
+      <p class="q-sub">Il supporte des pots lourds ?</p><div class="chips" id="a-poids"></div>
+      <p class="q-sub">Envie de plantes à manger ?</p><div class="chips" id="a-manger"></div>
+      <p class="q-sub">Tu pars souvent l’été ?</p><div class="chips" id="a-absences"></div>
+    </fieldset>
     <fieldset><legend>Ton temps pour l’entretien</legend><div class="choices" id="a-arro"></div></fieldset>
     <fieldset><legend>Des enfants ou des animaux ?</legend><p class="hint">Si oui, pas de plantes toxiques.</p><div class="chips" id="a-enfants"></div></fieldset>
     <p class="err" id="gar-err" hidden></p>
@@ -161,7 +167,6 @@
       <div class="rename-actions"><button class="btn primary sm" type="submit">Enregistrer</button><button class="link" type="button" id="esp-rename-cancel">Annuler</button></div>
     </form>
     <button class="coin-soins" type="button" id="esp-soins" data-tab-go="s-conseils" hidden></button>
-    <section class="deja" id="esp-deja" hidden></section>
     <section class="ideas" id="esp-ideas" aria-labelledby="ideas-h" hidden>
       <div class="title-row"><h3 id="ideas-h">Tes <em>propositions</em></h3><button class="edit-link" type="button" id="idea-share">Partager</button></div>
       <div class="ideas-row" id="ideas-row"></div>
