@@ -709,6 +709,88 @@ function openEspace(rec, zoneId, silent = false){
   window.scrollTo(0, 0);
 }
 
+// ---------- Balcon : une composition en contenants ----------
+// Sur un balcon, pas de massif en rangées : un grand pot vedette, un bac avec treillage pour la grimpante,
+// des pots moyens pour les plantes de taille moyenne, des jardinières de rambarde pour les petites ; les bulbes au pied.
+const POTS = {
+  grand: {nom: "Grand pot léger", taille: "Ø 50 cm · 60 L", litres: 60, prix: [35, 80]},
+  bac: {nom: "Bac et treillage", taille: "Ø 40 cm · 40 L", litres: 40, prix: [45, 90]},
+  moyen: {nom: "Pot moyen", taille: "Ø 35 cm · 25 L", litres: 25, prix: [15, 35]},
+  jardiniere: {nom: "Jardinière de rambarde", taille: "80 cm · 30 L", litres: 30, prix: [25, 55]}
+};
+function balconPlan(cmb){
+  const plants = cmb.filter(c => !c.existing);
+  const big = plants.filter(c => ["arbre", "ecran", "structure"].includes(c.role) || (c.plant.type === "arbuste" && c.plant.h >= 100));
+  const climb = plants.filter(c => c.role === "grimpante" && !big.includes(c));
+  const bulbs = plants.filter(c => c.role === "bulbe");
+  const rest = plants.filter(c => !big.includes(c) && !climb.includes(c) && !bulbs.includes(c));
+  const small = rest.filter(c => c.role === "bordure" || c.plant.h <= 40), mid = rest.filter(c => !small.includes(c));
+  const C = [], one = (type, c) => C.push({type, ...POTS[type], plantes: [{nom: c.plant.nom, role: c.role, q: 1}]});
+  big.forEach(c => one("grand", c)); climb.forEach(c => one("bac", c)); mid.forEach(c => one("moyen", c));
+  // Jardinières : 3 plants de chaque petite plante, 4 plants par jardinière.
+  const pieds = small.flatMap(c => [c, c, c]);
+  for(let i = 0; i < pieds.length; i += 4){
+    const j = {type: "jardiniere", ...POTS.jardiniere, plantes: []};
+    pieds.slice(i, i + 4).forEach(c => { const x = j.plantes.find(y => y.nom === c.plant.nom); if(x) x.q++; else j.plantes.push({nom: c.plant.nom, role: c.role, q: 1}); });
+    C.push(j);
+  }
+  // Bulbes : au pied du grand pot ou dans les jardinières, 10 par sorte.
+  bulbs.forEach((c, i) => { const host = C.filter(x => x.type === "jardiniere" || x.type === "grand")[i] || C[0]; if(host) host.plantes.push({nom: c.plant.nom, role: c.role, q: 10}); });
+  C.forEach((x, i) => { x.n = i + 1; });
+  const litres = C.reduce((s, x) => s + x.litres, 0);
+  const fourn = C.length ? [
+    {nom: "Terreau pour plantes en pot (sac de 40 L)", q: Math.ceil(litres / 40), prix: [8, 14]},
+    {nom: "Billes d’argile pour le drainage (sac de 10 L)", q: Math.ceil(C.length / 2), prix: [5, 9]},
+    {nom: "Soucoupes", q: C.filter(x => x.type !== "jardiniere").length, prix: [3, 8]}
+  ].filter(f => f.q > 0) : [];
+  return {C, fourn};
+}
+function balconBudget(cmb){
+  const {C, fourn} = balconPlan(cmb), qty = new Map();
+  C.forEach(x => x.plantes.forEach(pl => { const o = qty.get(pl.nom) || {role: pl.role, q: 0}; o.q += pl.q; qty.set(pl.nom, o); }));
+  const rows = [...qty].map(([nom, o]) => [nom, o.role, o.q]);
+  let min = 0, max = 0;
+  rows.forEach(([nom, r, q]) => { const p = PLANT_OF(nom); if(!p) return; const [a, b] = unitPrice(p, r); min += a * q; max += b * q; });
+  C.forEach(x => { min += x.prix[0]; max += x.prix[1]; });
+  fourn.forEach(f => { min += f.prix[0] * f.q; max += f.prix[1] * f.q; });
+  return {min, max, rows, contenants: C.map(x => ({n: x.n, type: x.type, nom: x.nom, taille: x.taille, prix: x.prix, plantes: x.plantes})), fournitures: fourn};
+}
+const POT_ICO = {grand: "◯", bac: "▥", moyen: "○", jardiniere: "▭"};
+// Carte « Tes contenants », dans l'onglet Plantes d'un coin de balcon.
+function drawPots(){
+  const box = $("esp-pots"), b = lastBudget;
+  if(state.projet !== "balcon" || !b || !b.contenants || !b.contenants.length){ box.innerHTML = ""; return; }
+  box.innerHTML = `<section class="pots" aria-labelledby="pots-h"><h3 id="pots-h">Tes <em>contenants</em>${countOf(b.contenants.length)}</h3>
+    <div class="pots-list">${b.contenants.map(x => `<div class="pot-item"><span class="pot-n">${x.n}</span><span class="pot-txt"><b>${esc(x.nom)}</b><small>${esc(x.taille)}</small>
+      <span class="pot-pl">${x.plantes.map(pl => `${pl.q > 1 ? pl.q + " × " : ""}${esc(pl.nom)}`).join(" · ")}</span></span><span class="pot-prix">${eur0(x.prix[0])} – ${eur0(x.prix[1])}</span></div>`).join("")}</div>
+    <p class="hint">Avec ${b.fournitures.map(f => `${f.q} ${f.nom.split(" (")[0].toLowerCase()}`).join(", ")} : tout est compté dans le budget.</p></section>`;
+}
+// Plan vu de dessus du balcon : le mur en haut, la rambarde en bas, les contenants numérotés.
+function balconPlanSVG(){
+  const b = lastBudget; if(!b || !b.contenants) return "";
+  const W = 340, H = 200, C = b.contenants;
+  const top = C.filter(x => x.type !== "jardiniere"), rail = C.filter(x => x.type === "jardiniere");
+  let g = "";
+  top.forEach((x, i) => {
+    const cx = 40 + i * Math.min(80, (W - 80) / Math.max(1, top.length - 1 || 1)), r = x.type === "grand" ? 26 : x.type === "bac" ? 22 : 18;
+    g += x.type === "bac" ? `<rect x="${cx - r}" y="${30}" width="${2 * r}" height="${2 * r}" rx="6" fill="#D5E3CF" stroke="#1C1C1A" stroke-width="1.5"/><path d="M${cx - r + 6} 24 h${2 * r - 12} M${cx - r + 6} 18 h${2 * r - 12}" stroke="#1C1C1A" stroke-width="1.2"/>`
+      : `<circle cx="${cx}" cy="${30 + r}" r="${r}" fill="#D5E3CF" stroke="#1C1C1A" stroke-width="1.5"/>`;
+    g += `<text x="${cx}" y="${30 + r + 5}" text-anchor="middle" font-size="14" font-weight="600" fill="#1C1C1A">${x.n}</text>`;
+  });
+  const jw = Math.min(110, (W - 40) / Math.max(1, rail.length) - 10);
+  rail.forEach((x, i) => {
+    const x0 = 20 + i * (jw + 10);
+    g += `<rect x="${x0}" y="${H - 44}" width="${jw}" height="24" rx="5" fill="#F5CDB0" stroke="#1C1C1A" stroke-width="1.5"/><text x="${x0 + jw / 2}" y="${H - 27}" text-anchor="middle" font-size="14" font-weight="600" fill="#1C1C1A">${x.n}</text>`;
+  });
+  return `<div class="sec-head"><h3>Plan de <em>ton balcon</em></h3></div>
+    <div class="plan-card"><svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Plan vu de dessus du balcon avec les contenants numérotés">
+      <rect x="2" y="2" width="${W - 4}" height="${H - 4}" rx="8" fill="#FBF9F3" stroke="#D9D3C5"/>
+      <path d="M2 6 H${W - 2}" stroke="#1C1C1A" stroke-width="4"/><text x="${W / 2}" y="${H / 2 + 8}" text-anchor="middle" font-size="12" fill="#8C887C">sol du balcon</text>
+      <path d="M8 ${H - 10} H${W - 8}" stroke="#1C1C1A" stroke-width="2" stroke-dasharray="6 5"/>
+      ${g}</svg>
+      <p class="hint">En haut : le mur. En pointillés : la rambarde. Les numéros renvoient à la liste de tes contenants.</p></div>`;
+}
+
 // ---------- Ce mois-ci dans ce coin ----------
 function drawSoins(){
   const box = $("esp-soins");
@@ -916,7 +998,11 @@ const euro = n => new Intl.NumberFormat("fr-FR", {style: "currency", currency: "
 let shownPlants = new Set(), shownKey = "";
 function renderProposal(){
   const order = ["arbre","ecran","grimpante","back","mid","front","bulb"];
-  const items = combo.map((c, i) => [c, i]).sort((a, b) => order.indexOf(lay(a[0])) - order.indexOf(lay(b[0])));
+  // Les plantes en terre de ce coin qui ont un geste ce mois-ci : étiquette sur leur carte, et en tête de liste.
+  const ck = current && curZone ? current.id + ":" + curZone : null, mNow = new Date().getMonth() + 1;
+  const soinOf = nom => { if(!ck || current.demo) return []; const e = enTerre().find(x => x.coin === ck && x.nom === nom); return e ? gestes(e, mNow) : []; };
+  const soins = new Map(combo.map(c => [c.plant.nom, soinOf(c.plant.nom)]));
+  const items = combo.map((c, i) => [c, i]).sort((a, b) => (soins.get(b[0].plant.nom).length ? 1 : 0) - (soins.get(a[0].plant.nom).length ? 1 : 0) || order.indexOf(lay(a[0])) - order.indexOf(lay(b[0])));
   const qty = {}; ((lastBudget && lastBudget.rows) || []).forEach(([nom, r, n]) => { qty[nom] = n; });
   const pieds = Object.values(qty).reduce((s, n) => s + n, 0);
   $("esp-rule").innerHTML = combo.length ? `<div class="rule"><span>Les plantes (${combo.length})</span><i>↕</i><span>${pieds} plant${pieds > 1 ? "s" : ""}</span></div>` : "";
@@ -926,6 +1012,7 @@ function renderProposal(){
   }
   renderPlan();
   renderExtras();
+  drawPots();
   const fresh = c => !shownPlants.has(c.plant.nom);
   let rank = 0;
   $("esp-plants").innerHTML = items.map(([c, i]) => {
@@ -934,6 +1021,7 @@ function renderProposal(){
     return `<article class="plant${fresh(c) ? " fresh" : ""}" style="--i:${fresh(c) ? rank++ : 0}">
       ${ph ? `<figure><img src="${ph.src}" alt="${esc(p.nom)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></figure>` : ""}
       <div class="pt">
+        ${soins.get(p.nom).length ? `<p class="pl-soin">${CAN_SVG}Ce mois-ci : ${soins.get(p.nom).map(g => esc(g.t.charAt(0).toLowerCase() + g.t.slice(1))).join(" · ")}</p>` : ""}
         <div class="row"><span class="tag ${c.existing ? "sauge" : col}">${c.existing ? "Déjà là" : esc(role)}</span>${c.existing ? "" : `<span class="qp">${n} × ${euro((a + b) / 2)}</span>`}</div>
         <h4>${esc(p.nom)}</h4><i>${esc(p.latin)}</i>
         <p>${esc(p.note)}</p>
@@ -952,7 +1040,8 @@ function renderProposal(){
       <button class="link" type="button" id="buy-toggle" aria-expanded="${listOpen}">${listOpen ? "Masquer la liste" : "Ma liste pour la jardinerie"}</button></div>
     ${listOpen ? `<ul>${b.rows.map(([nom, r, q]) => { const p = PLANTS.find(x => x.nom === nom); const [x, y] = p ? unitPrice(p, r) : [0, 0];
       return `<li><span>${p ? `<a href="${shopUrl(p)}" target="_blank" rel="noopener">${esc(nom)} ↗</a>` : esc(nom)}<small>${r === "bulbe" ? q + " bulbes" : q + (q > 1 ? " plants" : " plant")}</small></span><span>${eur0(x * q)} – ${eur0(y * q)}</span></li>`; }).join("")}</ul>
-      <p class="bnote">Prix indicatifs en ${FMT_DESC[state.fmt]}, hors terre, paillage, livraison et pose.</p>` : ""}`;
+      ${b.contenants ? `<ul>${b.contenants.map(x => `<li><span>${esc(x.nom)}<small>${esc(x.taille)}</small></span><span>${eur0(x.prix[0])} – ${eur0(x.prix[1])}</span></li>`).join("")}${b.fournitures.map(f => `<li><span>${esc(f.nom)}<small>${f.q} × ${eur0(f.prix[0])} – ${eur0(f.prix[1])}</small></span><span>${eur0(f.prix[0] * f.q)} – ${eur0(f.prix[1] * f.q)}</span></li>`).join("")}</ul>` : ""}
+      <p class="bnote">Prix indicatifs en ${FMT_DESC[state.fmt]}${b.contenants ? ", contenants et terreau compris, hors livraison" : ", hors terre, paillage, livraison et pose"}.</p>` : ""}`;
 }
 function renderExtras(){
   const zo = curZoneObj(), list = zo && current ? extrasFor(current, zo.z) : [];
@@ -971,6 +1060,7 @@ function glossary(types){
 // Plan de plantation : le plan vu de dessus du moteur, repris sous la proposition.
 function renderPlan(){
   const sec = document.querySelector("#out .plan"), box = $("esp-plan");
+  if(state.projet === "balcon"){ const h = balconPlanSVG(); box.hidden = !h; box.innerHTML = h; return; }
   if(!sec){ box.innerHTML = ""; box.hidden = true; return; }
   const h = sec.querySelector("h2"), svg = sec.querySelector(".plansvg"), lg = sec.querySelector(".legend");
   const em = h && h.querySelector("em"), name = h ? h.firstChild.textContent.trim() : "Plan de plantation";
@@ -1108,6 +1198,7 @@ async function generateApercu(z, rec, ph){
   const payload = {
     photo: ph.data, largeur: ph.w, hauteurPhoto: ph.h,
     emplacement: z.z.emplacement || `${z.z.nom}. ${z.z.description}`,
+    projet: state.projet, contenants: state.projet === "balcon" && lastBudget && lastBudget.contenants ? lastBudget.contenants.map(x => ({nom: x.nom, taille: x.taille, type: x.type, plantes: x.plantes.map(pl => { const q = PLANT_OF(pl.nom); return `${pl.q} × ${pl.nom}${q ? ` (${q.latin})` : ""}`; })})) : null,
     profondeur: state.prof, age: state.age, a_garder: [...(z.z.a_garder || []), ...combo.filter(c => c.existing).map(c => `${c.plant.nom} (${c.plant.latin}), déjà plantée`)],
     plantes: combo.filter(c => !c.existing).map(c => ({nom: c.plant.nom, latin: c.plant.latin, type: c.plant.type, couche: lay(c), hauteur: Math.round(heightAt(c.plant, state.age)),
       forme: form(c.plant), fleur: c.plant.bloom ? c.plant.fam : null, argente: leafCols(c.plant) === SILVER, persistant: evergreen(c.plant), quantite: qty[c.plant.nom] || 1}))
@@ -1140,7 +1231,9 @@ async function generateApercu(z, rec, ph){
 }
 // Après chaque recomposition du moteur : proposition et bouton d'aperçu à jour.
 const _engineRender = window.render;
-window.render = function(){ const out = _engineRender.apply(this, arguments); if(window.__ideas) return out; renderProposal(); scheduleApercu(); syncIdea(); drawValidate(); return out; };
+window.render = function(){ const out = _engineRender.apply(this, arguments);
+  if(state.projet === "balcon" && combo.length){ lastBudget = balconBudget(combo); if(curZone) storeZone(); }
+  if(window.__ideas) return out; renderProposal(); scheduleApercu(); syncIdea(); drawValidate(); return out; };
 document.addEventListener("input", e => {
   const r = e.target.closest(".ba-range"); if(r) r.closest(".ba").style.setProperty("--pos", r.value + "%");
 });
@@ -1166,32 +1259,50 @@ function coinSoins(key, m = new Date().getMonth() + 1){
   for(const e of enTerre().filter(x => x.coin === key)) for(const c of gestes(e, m)){ const o = by.get(c.t) || {t: c.t, d: c.d, noms: []}; if(!o.noms.includes(e.nom)) o.noms.push(e.nom); by.set(c.t, o); }
   return {soins: [...by.values()], aPlanter: aPlanter().filter(x => x.coin === key).length};
 }
-// Le repère sur la vignette : d'abord ce qui demande de l'attention, sinon ce qui reste à planter.
+const CAN_SVG = `<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 9h11v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V9Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M15 11l5-4M7 9V7a2 2 0 0 1 2-2h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+// Le repère sur la vignette : d'abord le geste du mois, sinon ce qui reste à planter.
 function tileFlag(key){
   const s = coinSoins(key);
-  const n = new Set(s.soins.flatMap(o => o.noms)).size;
-  if(n) return `<span class="tile-flag soin"><i aria-hidden="true">!</i>${n} à soigner</span>`;
+  // Ton calme : le geste lui-même s'il n'y en a qu'un, sinon leur nombre ; un petit arrosoir, pas d'alerte.
+  if(s.soins.length) return `<span class="tile-flag soin">${CAN_SVG}${s.soins.length === 1 ? esc(s.soins[0].t) : `${s.soins.length} gestes ce mois-ci`}</span>`;
   if(s.aPlanter) return `<span class="tile-flag pot">${s.aPlanter} à planter</span>`;
   return "";
 }
-// Le jardinier du splash, en petit, qui arrose une jeune pousse : une seule scène, discrète, au trait crème.
-const JARDINIER = (() => {
+// Le jardinier du splash, en petit, au trait crème. Il change avec les saisons :
+// printemps, il arrose une pousse en fleur ; été, chapeau de paille sous le soleil ; automne, râteau et feuilles qui tombent ; hiver, bonnet, écharpe et pousse sous cloche.
+function jardinier(saison){
   const C = "#F3EFE6", p = (d, w = 2.2, fill = "none") => `<path d="${d}" fill="${fill}" stroke="${C}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
-  return `<svg class="gardener" aria-hidden="true" width="200" height="230" viewBox="8 36 200 230" fill="none" xmlns="http://www.w3.org/2000/svg">`
-    + p("M14 262 C 70 256, 150 258, 204 263")
-    // la pousse
-    + p("M34 261 V 236") + p("M34 244 C 24 244, 20 236, 22 230 C 30 230, 34 236, 34 244", 1.8, "#D5E3CF") + p("M34 240 C 42 238, 47 230, 45 224 C 37 225, 34 232, 34 240", 1.8, "#D5E3CF")
-    // les gouttes
-    + p("M24 156 v6 M30 172 v6 M22 186 v6 M31 200 v6 M25 214 v5", 1.8)
-    // le jardinier
-    + `<circle cx="146" cy="70" r="24" stroke="${C}" stroke-width="2.2"/>` + p("M124 64 C 124 40, 160 34, 170 58 C 158 52, 140 54, 132 70", 2.2, C) + p("M138 72 q 4 3 8 0 M152 72 q 4 3 8 0 M142 84 q 6 5 12 0", 1.8)
-    + p("M116 116 C 120 100, 172 100, 176 116 L 184 186 L 108 186 Z") + [124, 139, 154, 169].map(x => `<circle cx="${x}" cy="160" r="2" fill="${C}"/>`).join("")
-    + p("M124 186 L 120 250 M168 186 L 172 250 M110 252 h22 M160 252 h24")
-    + p("M116 118 C 106 126, 96 130, 86 130") + p("M176 118 C 186 138, 190 156, 192 172")
-    // l'arrosoir, penché vers la pousse
-    + `<g transform="translate(84 130) rotate(-20)">${p("M-40 -8 H-10 V14 H-40 Z")}${p("M-10 -4 C 0 -4, 2 10, -10 10", 2)}${p("M-40 4 L-62 -6", 2.2)}${p("M-62 -6 l-6 -5 l1 11 z", 1.8, C)}</g>`
-    + `</svg>`;
-})();
+  let svg = `<svg class="gardener" aria-hidden="true" width="200" height="230" viewBox="8 36 200 230" fill="none" xmlns="http://www.w3.org/2000/svg">`;
+  svg += p("M14 262 C 70 256, 150 258, 204 263");
+  // la pousse (sous une cloche l'hiver, avec un bouton jaune au printemps)
+  svg += p("M34 261 V 236") + p("M34 244 C 24 244, 20 236, 22 230 C 30 230, 34 236, 34 244", 1.8, "#D5E3CF") + p("M34 240 C 42 238, 47 230, 45 224 C 37 225, 34 232, 34 240", 1.8, "#D5E3CF");
+  if(saison === "printemps") svg += `<circle cx="34" cy="231" r="4.5" fill="#F3D35B" stroke="${C}" stroke-width="1.6"/>`;
+  if(saison === "hiver") svg += p("M16 261 C 16 222, 52 222, 52 261", 1.8) + p("M30 222 h8", 1.8);
+  // la tête et le visage
+  svg += `<circle cx="146" cy="70" r="24" stroke="${C}" stroke-width="2.2"/>` + p("M138 72 q 4 3 8 0 M152 72 q 4 3 8 0 M142 84 q 6 5 12 0", 1.8);
+  if(saison === "hiver") svg += p("M122 62 C 122 34, 170 34, 170 62 Z", 2.2, "#F5CDB0") + p("M120 62 H 172", 2.6) + `<circle cx="146" cy="33" r="5" fill="${C}"/>`;
+  else if(saison === "été") svg += p("M110 58 C 128 48, 164 48, 182 58", 2.4) + p("M128 55 C 128 36, 164 36, 164 55", 2.2, "#F7E7A6");
+  else svg += p("M124 64 C 124 40, 160 34, 170 58 C 158 52, 140 54, 132 70", 2.2, C);
+  // le corps et les jambes
+  svg += p("M116 116 C 120 100, 172 100, 176 116 L 184 186 L 108 186 Z") + [124, 139, 154, 169].map(x => `<circle cx="${x}" cy="160" r="2" fill="${C}"/>`).join("");
+  svg += p("M124 186 L 120 250 M168 186 L 172 250 M110 252 h22 M160 252 h24") + p("M176 118 C 186 138, 190 156, 192 172");
+  if(saison === "hiver" || saison === "automne") svg += p("M128 100 C 138 108, 156 108, 166 100", 4) + p("M160 104 L 166 128", 3.4);
+  if(saison === "hiver"){
+    // bras le long du corps, et des flocons
+    svg += p("M116 118 C 106 138, 102 158, 100 176");
+    [[40, 120], [70, 160], [30, 190], [196, 70], [64, 96]].forEach(([x, y]) => { svg += p(`M${x - 5} ${y} h10 M${x} ${y - 5} v10 M${x - 3.5} ${y - 3.5} l7 7 M${x + 3.5} ${y - 3.5} l-7 7`, 1.4); });
+  } else if(saison === "automne"){
+    // le râteau, et des feuilles qui tombent
+    svg += p("M116 118 C 106 126, 96 130, 86 130") + p("M90 124 L 52 254", 2.2) + p("M38 252 H 66 M42 252 v8 M50 252 v8 M58 252 v8 M66 252 v8", 1.8);
+    [[60, 100, 20], [92, 170, -30], [196, 120, 40], [30, 150, 10]].forEach(([x, y, r]) => { svg += `<g transform="translate(${x} ${y}) rotate(${r})">${p("M0 -7 C 6 -4, 6 4, 0 7 C -6 4, -6 -4, 0 -7 Z", 1.5, "#F5CDB0")}</g>`; });
+  } else {
+    // l'arrosoir, penché vers la pousse, et les gouttes
+    svg += p("M116 118 C 106 126, 96 130, 86 130") + p("M24 156 v6 M30 172 v6 M22 186 v6 M31 200 v6 M25 214 v5", 1.8);
+    svg += `<g transform="translate(84 130) rotate(-20)">${p("M-40 -8 H-10 V14 H-40 Z")}${p("M-10 -4 C 0 -4, 2 10, -10 10", 2)}${p("M-40 4 L-62 -6", 2.2)}${p("M-62 -6 l-6 -5 l1 11 z", 1.8, C)}</g>`;
+    if(saison === "été") svg += `<circle cx="44" cy="64" r="13" fill="#F3D35B" stroke="${C}" stroke-width="1.8"/>` + p("M44 42 v6 M44 80 v6 M22 64 h6 M60 64 h6", 1.8);
+  }
+  return svg + `</svg>`;
+}
 // Home : un tableau de bord du jardin (saison, conseil du mois, chiffres, coins en mosaïque), distinct de la page d'un coin.
 const SAISON = m => [12, 1, 2].includes(m) ? "hiver" : m <= 5 ? "printemps" : m <= 8 ? "été" : "automne";
 const SAISON_PHRASE = {1:"Le jardin dort, profites-en.", 2:"Les premières pousses arrivent.", 3:"C’est le bon mois pour planter.", 4:"C’est le bon mois pour planter.", 5:"Garde un œil sur l’arrosage.", 6:"Profite des fleurs.", 7:"Arrose malin, le soir.", 8:"Arrose malin, le soir.", 9:"On prépare les plantations d’automne.", 10:"C’est le bon mois pour planter.", 11:"C’est le bon mois pour planter.", 12:"Le jardin dort, profites-en."};
@@ -1213,7 +1324,8 @@ function renderJardin(){
   $("j-todo").innerHTML = todo.length && !editing ? `<button class="todo-card" type="button" data-tab-go="s-plantes"><span><b>${todo.length} plante${todo.length > 1 ? "s" : ""} à planter</b><small>Ta liste pour la jardinerie</small></span><span aria-hidden="true">→</span></button>` : "";
   $("j-search").hidden = editing || demo || !list.length;
   $("j-credits").hidden = editing || demo; drawCredits();
-  if(!$("j-gardener").innerHTML) $("j-gardener").innerHTML = JARDINIER;
+  const saison = SAISON(m);
+  if($("j-gardener").dataset.saison !== saison){ $("j-gardener").innerHTML = jardinier(saison); $("j-gardener").dataset.saison = saison; }
   const tiles = list.map(e => {
     const s = spaceStats(e.rec, e.z), z = e.z;
     const pic = spacePhoto(e);
@@ -1435,7 +1547,7 @@ function drawValidate(){
 function validateCoin(){
   const k = selKey(), rows = rowsNow(), zo = curZoneObj(); if(!k || !rows.length || !zo) return;
   const prevSel = selections[k], prevPl = mesPlantes.slice(), z = zoneIdeas(), idea = z && z.list.find(i => i.id === z.active);
-  selections[k] = {date: new Date().toISOString(), n: idea ? idea.n : null, rows, min: lastBudget.min, max: lastBudget.max};
+  selections[k] = {date: new Date().toISOString(), n: idea ? idea.n : null, rows, min: lastBudget.min, max: lastBudget.max, contenants: lastBudget.contenants || null, fournitures: lastBudget.fournitures || null};
   // Les plantes déjà en terre restent ; celles pas encore plantées suivent la nouvelle sélection.
   const planted = mesPlantes.filter(e => e.coin === k && e.planted && !e.gone);
   mesPlantes = mesPlantes.filter(e => e.coin !== k || e.planted || e.gone);
@@ -1453,6 +1565,16 @@ $("sel-go").addEventListener("click", () => { if($("sel-go").dataset.state === "
 // Un coin retiré emporte sa sélection et ses plantes.
 function dropCoinPlants(key){ delete selections[key]; mesPlantes = mesPlantes.filter(e => e.coin !== key); saveSel(); savePlantes(); }
 
+// Balcon : les contenants et le terreau des coins validés, à acheter avec les plantes.
+function gardenPots(){
+  const out = new Map();
+  for(const [k, sel] of Object.entries(selections)){
+    if(!sel.contenants || !espaces().some(e => e.key === k)) continue;
+    sel.contenants.forEach(x => { const id = x.nom + " " + x.taille, o = out.get(id) || {nom: `${x.nom} (${x.taille})`, q: 0, prix: x.prix}; o.q++; out.set(id, o); });
+    (sel.fournitures || []).forEach(f => { const o = out.get(f.nom) || {nom: f.nom, q: 0, prix: f.prix}; o.q += f.q; out.set(f.nom, o); });
+  }
+  return [...out.values()];
+}
 // Les objets (banc, nichoir…) des coins validés, à acheter avec les plantes.
 let achats = new Set(store.get("app-achats", []));
 function gardenExtras(){
@@ -1465,7 +1587,7 @@ const thumbOf = nom => { const p = PLANT_OF(nom), ph = p && photoOf(p); return p
 // 11 · Mes plantes : à planter (la liste pour la jardinerie), puis dans ton jardin, avec le geste du mois.
 function renderPlantes(){
   const todo = aPlanter().sort((a, b) => coinNom(a).localeCompare(coinNom(b), "fr") || a.nom.localeCompare(b.nom, "fr"));
-  const ground = enTerre().sort((a, b) => a.nom.localeCompare(b.nom, "fr")), objets = gardenExtras(), m = new Date().getMonth() + 1;
+  const ground = enTerre().sort((a, b) => a.nom.localeCompare(b.nom, "fr")), objets = gardenExtras(), pots = gardenPots(), m = new Date().getMonth() + 1;
   $("pl-title").innerHTML = "Tes <em>plantes</em>" + countOf(todo.length + ground.length);
   $("pl-lede").textContent = todo.length ? "Achète-les, plante-les : on s’occupe du reste." : ground.length ? "Elles poussent, on veille avec toi." : "Elles arrivent ici quand tu valides un coin.";
   if(!todo.length && !ground.length){
@@ -1477,6 +1599,7 @@ function renderPlantes(){
   if(todo.length){
     let min = 0, max = 0; todo.forEach(e => { const [a, b] = unitPrice(PLANT_OF(e.nom), e.role); min += a * e.q; max += b * e.q; });
     objets.filter(o => !achats.has(o.x.nom)).forEach(o => { min += o.x.prix[0] * o.q; max += o.x.prix[1] * o.q; });
+    pots.filter(o => !achats.has(o.nom)).forEach(o => { min += o.prix[0] * o.q; max += o.prix[1] * o.q; });
     html += `<section class="pl-sec" aria-labelledby="pl-todo-h">
       <div class="title-row"><h3 id="pl-todo-h">À <em>planter</em>${countOf(todo.length)}</h3>${todo.length > 1 ? `<button class="edit-link" type="button" data-all-planted>Tout est planté</button>` : ""}</div>
       <div class="budget-card"><div class="bh"><div><span class="eyebrow">Budget estimé</span><strong>${eur0(min)} – ${eur0(max)}</strong></div><span class="l-left">à la jardinerie</span></div></div>
@@ -1484,6 +1607,7 @@ function renderPlantes(){
         <span class="pl-pic">${thumbOf(e.nom)}</span>
         <span class="pl-txt"><b>${esc(e.nom)}</b><small>${qtyTxt(e)} · ${esc(coinNom(e))}</small>
           <span class="pl-acts"><a href="${shopUrl(p)}" target="_blank" rel="noopener">Acheter ↗</a><button class="btn secondary sm" type="button" data-planted="${e.id}">C’est planté</button></span></span></li>`; }).join("")}</ul>
+      ${pots.length ? `<h3 class="shop-h">Contenants et terreau${countOf(pots.length)}</h3><ul class="shop">${pots.map(o => `<li><label class="shop-item"><input type="checkbox" data-obj="${esc(o.nom)}" ${achats.has(o.nom) ? "checked" : ""}><span><b>${esc(o.nom)}</b><small>${o.q} × ${eur0(o.prix[0])} – ${eur0(o.prix[1])}</small></span></label></li>`).join("")}</ul>` : ""}
       ${objets.length ? `<h3 class="shop-h">Objets${countOf(objets.length)}</h3><ul class="shop">${objets.map(o => `<li><label class="shop-item"><input type="checkbox" data-obj="${esc(o.x.nom)}" ${achats.has(o.x.nom) ? "checked" : ""}><span><b>${esc(o.x.nom)}</b><small>${o.q > 1 ? o.q + " exemplaires" : "1 exemplaire"}</small></span></label>${o.x.prix[1] ? `<a href="${extraUrl(o.x)}" target="_blank" rel="noopener">Acheter ↗</a>` : ""}</li>`).join("")}</ul>` : ""}
       <p class="hint">Prix indicatifs pour de jeunes plantes en petits pots, hors terre, paillage et livraison.</p>
     </section>`;

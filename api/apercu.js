@@ -34,7 +34,25 @@ function ratio(w, h) {
   return opts.reduce((best, o) => (Math.abs(o[1] - r) < Math.abs(best[1] - r) ? o : best))[0];
 }
 
+// Balcon ou terrasse : les plantes en pots et jardinières, posées sur le sol ou accrochées à la rambarde.
+function buildBalconPrompt(b) {
+  const cont = (Array.isArray(b.contenants) ? b.contenants : []).slice(0, 10);
+  const PLACE = { grand: "a large lightweight round planter standing on the floor in a corner", bac: "a square planter against the wall with a wooden trellis behind it", moyen: "a medium round pot standing on the floor", jardiniere: "a long rectangular planter hung on the railing" };
+  const list = cont.map((c, i) => `- Container ${i + 1}: ${PLACE[c.type] || "a pot"} (${clean(c.taille, 30)}), planted with ${(Array.isArray(c.plantes) ? c.plantes : []).map(x => clean(x, 80)).join(", ")}`).join("\n");
+  const keep = (Array.isArray(b.a_garder) ? b.a_garder : []).map(x => clean(x, 60)).filter(Boolean).slice(0, 6);
+  return [
+    "Edit this photo of a private balcony or terrace to show it furnished with container plants. The result must look like the same photo taken after the plants were installed.",
+    `Area: ${clean(b.emplacement, 400) || "the balcony floor and railing visible in the photo"}.`,
+    "Keep everything else exactly as it is: same camera position, angle and framing, same light and season, same railing, floor, walls, windows, doors and view" + (keep.length ? `, and keep these existing elements: ${keep.join(", ")}` : "") + ".",
+    `Containers and plants, shown ${AGES[b.age] || AGES["3"]}:`,
+    list || "- A few pots of hardy shrubs and perennials.",
+    "Use simple terracotta-coloured or light grey planters. Plants grow only in the containers: do not create flower beds or soil on the floor. Show flowering plants in bloom as in early summer.",
+    "Photorealistic, natural colours, realistic plant sizes. Do not add people, animals, furniture, text or labels."
+  ].join("\n\n");
+}
+
 function buildPrompt(b) {
+  if (b.projet === "balcon" && Array.isArray(b.contenants) && b.contenants.length) return buildBalconPrompt(b);
   const plants = (Array.isArray(b.plantes) ? b.plantes : []).slice(0, 14);
   const byLayer = {};
   plants.forEach(p => {

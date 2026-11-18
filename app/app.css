@@ -867,7 +867,8 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 /* Vignettes de coin : ce qui demande de l'attention */
 .tile-pic{position:relative}
 .tile-flag{position:absolute;left:8px;top:8px;display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 4px;border:1.3px solid var(--encre);border-radius:14px;font-size:13px;font-weight:600;line-height:18px;color:var(--encre)}
-.tile-flag.soin{background:var(--soleil)}
+.tile-flag.soin{background:var(--papier);border-color:transparent;padding-left:8px;font-weight:500}
+.tile-flag svg{flex:none;color:var(--prusse)}
 .tile-flag.pot{background:var(--papier);padding-left:9px}
 .tile-flag i{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--encre);color:var(--soleil);font-style:normal;font-size:12px}
 /* Dans le coin : ce mois-ci */
@@ -877,3 +878,20 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 .cs-row b{font-size:17px;font-weight:600}
 .cs-row span{font-size:15px;line-height:20px;color:var(--encre-douce)}
 .cs-more{align-self:flex-end;font-size:15px;color:var(--prusse)}
+
+/* Carte de plante : le geste du mois, quand elle en a un */
+.pl-soin{display:inline-flex;align-self:flex-start;align-items:center;gap:6px;margin:0 0 6px;padding:3px 10px;border-radius:14px;background:var(--sauge);font-size:14px;font-weight:500;line-height:18px}
+.pl-soin svg{flex:none;color:var(--prusse)}
+.pl-soin i{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--encre);color:var(--soleil);font-style:normal;font-size:12px}
+
+/* Balcon : tes contenants */
+.pots{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.pots h3{margin:0;font-family:var(--f-serif);font-weight:400;font-size:26px;line-height:30px}
+.pots-list{display:flex;flex-direction:column;gap:8px}
+.pot-item{display:flex;align-items:flex-start;gap:12px;padding:12px;border:1.3px solid var(--encre);border-radius:14px;background:var(--carte)}
+.pot-n{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--sauge);border:1.3px solid var(--encre);font-weight:600;font-size:14px}
+.pot-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.pot-txt b{font-size:17px;font-weight:600}
+.pot-txt small{font-size:14px;color:var(--encre-douce)}
+.pot-pl{font-size:15px;line-height:20px;color:var(--encre)}
+.pot-prix{flex:none;font-size:14px;font-weight:600;white-space:nowrap}
