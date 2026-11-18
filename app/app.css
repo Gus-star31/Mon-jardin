@@ -761,3 +761,8 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 .q-res{margin-top:20px}
 .q-res .pl-txt .tag{align-self:flex-start;margin-top:4px}
 #s-scan-res .scan-photo[hidden]{display:none}
+
+/* Aperçu : l'âge du jardin montré sur l'image « après » */
+.ap-age{display:flex;gap:6px;margin-top:10px}
+.ap-age button{flex:1;min-height:36px;padding:0 8px;border:1.3px solid var(--encre);border-radius:18px;background:var(--carte);font:inherit;font-size:15px;color:var(--encre);cursor:pointer}
+.ap-age button[aria-pressed="true"]{background:var(--encre);color:var(--papier)}

@@ -379,7 +379,7 @@ function yearsTo(p, target){
   const rate = RATE[p.type==="arbre"?"arbre":"autre"][growth(p)] * (p.type==="grimpante" ? 1.5 : 1);
   return Math.max(1, Math.ceil((Math.min(target, p.h) - h0)/rate));
 }
-const AGES = [["0","À la plantation"],["1","Après 1 an"],["3","Après 3 ans"],["5","Après 5 ans"],["adulte","Adulte"]];
+const AGES = [["0","À la plantation"],["1","Après 1 an"],["2","Après 2 ans"],["3","Après 3 ans"],["5","Après 5 ans"],["adulte","Adulte"]];
 // ---------- Styles de jardin ----------
 // Chaque style privilégie une famille de plantes. Si aucune plante du style ne convient à un emplacement, l'outil en prend une autre adaptée.
 const STYLES = {
@@ -417,6 +417,8 @@ const WATER_LBL = {1:"Sans arrosage",2:"Arrosage occasionnel",3:"Arrosage régul
 const isEcran = p => p.type==="arbuste" && p.h>=(+state.haut)*100 && evergreen(p);
 // « Plutôt hautes » : pas de plafond, et la composition privilégie les grandes plantes (fond étoffé, vivaces et graminées hautes).
 const wantTall = () => state.hmax === "haut";
+// Un arbre en vedette quand le coin a la place : arbres autorisés, pleine terre, au moins 1,50 m de profondeur, coin moyen ou grand, pas de plafond de hauteur.
+const roomForTree = () => state.types.includes("arbre") && state.projet !== "balcon" && +state.prof >= 150 && state.taille !== "p" && !(+state.hmax);
 const TALL_MIN = {structure:150, vivace:70, graminee:80};
 function preferTall(cand, r){ if(!wantTall() || !TALL_MIN[r]) return cand; const t = cand.filter(p=>p.h>=TALL_MIN[r]); return t.length ? t : cand; }
 
@@ -475,7 +477,7 @@ function compatible(p){
   if(!state.types.includes(p.type) && !forced) return false;
   if(+state.hmax && p.h > +state.hmax && !forced) return false;
   // Sans les arbres : on écarte aussi les arbustes qui en ont la taille (plus de 4 m), sauf pour une haie.
-  if(!state.types.includes("arbre") && p.type==="arbuste" && p.h > 400 && !forced) return false;
+  if(!roomForTree() && p.type==="arbuste" && p.h > 400 && !forced) return false;
   if(state.pal!=="all" && !PAL[state.pal].includes(p.fam)) return false;
   if(water(p) > +state.arro) return false;
   if(G.melli && p.type!=="graminee" && !melli(p)) return false;
@@ -553,6 +555,7 @@ function layout(){
     add("ecran","hedge",{p:2,m:3,g:3}[T]);
   }
   if(G.wall) add("grimpante","wall",{p:1,m:2,g:2}[T]);
+  if(!G.hedge && roomForTree()) add("arbre","tree",1);
   const L = rowLayers();
   if(L.includes("back")) add("structure","back", T==="g" ? 2 : 1);
   if(L.includes("mid")){ add("vivace","mid", n); if(T!=="p" || L.length===1) add("graminee","mid",1); }

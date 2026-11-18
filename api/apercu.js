@@ -21,6 +21,7 @@ const GRASS = { chaud: "golden-blond plumes", rose: "pink plumes", blanc: "pale 
 const AGES = {
   "0": "just planted, as small young plants with bare mulch between them",
   "1": "one year after planting, filled out but with some gaps",
+  "2": "two years after planting, nicely filled in, with only small gaps left",
   "3": "three years after planting, established and well filled",
   "5": "five years after planting, dense and mature-looking",
   adulte: "at mature size"

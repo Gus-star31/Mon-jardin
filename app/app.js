@@ -660,7 +660,7 @@ function zoneState(z, rec){
   const prof = sil ? String(Math.min(+z.profondeur || 150, sil.prof)) : z.profondeur;
   return {obj: [...new Set(obj)], haut: z.hauteur_masquer || "2", vite: obj.includes("isoler") ? "rapide" : "tout", prof, hmax: sil ? sil.hmax : "0", dens: sil ? sil.dens : "n", expo: z.exposition,
     sol: p.sol && p.sol !== "inconnu" ? p.sol : a.sol.type, eau: z.humidite, clim: a.climat.zone, taille: z.longueur,
-    pal: "all", types: BASE_TYPES, arro: p.arrosage || "1", style: p.style || "libre", age: "3", projet: p.projet || "jardin"};
+    pal: "all", types: p.projet === "balcon" ? BASE_TYPES : [...BASE_TYPES, "arbre"], arro: p.arrosage || "1", style: p.style || "libre", age: apAge, projet: p.projet || "jardin"};
 }
 function titleHTML(t){
   const i = t.indexOf(",");
@@ -682,6 +682,8 @@ function openEspace(rec, zoneId, silent = false){
   window.__quiet = true;
   setZone(zoneId);
   window.__quiet = false;
+  // Un coin composé avant le choix de l'âge garde son ancien réglage : l'image suit l'âge choisi (2 ans par défaut).
+  if(state.age !== apAge){ state.age = apAge; renderCurrent(); }
   ensureIdeas();
   window.scrollTo(0, 0);
 }
@@ -813,7 +815,9 @@ window.renderZoneDetail = function(z){
   const warn = [d.attention && d.attention.length ? `<b>À faire d’abord :</b> ${esc(d.attention.join(" "))}` : "", d.a_garder && d.a_garder.length ? `<b>À garder :</b> ${esc(d.a_garder.join(", "))}.` : ""].filter(Boolean).join(" ");
   $("esp-warn").innerHTML = warn ? `<p class="warnl">${warn}</p>` : "";
   const before = z.thumb ? `<img class="ba-before" id="ba-before" src="${z.thumb}" alt="Ta photo de ce coin">` : `<div class="ba-empty">Pas de photo pour ce coin</div>`;
-  $("esp-apercu").innerHTML = `<div class="ba" id="ba">${before}</div><div class="ap-row"><p class="ap-note" id="ap-note"></p><div class="ap-actions" id="ap-actions"></div></div>`;
+  $("esp-apercu").innerHTML = `<div class="ba" id="ba">${before}</div>
+    <div class="ap-age" role="group" aria-label="Voir le coin">${AP_AGES.map(([v, l]) => `<button type="button" data-ap-age="${v}" aria-pressed="${apAge === v}">${l}</button>`).join("")}</div>
+    <div class="ap-row"><p class="ap-note" id="ap-note"></p><div class="ap-actions" id="ap-actions"></div></div>`;
 };
 // Proposition : cartes plantes et budget, reconstruites après chaque composition du moteur.
 const SPARK = `<svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 1.5 C 9.6 6, 12 8.4, 16.5 9 C 12 9.6, 9.6 12, 9 16.5 C 8.4 12, 6 9.6, 1.5 9 C 6 8.4, 8.4 6, 9 1.5 Z" fill="#F3D35B" stroke="#FBF9F3" stroke-width="1.4" stroke-linejoin="round"/></svg>`;
@@ -927,6 +931,18 @@ const DRAW_SVG = `<svg class="draw" aria-hidden="true" width="132" height="64" v
   <path pathLength="1" style="--d:1s" d="M108 60 C108 50 106 42 104 36 M104 36 C98 36 95 31 96 26 C101 26 104 30 104 36 M106 46 C112 45 117 40 118 34 C112 34 108 39 106 46"/>
   <path pathLength="1" style="--d:0s" d="M6 61 H126" stroke-width="1.6"/>
 </svg>`;
+// L'âge du jardin montré sur l'image « après » : 2 ans par défaut, 1 ou 3 ans au choix. Chaque âge a sa propre image, gardée en cache.
+const AP_AGES = [["1", "Dans 1 an"], ["2", "Dans 2 ans"], ["3", "Dans 3 ans"]];
+let apAge = "2";
+$("esp-apercu").addEventListener("click", e => {
+  const b = e.target.closest("[data-ap-age]"); if(!b || b.dataset.apAge === apAge || apBusy) return;
+  apAge = b.dataset.apAge; state.age = apAge;
+  $("esp-apercu").querySelectorAll("[data-ap-age]").forEach(x => x.setAttribute("aria-pressed", x.dataset.apAge === apAge));
+  // La photo seule, le temps de retrouver ou de dessiner l'image de cet âge.
+  const ba = $("ba"), src = ba && ba.querySelector("img.ba-before");
+  if(ba && src){ ba.innerHTML = `<img class="ba-before" id="ba-before" src="${src.getAttribute("src")}" alt="Ta photo de ce coin">`; ba.classList.remove("has-after"); delete ba.dataset.img; }
+  renderCurrent();
+});
 // true : aucune image n'est demandée à Gemini, l'espace montre seulement la photo d'origine.
 const APERCU_PAUSE = false;
 let apTok = 0, apTimer = null, apBusy = false;
