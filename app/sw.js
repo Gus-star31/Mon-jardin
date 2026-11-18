@@ -1,7 +1,7 @@
 // Service worker : garde l'app disponible hors connexion (sauf l'analyse, qui demande Internet).
-const CACHE = "massifs-app-v56";
+const CACHE = "massifs-app-v57";
 const SHELL = ["/app/", "/app/index.html", "/app/app.css", "/app/atelier.css", "/app/app.js", "/app/engine.js",
-  "/app/manifest.webmanifest", "/app/icons/icon-192.png", "/app/icons/icon-512.png"];
+  "/app/manifest.webmanifest", "/app/fonts/fonts.css", "/app/legal.html", "/app/icons/icon-192.png", "/app/icons/icon-512.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

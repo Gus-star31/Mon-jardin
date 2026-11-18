@@ -932,3 +932,14 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 /* Crédit sous la photo d'une fiche (licences Creative Commons) */
 .ph-credit{font-size:.72rem;color:var(--muted);margin:.35rem 0 0;line-height:1.35}
 .ph-credit a{color:inherit;text-decoration:underline}
+
+/* Informations légales : consentement avant paiement, mention sous la connexion */
+.pay-consent{display:flex;gap:10px;align-items:flex-start;margin:14px 0 4px;font-size:.9rem;line-height:1.4;color:var(--ink)}
+.pay-consent input{margin-top:3px;width:18px;height:18px;flex:0 0 auto;accent-color:var(--prusse,#263B6E)}
+.pay-consent a{color:inherit}
+.pay-go:disabled{opacity:.45;cursor:not-allowed}
+.login-legal{font-size:.78rem;line-height:1.4;color:var(--muted);text-align:center;margin:12px 0 0}
+.login-legal a{color:inherit}
+
+/* Feuille du logo : seulement le contour, sans remplissage */
+.brand .illu path{fill:none}

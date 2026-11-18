@@ -1206,7 +1206,8 @@ function coinSoins(key, m = new Date().getMonth() + 1){
   return {soins: [...by.values()], aPlanter: aPlanter().filter(x => x.coin === key).length};
 }
 const TODO_ICO = `<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6 13h12l-1.6 7H7.6L6 13Z" stroke="#1C1C1A" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 13V8.5M12 9c-.2-2.6-1.8-4.3-4.6-4.5.1 2.7 1.8 4.3 4.6 4.5Z" stroke="#1C1C1A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-const CAN_SVG = `<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 9h11v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V9Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M15 11l5-4M7 9V7a2 2 0 0 1 2-2h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+// Icône des soins à faire : des ciseaux de taille (l'arrosoir ressemblait à une casserole).
+const CAN_SVG = `<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88"/><path d="M14.47 14.48 20 20"/><path d="M8.12 8.12 12 12"/></svg>`;
 // Le repère sur la vignette : d'abord le geste du mois, sinon ce qui reste à planter.
 function tileFlag(key){
   const s = coinSoins(key);
@@ -1679,6 +1680,7 @@ function renderCompte(){
     <section class="acct-sec"><div class="title-row"><h3>Tes crédits</h3><button class="edit-link" type="button" data-act="credits">Recharger</button></div><p>${credits.solde} crédit${credits.solde > 1 ? "s" : ""} restant${credits.solde > 1 ? "s" : ""}</p></section>
     <section class="acct-sec"><h3>Tes données</h3><p>Ton jardin reste sur ce téléphone. Tes photos ne servent qu’à l’analyse, on ne les garde pas.</p></section>
     <section class="acct-sec"><h3>Les sources</h3><p>Photos, données des plantes et IA.</p><button class="link" type="button" data-act="sources">Voir les sources</button></section>
+    <section class="acct-sec"><h3>Informations légales</h3><p>Mentions légales, confidentialité, conditions d’utilisation et de vente.</p><a class="link" href="/app/legal.html" target="_blank" rel="noopener">Lire les informations légales</a></section>
     <button class="btn secondary" type="button" data-act="logout">Se déconnecter</button>
     <button class="link danger" type="button" data-act="delete">Supprimer mon compte</button>`;
 }
@@ -2099,12 +2101,14 @@ function renderPaiement(){
     <div class="scan-card"><div class="sc-row"><span><b>Après l’achat</b><small>${credits.solde} + ${p.credits} = ${credits.solde + p.credits} crédits</small></span></div>
       <div class="sc-row"><span><b>Paiement unique</b><small>Pas d’abonnement, pas de renouvellement automatique.</small></span></div></div>
     <p class="pay-test">Mode test : aucun paiement n’est encaissé et aucune carte n’est demandée. Les crédits sont ajoutés pour essayer le parcours.</p>
-    <button class="btn primary pay-go" type="button" data-pay="go">Payer ${prixTxt(p.prix)}</button>
+    <label class="pay-consent"><input type="checkbox" id="pay-ok"> <span>J’ai lu les <a href="/app/legal.html#cgv" target="_blank" rel="noopener">conditions de vente</a>. Je veux mes crédits tout de suite et je renonce à mon droit de rétractation de 14 jours.</span></label>
+    <button class="btn primary pay-go" type="button" data-pay="go" disabled>Payer ${prixTxt(p.prix)}</button>
     <p class="hint pay-note">Le paiement se fera sur la page sécurisée de notre prestataire. Coup de pousse ne voit jamais ta carte.</p>`;
 }
+$("pay-body").addEventListener("change", e => { if(e.target.id === "pay-ok"){ const b = $("pay-body").querySelector("[data-pay=go]"); if(b) b.disabled = !e.target.checked; } });
 $("pay-body").addEventListener("click", e => {
   const b = e.target.closest("[data-pay]"); if(!b) return;
-  if(b.dataset.pay === "go" && packChoisi && !payDone){ payDone = true; addCredits(packChoisi.credits, `Pack ${packChoisi.nom} (test)`); renderPaiement(); window.scrollTo(0, 0); }
+  if(b.dataset.pay === "go" && packChoisi && !payDone && $("pay-ok") && $("pay-ok").checked){ payDone = true; addCredits(packChoisi.credits, `Pack ${packChoisi.nom} (test)`); renderPaiement(); window.scrollTo(0, 0); }
   if(b.dataset.pay === "home") goTab("s-jardin");
 });
 
