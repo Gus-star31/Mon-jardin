@@ -1210,8 +1210,9 @@ const CAN_SVG = `<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 
 // Le repère sur la vignette : d'abord le geste du mois, sinon ce qui reste à planter.
 function tileFlag(key){
   const s = coinSoins(key);
-  // Ton calme : le geste lui-même s'il n'y en a qu'un, sinon leur nombre ; un petit arrosoir, pas d'alerte.
-  if(s.soins.length) return `<span class="tile-flag soin">${CAN_SVG}${s.soins.length === 1 ? esc(s.soins[0].t) : `${s.soins.length} gestes à faire`}</span>`;
+  // Ton calme et générique : combien de plantes demandent un geste ce mois-ci ; le détail se lit dans le coin.
+  const n = new Set(s.soins.flatMap(o => o.noms)).size;
+  if(n) return `<span class="tile-flag soin">${CAN_SVG}${n} plante${n > 1 ? "s" : ""} à entretenir</span>`;
   if(s.aPlanter) return `<span class="tile-flag pot">${s.aPlanter} à planter</span>`;
   return "";
 }
@@ -1226,7 +1227,8 @@ function jardinier(saison){
   if(saison === "printemps") svg += `<circle cx="34" cy="231" r="4.5" fill="#F3D35B" stroke="${C}" stroke-width="1.6"/>`;
   if(saison === "hiver") svg += p("M16 261 C 16 222, 52 222, 52 261", 1.8) + p("M30 222 h8", 1.8);
   // la tête et le visage
-  svg += `<circle cx="146" cy="70" r="24" stroke="${C}" stroke-width="2.2"/>` + p("M138 72 q 4 3 8 0 M152 72 q 4 3 8 0 M142 84 q 6 5 12 0", 1.8);
+  // Un visage simple et expressif : deux yeux ronds qui clignent de temps en temps, et un sourire.
+  svg += `<circle cx="146" cy="70" r="24" stroke="${C}" stroke-width="2.2"/><g class="g-eyes"><circle cx="139" cy="69" r="2.6" fill="${C}"/><circle cx="154" cy="69" r="2.6" fill="${C}"/></g>` + p("M138 79 q 8 8 16 0", 2);
   if(saison === "hiver") svg += p("M122 62 C 122 34, 170 34, 170 62 Z", 2.2, "#F5CDB0") + p("M120 62 H 172", 2.6) + `<circle cx="146" cy="33" r="5" fill="${C}"/>`;
   else if(saison === "été") svg += p("M110 58 C 128 48, 164 48, 182 58", 2.4) + p("M128 55 C 128 36, 164 36, 164 55", 2.2, "#F7E7A6");
   else svg += p("M124 64 C 124 40, 160 34, 170 58 C 158 52, 140 54, 132 70", 2.2, C);

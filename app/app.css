@@ -912,3 +912,15 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 .cs-body{flex:1;display:flex;flex-direction:column;gap:6px}
 .pay-test{background:var(--ciel-pale)}
 .todo-card .card-ico{display:grid;gap:0}
+.clim-card .card-ico,.todo-card .card-ico,.coin-soins .card-ico{display:grid;place-items:center;gap:0}
+
+/* Le jardinier cligne des yeux de temps en temps */
+.gardener .g-eyes{transform-box:fill-box;transform-origin:center}
+@media (prefers-reduced-motion: no-preference){ .gardener .g-eyes{animation:g-blink 5.5s infinite} }
+@keyframes g-blink{0%,93%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}97%{transform:scaleY(1)}}
+/* Recherche de l'accueil : l'icône de scan, plus grande, dans une pastille bleue */
+.home-search{padding-right:6px}
+.home-search .hs-scan{flex:none;width:38px;height:38px;padding:8px;box-sizing:border-box;border-radius:50%;background:var(--prusse);color:var(--papier)}
+/* Accueil : la recherche, translucide sur le bleu, pour que la carte du conseil ressorte */
+.home-search{background:rgba(243,239,230,.14);color:var(--papier);box-shadow:inset 0 0 0 1px rgba(243,239,230,.28)}
+.home-search .hs-scan{background:var(--papier);color:var(--prusse)}
