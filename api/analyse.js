@@ -15,6 +15,7 @@ const OBJS = { massif: "habiller le jardin", isoler: "s'isoler du voisinage", po
 const STYLES = { libre: "sans style imposé", med: "méditerranéen sec", nat: "naturaliste", anglais: "jardin anglais", contemporain: "contemporain épuré", sauvage: "refuge pour la biodiversité" };
 const ARRO = { "1": "aucun arrosage une fois les plantes installées", "2": "arrosage occasionnel pendant les canicules", "3": "arrosage régulier en été" };
 
+const TYPES = ["arbre", "arbuste", "graminee", "vivace", "couvre-sol", "bulbe", "aromatique", "grimpante"];
 const str = { type: "string" };
 const strArr = { type: "array", items: { type: "string" } };
 const SCHEMA = {
@@ -36,7 +37,7 @@ const SCHEMA = {
       type: "array",
       items: {
         type: "object", additionalProperties: false,
-        required: ["nom", "photo", "emplacement", "description", "orientation", "exposition", "ensoleillement", "humidite", "profondeur", "longueur", "objectifs", "hauteur_masquer", "a_garder", "attention"],
+        required: ["nom", "photo", "emplacement", "description", "orientation", "exposition", "ensoleillement", "humidite", "profondeur", "longueur", "objectifs", "hauteur_masquer", "a_garder", "attention", "plantes_existantes"],
         properties: {
           nom: str,
           photo: { type: "integer" },
@@ -51,7 +52,14 @@ const SCHEMA = {
           objectifs: { type: "array", items: { enum: Object.keys(OBJS) } },
           hauteur_masquer: { enum: ["aucune", "2", "3", "4"] },
           a_garder: strArr,
-          attention: strArr
+          attention: strArr,
+          plantes_existantes: {
+            type: "array",
+            items: {
+              type: "object", additionalProperties: false, required: ["nom", "latin", "type", "hauteur"],
+              properties: { nom: str, latin: str, type: { enum: TYPES }, hauteur: { type: "integer" } }
+            }
+          }
         }
       }
     }
@@ -72,6 +80,7 @@ Règles :
 - 1 à 6 zones au total. Chaque zone correspond à une bande ou un massif précis, visible sur une photo (numéro de photo à partir de 1). La personne photographie en général un seul coin à la fois : avec une seule photo, rends une seule zone, sauf si la photo montre clairement des coins séparés (par exemple les deux côtés d'une allée), et alors trois au plus.
 - "emplacement" : où se trouve exactement la zone sur la photo, en anglais, pour un logiciel de retouche d'image qui devra y dessiner les plantations. Donne la position dans le cadre (left, right, background, foreground, centre), les repères visibles (fence, palm tree, house wall, gate…) et l'étendue ("the strip of lawn along the reed fence in the background, from the white gate pillar on the left to the right edge of the photo, in front of the palm tree"). Une phrase, 40 mots au plus.
 - "a_garder" : arbres, arbustes ou éléments existants à conserver. "attention" : points à traiter avant de planter (plante envahissante comme le bambou traçant ou le liseron, racines, réseaux, ombre d'un grand arbre, sol tassé).
+- "plantes_existantes" : les plantes déjà en place dans la zone, qu'on voit nettement sur la photo et qu'on peut garder (arbres, arbustes, vivaces installées, grimpantes). Pour chacune : nom courant en français, nom latin (genre et espèce si tu en es sûr, sinon le genre seul), type, hauteur actuelle estimée en cm. Pas la pelouse ni les mauvaises herbes. 6 au plus ; liste vide s'il n'y en a pas ou si tu n'es pas sûr.
 - Écris en français, en tutoyant, avec des phrases courtes et concrètes. Le nom d'une zone fait 1 à 3 mots, sans virgule, et se repère facilement ("Côté rue", "Pied du mur", "Haie du fond").
 - N'invente rien que les photos ne montrent pas. Si un élément est incertain, dis-le simplement.`;
 
@@ -90,6 +99,7 @@ function buildContent(body) {
     `Arrosage possible en été : ${ARRO[body.arrosage] || ARRO["1"]}.`,
     `Envies : ${objectifs.length ? objectifs.join(", ") : "habiller le jardin"}.`,
     `Style souhaité : ${STYLES[body.style] || STYLES.libre}.`,
+    ...(body.existantes ? ["La personne a déjà des plantes dans ce coin et veut les garder : repère-les avec soin dans plantes_existantes."] : []),
     `Voici ${body.photos.length} photo${body.photos.length > 1 ? "s" : ""} du jardin.`
   ].join("\n");
   const content = [{ type: "text", text: intro }];
@@ -126,7 +136,11 @@ function sanitize(r, nPhotos) {
     objectifs: [...new Set((z.objectifs || []).map(low).filter(o => OBJS[o]))],
     hauteur_masquer: ["2", "3", "4"].includes(String(z.hauteur_masquer)) ? String(z.hauteur_masquer) : null,
     a_garder: arr(z.a_garder, 6),
-    attention: arr(z.attention, 6)
+    attention: arr(z.attention, 6),
+    plantes_existantes: (Array.isArray(z.plantes_existantes) ? z.plantes_existantes : []).slice(0, 6).map(e => ({
+      nom: clean(e && e.nom, 60), latin: clean(e && e.latin, 80), type: TYPES.includes(low(e && e.type)) ? low(e.type) : "arbuste",
+      hauteur: Math.min(Math.max(parseInt(e && e.hauteur, 10) || 100, 5), 2500)
+    })).filter(e => e.nom)
   }));
   zones.forEach(z => { if (!z.objectifs.length) z.objectifs = ["massif"]; if (z.hauteur_masquer && !z.objectifs.includes("isoler")) z.objectifs.push("isoler"); });
   return {

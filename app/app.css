@@ -833,3 +833,13 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 .pay-check{display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:var(--sauge);border:1.5px solid var(--encre)}
 .pay-check svg{width:28px;height:28px}
 .pay-ok .btn{margin-top:12px;align-self:stretch}
+
+/* Plantes déjà là, dans un coin */
+.deja{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.deja h3{margin:0;font-family:var(--f-serif);font-weight:400;font-size:26px;line-height:30px}
+.deja-list{display:flex;flex-direction:column;gap:8px}
+.deja-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--filet);border-radius:14px;background:var(--carte)}
+.deja-item.off{opacity:.55}
+.deja-item .pl-pic{width:44px;height:44px}
+.deja-item .btn{flex:none;min-height:34px}
+.ph-deja .chips{margin-top:6px}

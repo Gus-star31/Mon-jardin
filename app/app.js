@@ -374,6 +374,8 @@ function renderPhoto(){
         ${DIRS.map(d => `<option value="${d}" ${p.direction === d ? "selected" : ""}>${DIR_LONG[d].charAt(0).toUpperCase() + DIR_LONG[d].slice(1)}</option>`).join("")}
       </select>
     </div>
+    <div class="ph-side ph-deja"><span class="ph-q">Il y a déjà des plantes à garder ?</span>
+      <div class="chips">${[["non", "Non"], ["oui", "Oui, je les garde"]].map(([v, l]) => `<label class="chip"><input type="radio" name="ph-deja" value="${v}" ${(p.deja ? "oui" : "non") === v ? "checked" : ""}><span>${l}</span></label>`).join("")}</div></div>
     ${p.note || p.showNote ? `<textarea id="note" maxlength="300" aria-label="Précision sur ce coin" placeholder="Par exemple : je veux cacher le balcon du voisin">${esc(p.note)}</textarea>`
       : `<button class="linkish add" type="button" id="add-note">+ Ajouter une précision</button>`}
   </article>` : "";
@@ -387,6 +389,7 @@ $("ph-card").addEventListener("click", e => {
 });
 // La boussole ne sert que tant que l'orientation est « Je ne sais pas ».
 $("ph-card").addEventListener("change", e => {
+  if(e.target.name === "ph-deja"){ photo.deja = e.target.value === "oui"; return; }
   if(e.target.id !== "dir") return;
   photo.direction = e.target.value || null;
   if($("compass")){ $("compass").hidden = !!photo.direction; $("dir-lbl").textContent = photo.direction ? "Ton coin regarde vers…" : "Ou choisis dans la liste"; startCompass(); }
@@ -595,7 +598,7 @@ async function runAnalyse(errId, back){
   try{
     const r = await fetch("/api/analyse", {method:"POST", headers:{"content-type":"application/json"}, signal: ctrl.signal,
       body: JSON.stringify({ville, projet, sol: garden.sol || "inconnu", arrosage: arroOf(garden.arrosage), objectifs, style: envies.style,
-        photos: [{data: photo.data, direction: photo.direction || null, note: photo.note}]})});
+        existantes: !!photo.deja, photos: [{data: photo.data, direction: photo.direction || null, note: photo.note}]})});
     const raw = await r.text(); let d = {}; try{ d = JSON.parse(raw); }catch(e){}
     if(!r.ok){
       let msg = d.erreur;
@@ -613,7 +616,10 @@ async function runAnalyse(errId, back){
     const rec = {id: Date.now().toString(36), date: new Date().toISOString(), ville, prefs: {projet: projet || "jardin", sol: garden.sol || "inconnu", arrosage: arroOf(garden.arrosage), objectifs, style: envies.style, silhouette: envies.silhouette || "nsp", extras: envies.extras || []}, analysis: d, thumbs: [photo.thumb], removed: []};
     if(!garden.clim && d.climat){ garden.clim = d.climat.zone; store.set("app-garden", garden); }
     // Le nom donné par la personne prime sur celui de l'analyse ; une photo découpée en plusieurs coins les numérote.
-    d.zones.forEach(z => { z.nom = nomCourt(z.nom); });
+    d.zones.forEach(z => { z.nom = nomCourt(z.nom);
+      // Les plantes déjà en place repérées sur la photo : gardées par défaut, la personne peut en enlever ou en ajouter.
+      z.existantes = (z.plantes_existantes || []).map(e => ({nom: e.nom, latin: e.latin, type: e.type, h: e.hauteur, keep: true, src: "photo"}));
+      delete z.plantes_existantes; });
     const nom = nomCourt(photo.nom || "");
     if(nom) d.zones.forEach((z, i) => { z.nom = d.zones.length > 1 ? `${nom} · ${i + 1}` : nom; });
     records.push(rec);
@@ -699,8 +705,67 @@ function openEspace(rec, zoneId, silent = false){
   // Un coin composé avant le choix de l'âge garde son ancien réglage : l'image suit l'âge choisi (2 ans par défaut).
   if(state.age !== apAge){ state.age = apAge; renderCurrent(); }
   ensureIdeas();
+  drawDeja();
   window.scrollTo(0, 0);
 }
+
+// ---------- Plantes déjà là ----------
+// Repérées sur la photo ou ajoutées à la main, rangées sur le coin (z.existantes) ; le moteur compose toujours autour de celles qu'on garde.
+const dejaCache = new Map();
+function existingPlant(e){
+  const k = latinKey(e.latin || "") || norm(e.nom);
+  if(dejaCache.has(k)) return dejaCache.get(k);
+  let p = (e.latin && fromCatalog(e)) || PLANTS.find(x => norm(x.nom) === norm(e.nom)) || null;
+  if(!p){
+    // Hors catalogue : une fiche simple, jamais proposée ailleurs (x.perso), juste gardée et suivie.
+    p = {id: PLANTS.length, nom: e.nom, latin: e.latin || "", type: e.type || "arbuste", expo: "smo", sol: "acsh", eau: "dfw", rust: -15, heat: 1, h: +e.h || 100, l: +e.h || 100,
+      bloom: null, fam: "vert", hex: "#6E8F4E", note: "Déjà dans ton jardin.", x: {perso: true, deja: true}};
+    PLANTS.push(p);
+  }
+  dejaCache.set(k, p);
+  return p;
+}
+window.EXISTING = () => {
+  const zo = typeof ZONES !== "undefined" && ZONES.find(x => x.id === curZone);
+  const ex = zo && zo.z && zo.z.existantes;
+  return ex ? ex.filter(e => e.keep).map(existingPlant) : [];
+};
+let dejaFor = null;   // {rec, zid} : la recherche et le scan ajoutent une plante déjà là à ce coin
+function drawDeja(){
+  const box = $("esp-deja"), zo = curZoneObj();
+  if(!current || current.demo || !zo){ box.hidden = true; return; }
+  const ex = zo.z.existantes || [];
+  box.hidden = false;
+  box.innerHTML = `<div class="title-row"><h3>Déjà <em>là</em>${countOf(ex.filter(e => e.keep).length)}</h3><button class="edit-link" type="button" id="deja-add">+ Ajouter</button></div>
+    ${ex.length ? `<div class="deja-list">${ex.map((e, i) => { const p = existingPlant(e); return `<div class="deja-item${e.keep ? "" : " off"}">
+      <span class="pl-pic">${thumbOf(p.nom)}</span><span class="pl-txt"><b>${esc(e.nom)}</b><small>${e.src === "photo" ? "Vue sur ta photo" : "Ajoutée par toi"}</small></span>
+      <button class="btn ${e.keep ? "secondary" : "primary"} sm" type="button" data-deja="${i}" aria-pressed="${e.keep}">${e.keep ? "On garde" : "On enlève"}</button></div>`; }).join("")}</div>`
+      : `<p class="hint">Des plantes déjà en place ? Ajoute-les : on compose autour.</p>`}`;
+}
+// Après un changement, les propositions se recomposent autour des plantes gardées.
+function recomposeCoin(){
+  const rec = current, zid = curZone;
+  const zd = store.get("app-zones-" + rec.id, {}); delete zd[zid]; store.set("app-zones-" + rec.id, zd);
+  const zi = store.get(ideasKey(rec), {}); delete zi[zid]; store.set(ideasKey(rec), zi);
+  saveRecords(); openEspace(rec, zid);
+}
+function addExisting(c){
+  const t = dejaFor; dejaFor = null;
+  const rec = t && records.find(r => r.id === t.rec.id); const z = rec && rec.analysis.zones.find(x => x.id === t.zid);
+  if(!z) return goTab("s-jardin");
+  z.existantes = z.existantes || [];
+  if(!z.existantes.some(e => norm(e.nom) === norm(c.nom))) z.existantes.push({nom: c.nom, latin: c.latin || "", type: c.type || "arbuste", h: +c.h || 100, keep: true, src: "main"});
+  else z.existantes.find(e => norm(e.nom) === norm(c.nom)).keep = true;
+  current = rec; curZone = z.id; recomposeCoin();
+  showToast(`C’est noté : on garde ${c.nom} et on compose autour.`);
+}
+$("esp-deja").addEventListener("click", e => {
+  if(e.target.closest("#deja-add")){ dejaFor = {rec: current, zid: curZone}; $("q-plante").value = ""; goTab("s-cherche"); $("q-plante").focus(); return; }
+  const b = e.target.closest("[data-deja]"); if(!b) return;
+  const z = curZoneObj().z, x = z.existantes[+b.dataset.deja]; x.keep = !x.keep;
+  recomposeCoin();
+  showToast(x.keep ? `On garde ${x.nom}.` : `${x.nom} n’est plus gardée : on compose sans elle.`);
+});
 
 // ---------- Idées d'un coin : plusieurs propositions à comparer, garder et choisir ----------
 // Stockées par analyse : {zoneId: {list: [{id, n, pal, style, ids, budget}], active}}, trois au plus. L’idée active est la proposition du coin.
@@ -779,7 +844,7 @@ function drawIdeas(){
   $("ideas-h").innerHTML = "Tes <em>propositions</em>" + countOf(z.list.length);
   const short = b => b ? `${Math.round(b.min / 5) * 5}–${eur0(b.max)}` : "";
   $("ideas-row").innerHTML = z.list.map(i => {
-    const pics = restore(i.ids).map(c => photoOf(c.plant)).filter(Boolean).slice(0, 3);
+    const pics = restore(i.ids).filter(c => !c.existing).map(c => photoOf(c.plant)).filter(Boolean).slice(0, 3);
     const on = i.id === z.active;
     return `<div class="idea${on ? " on" : z.active ? " off" : ""}">
       <button class="idea-pick" type="button" data-idea="${i.id}" aria-pressed="${on}" aria-label="Proposition ${i.n}, ${esc(PAL_LBL[i.pal] || PAL_LBL.all)}${on ? ", choisie" : ""}">
@@ -859,11 +924,11 @@ function renderProposal(){
     return `<article class="plant${fresh(c) ? " fresh" : ""}" style="--i:${fresh(c) ? rank++ : 0}">
       ${ph ? `<figure><img src="${ph.src}" alt="${esc(p.nom)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></figure>` : ""}
       <div class="pt">
-        <div class="row"><span class="tag ${col}">${esc(role)}</span><span class="qp">${n} × ${euro((a + b) / 2)}</span></div>
+        <div class="row"><span class="tag ${c.existing ? "sauge" : col}">${c.existing ? "Déjà là" : esc(role)}</span>${c.existing ? "" : `<span class="qp">${n} × ${euro((a + b) / 2)}</span>`}</div>
         <h4>${esc(p.nom)}</h4><i>${esc(p.latin)}</i>
         <p>${esc(p.note)}</p>
         ${(() => { const a = atouts(p); return a.plus.length || a.moins.length ? `<ul class="pc">${a.plus.map(x => `<li class="plus">${esc(x)}</li>`).join("")}${a.moins.map(x => `<li class="moins">${esc(x)}</li>`).join("")}</ul>` : ""; })()}
-        <p class="plinks"><a href="${shopUrl(p)}" target="_blank" rel="noopener">Acheter ↗</a>${c.locked ? "" : `<button class="linkish" type="button" data-rep="${i}">Remplacer</button>`}</p>
+        ${c.existing ? "" : `<p class="plinks"><a href="${shopUrl(p)}" target="_blank" rel="noopener">Acheter ↗</a>${c.locked ? "" : `<button class="linkish" type="button" data-rep="${i}">Remplacer</button>`}</p>`}
       </div></article>`;
   }).join("");
   $("esp-glossary").innerHTML = glossary(combo.map(c => c.plant.type));
@@ -1033,8 +1098,8 @@ async function generateApercu(z, rec, ph){
   const payload = {
     photo: ph.data, largeur: ph.w, hauteurPhoto: ph.h,
     emplacement: z.z.emplacement || `${z.z.nom}. ${z.z.description}`,
-    profondeur: state.prof, age: state.age, a_garder: z.z.a_garder || [],
-    plantes: combo.map(c => ({nom: c.plant.nom, latin: c.plant.latin, type: c.plant.type, couche: lay(c), hauteur: Math.round(heightAt(c.plant, state.age)),
+    profondeur: state.prof, age: state.age, a_garder: [...(z.z.a_garder || []), ...combo.filter(c => c.existing).map(c => `${c.plant.nom} (${c.plant.latin}), déjà plantée`)],
+    plantes: combo.filter(c => !c.existing).map(c => ({nom: c.plant.nom, latin: c.plant.latin, type: c.plant.type, couche: lay(c), hauteur: Math.round(heightAt(c.plant, state.age)),
       forme: form(c.plant), fleur: c.plant.bloom ? c.plant.fam : null, argente: leafCols(c.plant) === SILVER, persistant: evergreen(c.plant), quantite: qty[c.plant.nom] || 1}))
   };
   const sig = sigOf();
@@ -1143,7 +1208,7 @@ function renderJardin(){
   $("edit-toggle").classList.toggle("done", editing);
 }
 $("j-notif").addEventListener("click", () => goTab("s-notifs"));
-$("j-search").addEventListener("click", () => { goTab("s-cherche"); $("q-plante").focus(); });
+$("j-search").addEventListener("click", () => { dejaFor = null; goTab("s-cherche"); $("q-plante").focus(); });
 // Liens internes vers un onglet (conseils, plantes à planter, coins).
 document.addEventListener("click", e => { const g = e.target.closest("[data-tab-go]"); if(g) goTab(g.dataset.tabGo); });
 $("j-spaces").addEventListener("click", e => {
@@ -1288,7 +1353,7 @@ function monthTips(P, m){
 function careFor(p, e){
   const out = [], add = (m, t, d, info) => out.push({m, t, d, info: !!info});
   const balcon = projet === "balcon", clim = (garden && garden.clim) || "so", min = CLIM[clim] ? CLIM[clim].min : -10;
-  const mois = e && e.planted ? (Date.now() - Date.parse(e.planted)) / 864e5 / 30.4 : 0;
+  const mois = e && e.deja ? 99 : e && e.planted ? (Date.now() - Date.parse(e.planted)) / 864e5 / 30.4 : 0;
   const w = water(p), fl = months(p), end = p.bloom ? p.bloom[1] % 12 + 1 : null;
   if(balcon) add([5, 6, 7, 8, 9], "Arrose ses pots", "En pot, la terre sèche vite : deux à trois fois par semaine l’été, le soir.");
   else if(mois < 12) add([5, 6, 7, 8, 9], "Arrose bien, c’est sa première année", "Une fois par semaine, généreusement, le soir : ses racines s’installent.");
@@ -1353,6 +1418,8 @@ function validateCoin(){
   const planted = mesPlantes.filter(e => e.coin === k && e.planted && !e.gone);
   mesPlantes = mesPlantes.filter(e => e.coin !== k || e.planted || e.gone);
   rows.forEach(([nom, role, q]) => { if(!planted.some(e => e.nom === nom)) mesPlantes.push({id: uid(), nom, role, q, coin: k, coinNom: zo.label, planted: null, gone: null}); });
+  mesPlantes = mesPlantes.filter(e => e.coin !== k || !e.deja);
+  combo.filter(c => c.existing).forEach(c => mesPlantes.push({id: uid(), nom: c.plant.nom, role: c.role, q: 1, coin: k, coinNom: zo.label, planted: new Date().toISOString(), gone: null, deja: true}));
   saveSel(); savePlantes(); drawValidate();
   const n = aPlanter().filter(e => e.coin === k).length;
   showToast(prevSel ? "C’est noté, ta sélection est à jour." : `C’est validé : ${n} plante${n > 1 ? "s" : ""} à planter.`, () => {
@@ -1404,7 +1471,7 @@ function renderPlantes(){
       <div class="title-row"><h3 id="pl-ground-h">Dans <em>ton jardin</em>${countOf(ground.length)}</h3></div>
       <div class="pl-cards">${ground.map(e => { const g = gestes(e, m)[0]; return `<button class="pl-card" type="button" data-open-plant="${e.id}">
         <span class="pl-pic">${thumbOf(e.nom)}</span>
-        <span class="pl-txt"><b>${esc(e.nom)}</b><small>${esc(coinNom(e))} · plantée ${depuis(e.planted)}</small>
+        <span class="pl-txt"><b>${esc(e.nom)}</b><small>${esc(coinNom(e))} · ${e.deja ? "déjà là" : `plantée ${depuis(e.planted)}`}</small>
           <span class="pl-next${g ? " on" : ""}">${g ? `Ce mois-ci : ${esc(g.t.charAt(0).toLowerCase() + g.t.slice(1))}` : "Rien à faire ce mois-ci"}</span></span>
         <span class="pl-chev" aria-hidden="true">›</span></button>`; }).join("")}</div>
     </section>`;
@@ -1443,7 +1510,7 @@ function renderPlante(){
     ["Froid", `Jusqu’à ${degres(p.rust)}${p.rust > min ? ` : chez toi, ${degres(min)}` : ""}`], ["Place", `${mesure(p.h)} de haut${p.l ? `, ${mesure(p.l)} de large` : ""}`]];
   $("pd-body").innerHTML = `${ph ? `<figure class="scan-photo"><img src="${ph.src}" alt="${esc(p.nom)}" referrerpolicy="no-referrer"></figure>` : ""}
     <header class="head"><span class="tag sauge">${esc(coinNom(e))}</span><h2>${plantTitle(e.nom)}</h2><i class="latin">${esc(p.latin)}</i>
-      <p class="lede">${e.planted ? `Plantée le ${dateLongue(e.planted)}, ${depuis(e.planted)}.` : "Pas encore plantée."}</p></header>
+      <p class="lede">${e.deja ? "Déjà dans ton jardin : on la garde et on la suit." : e.planted ? `Plantée le ${dateLongue(e.planted)}, ${depuis(e.planted)}.` : "Pas encore plantée."}</p></header>
     <section class="scan-sec"><h3>Ce mois-ci</h3>${now.length ? now.map(c => `<article class="tip"><h3>${esc(c.t)}</h3><p>${esc(c.d)}</p></article>`).join("") : `<p class="empty">Rien à faire en ${MOIS_NOM[m - 1]} : profite.</p>`}</section>
     ${year.length ? `<section class="scan-sec"><h3>Son année</h3><div class="scan-card">${year.map(([mm, cs]) => `<div class="sc-row${mm === m ? " now" : ""}"><span><b>${capFirst(MOIS_NOM[mm - 1])}</b><small>${cs.map(c => esc(c.t)).join(" · ")}</small></span></div>`).join("")}</div></section>` : ""}
     <section class="scan-sec"><h3>Ce qu’il lui faut</h3><div class="scan-card">${rows.map(([t, d]) => `<div class="sc-row"><span><b>${t}</b><small>${esc(d)}</small></span></div>`).join("")}</div></section>
@@ -1596,6 +1663,7 @@ function addPerso(c){
 }
 store.get(PERSO_KEY, []).forEach(addPerso);
 const fromCatalog = c => { const k = latinKey(c.latin); return PLANTS.find(p => latinKey(p.latin) === k) || null; };
+records.forEach(r => r.analysis.zones.forEach(z => (z.existantes || []).forEach(existingPlant)));
 
 // Le verdict : d'abord le jardin (froid, chaleur, terre, arrosage), puis chaque coin (soleil, humidité).
 const solFits = (p, sol) => sol === "ac" ? p.sol.includes("c") && (p.sol.includes("a") || !p.sol.includes("s") || p.sol.length > 1) : p.sol.includes(sol);
@@ -1682,8 +1750,8 @@ function renderScanId(){
   $("sid-alt-sec").hidden = !alt.length;
   $("sid-alt").innerHTML = alt.map((a, i) => `<button class="pick" type="button" data-cand="${i + 1}"><b>${esc(a.nom)}</b><small>${esc(a.latin)}</small></button>`).join("");
 }
-$("sid-yes").addEventListener("click", () => showVerdict(scan.cands[0]));
-$("sid-alt").addEventListener("click", e => { const b = e.target.closest("[data-cand]"); if(b) showVerdict(scan.cands[+b.dataset.cand]); });
+$("sid-yes").addEventListener("click", () => dejaFor ? addExisting(scan.cands[0]) : showVerdict(scan.cands[0]));
+$("sid-alt").addEventListener("click", e => { const b = e.target.closest("[data-cand]"); if(!b) return; const c = scan.cands[+b.dataset.cand]; if(dejaFor) addExisting(c); else showVerdict(c); });
 $("sid-retry").addEventListener("click", () => openScan(scanFrom));
 
 function needRows(p, v){
@@ -1809,7 +1877,13 @@ $("n-list").addEventListener("click", e => { const b = e.target.closest("[data-n
 
 // ---------- 17 · Une plante en tête ----------
 // Par son nom, dans le catalogue de l'app (nom courant ou latin, sans accents) ; sinon en photo, avec la reconnaissance de Claude.
-function renderCherche(){ drawResults(); }
+function renderCherche(){
+  const s = $("s-cherche");
+  s.querySelector("h1").innerHTML = dejaFor ? "Une plante <em>déjà là</em>" : "Une plante <em>en tête</em> ?";
+  s.querySelector(".head .lede").textContent = dejaFor ? "On la garde dans tes propositions." : "On te dit si elle irait chez toi.";
+  const back = s.querySelector(".back"); back.dataset.go = dejaFor ? "s-espace" : "s-jardin"; back.querySelector("span").textContent = dejaFor ? "Ton coin" : "Ton jardin";
+  drawResults();
+}
 function drawResults(){
   const q = norm($("q-plante").value);
   if(q.length < 2){ $("q-res").innerHTML = `<p class="hint">Tape au moins deux lettres. Une plante qui n’est pas dans notre catalogue ? Prends-la en photo, on la reconnaîtra.</p>`; return; }
@@ -1824,6 +1898,7 @@ $("q-plante").addEventListener("keydown", e => { if(e.key === "Enter"){ const f 
 $("q-res").addEventListener("click", e => {
   const b = e.target.closest("[data-q]"); if(!b) return;
   const p = PLANTS[+b.dataset.q]; if(!p) return;
+  if(dejaFor) return addExisting({nom: p.nom, latin: p.latin, type: p.type, h: p.h});
   scanFrom = "s-cherche"; scan = {photo: null, thumb: null, cands: [], cand: null, p: null};
   showVerdict({nom: p.nom, latin: p.latin});
 });

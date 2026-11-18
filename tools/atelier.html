@@ -859,10 +859,14 @@ function layout(){
 }
 function layerName(l){ return {back:"un fond d'arbustes",mid:"une rangée de vivaces",front:"une bordure basse"}[l]||""; }
 
+// Plantes déjà en place dans le coin (fournies par l'app) : toujours gardées, quelle que soit la proposition.
+const existingNow = () => (typeof window.EXISTING === "function" ? window.EXISTING() : []);
+const isExisting = p => existingNow().includes(p);
 function generate(keepLocks=true){
   fadeSeen();
   const pool = PLANTS.filter(compatible);
-  const locked = keepLocks ? combo.filter(c=>c.locked && compatible(c.plant)) : [];
+  const ex = existingNow().map(p=>({plant:p, role:role(p), locked:true, existing:true}));
+  const locked = [...ex, ...(keepLocks ? combo.filter(c=>c.locked && !c.existing && !isExisting(c.plant) && compatible(c.plant)) : [])];
   const used = new Set(locked.map(c=>c.plant.id));
   const covered = new Set(locked.flatMap(c=>months(c.plant)));
   const colors = new Set(locked.map(c=>c.plant.fam));
@@ -933,6 +937,7 @@ const eur = n => new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",
 const eur0 = n => new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",maximumFractionDigits:0}).format(Math.round(n/5)*5);
 let lastBudget = null;
 function budgetHTML(items){
+  items = items.filter(it=>!it.c.existing);   // déjà en place : rien à acheter
   let min=0, max=0;
   const rows = items.map(it=>{
     const [a,b] = unitPrice(it.c.plant, it.c.role);
@@ -1466,7 +1471,7 @@ let curZone = null;
 function restore(ids){
   return ids.map(([k,r,l])=>{
     const p = typeof k==="number" ? PLANTS[k] : PLANTS.find(x=>x.nom===k);
-    return p ? {plant:p, role:r, layer:l||undefined, locked:false} : null;
+    return p ? {plant:p, role:r, layer:l||undefined, locked:isExisting(p), existing:isExisting(p)} : null;
   }).filter(Boolean);
 }
 function storeZone(){
