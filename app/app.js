@@ -36,13 +36,13 @@ const EAU_LBL = {d:"Sol sec en été", f:"Sol frais", w:"Sol humide"};
 const SOL_OPT = [["a","Argileux"],["ac","Argilo-calcaire"],["c","Calcaire"],["s","Sableux"],["h","Humifère"]];
 const SOL_LBL = Object.fromEntries(SOL_OPT);
 // L'entretien prévu ; le moteur s'en sert comme besoin en arrosage des plantes.
-const ARRO_OPT = [["1","Très peu","On plante et on profite : presque pas d’arrosage ni de taille."],["2","Un peu","Un arrosage l’été et une petite taille par an."],["3","Volontiers","Arroser, tailler, couper les fleurs fanées : ça te fait plaisir."],["nsp","Je ne sais pas encore","Pas de souci, on part sur des plantes peu exigeantes."]];
+const ARRO_OPT = [["1","Très peu","Presque ni arrosage ni taille"],["2","Un peu","Arrosage l’été, une taille par an"],["3","Volontiers","Arroser, tailler : avec plaisir"],["nsp","Je ne sais pas encore","On part sur du facile"]];
 const ARRO_LBL = {"1":"entretien minimal","2":"un peu d’entretien","3":"entretien régulier","nsp":"entretien à préciser"};
 // « Je ne sais pas encore » : le moteur part sur des plantes sans arrosage.
 const arroOf = a => a === "nsp" ? "1" : (a || "1");
 const OBJ_OPT = [["massif","Habiller mon jardin"],["isoler","M’isoler du voisinage"],["pollin","Attirer abeilles et papillons"],["mur","Habiller un mur ou une clôture"],["refuge","Accueillir oiseaux et insectes"]];
 // Silhouette du coin : hauteur, densité et profondeur en un seul choix, traduits en réglages du moteur.
-const SIL_OPT = [["bas","Bas et aéré","Jusqu’à 50 cm · on voit la terre · 1 m de profondeur"],["mi","Généreux, à mi-hauteur","Jusqu’à 1 m · bien rempli · 1,5 m de profondeur"],["haut","Haut et étagé","Jusqu’à 2 m · très fourni · 2 m de profondeur"],["nsp","Je ne sais pas encore","On choisit d’après ta photo."]];
+const SIL_OPT = [["bas","Bas et aéré","Jusqu’à 50 cm"],["mi","Généreux","Jusqu’à 1 m"],["haut","Haut et étagé","2 m et plus"],["nsp","Je ne sais pas encore","Selon ta photo"]];
 const SIL = {bas:{hmax:"50", dens:"a", prof:100}, mi:{hmax:"100", dens:"n", prof:150}, haut:{hmax:"haut", dens:"d", prof:200}};
 // Schéma vu de face : une rangée de touffes par étage, du fond (foncé) vers l'avant (clair) ;
 // la hauteur dit la taille, l'écart la densité, le nombre de rangées la profondeur.
@@ -297,7 +297,7 @@ $("prenom-back").addEventListener("click", afterPrenom);
 
 // ---------- Parcours : projet (la première fois) → photo → envies → terrain (la première fois) → analyse ----------
 // Type de projet, choisi une fois pour tout le jardin ; le moteur réserve le balcon aux plantes en pot.
-const PROJET_OPT = [["ville","Un jardin de ville","Une cour ou un petit jardin, entouré de murs et de voisins."],["terrain","Un terrain","Un jardin plus vaste, autour d’une maison ou à la campagne."],["balcon","Un balcon ou une terrasse","Des plantes en pots et en jardinières."]];
+const PROJET_OPT = [["ville","Un jardin de ville","Cour ou petit jardin"],["terrain","Un terrain","Grand jardin, campagne"],["balcon","Un balcon ou une terrasse","Pots et jardinières"]];
 const PROJET_LBL = {ville:"jardin de ville", terrain:"terrain", balcon:"balcon ou terrasse"};
 let projet = store.get("app-projet", null);
 let flowGarden = false;    // l'étape Ton jardin ouvre le parcours en cours (premier coin)
@@ -358,18 +358,18 @@ function renderPhoto(){
     <div class="ph-top"><img src="${p.thumb}" alt="Ta photo du coin à planter">
       <div class="ph-side ph-name"><label class="ph-q" for="ph-nom">Son nom</label>
         <input id="ph-nom" type="text" maxlength="40" autocomplete="off" placeholder="Ex. : Haie du fond" value="${esc(p.nom || "")}" aria-describedby="ph-nom-hint">
-        <span class="ph-hint" id="ph-nom-hint">Facultatif, 3 mots au plus.</span></div>
+        <span class="ph-hint" id="ph-nom-hint">3 mots au plus</span></div>
       <button class="ph-del" type="button" id="ph-del" aria-label="Retirer la photo">×</button>
     </div>
     <div class="ph-side ph-dir">
-      <label class="ph-q" for="dir">Ton coin regarde vers…</label><span class="ph-hint">C’est ce qui décide de son soleil.</span>
+      <label class="ph-q" for="dir">Ton coin regarde vers…</label>
       <select id="dir">
         <option value="" ${!p.direction ? "selected" : ""}>Je ne sais pas</option>
         ${DIRS.map(d => `<option value="${d}" ${p.direction === d ? "selected" : ""}>${DIR_LONG[d].charAt(0).toUpperCase() + DIR_LONG[d].slice(1)}</option>`).join("")}
       </select>
     </div>
     ${canMeasure ? `<div class="compass" id="compass" ${p.direction ? "hidden" : ""}>${COMPASS}<div class="cp-txt"><b>Ou laisse la boussole t’aider</b>
-      <span class="ph-live" id="live">Mets-toi face au coin, comme pour la photo.</span>
+      <span class="ph-live" id="live">Mets-toi face au coin.</span>
       <p class="cp-read" id="cp-read" aria-live="polite" hidden><span class="cp-dir" id="cp-dir"></span><span class="cp-deg" id="cp-deg"></span></p>
       <button class="linkish" type="button" id="measure" hidden></button></div></div>` : ""}
     ${p.note || p.showNote ? `<textarea id="note" maxlength="300" aria-label="Précision sur ce coin" placeholder="Par exemple : je veux cacher le balcon du voisin">${esc(p.note)}</textarea>`
@@ -483,7 +483,7 @@ const drawEnfants = appChips("a-enfants", [["oui", "Oui"], ["non", "Non"]], "sin
 function climManual(open){
   gdraft.climManual = open; $("a-clim").hidden = !open;
   $("clim-manual").setAttribute("aria-expanded", open);
-  $("clim-manual").textContent = open ? "Je préfère mon code postal" : "Je préfère choisir mon climat";
+  $("clim-manual").textContent = open ? "Plutôt mon code postal" : "Choisir moi-même";
 }
 $("clim-manual").addEventListener("click", () => climManual(!gdraft.climManual));
 function drawArro(){
@@ -498,13 +498,23 @@ function deptFromCp(cp){
 }
 function cpHelp(){
   const cp = $("cp").value.trim(), d = deptFromCp(cp);
-  $("cp-help").textContent = d ? `${d[1]} · climat ${CLIM_LBL[d[2]].toLowerCase()}` : cp.length === 5 ? "Code inconnu" : "";
+  $("cp-help").textContent = !d && cp.length === 5 ? "Code inconnu" : "";
+  drawClimCard();
   return d;
+}
+// Le climat retenu, bien visible : c'est lui qui écarte les plantes trop frileuses ou qui craignent la chaleur.
+function drawClimCard(){
+  const c = gdraft.clim, box = $("clim-card");
+  box.hidden = !c || !CLIM_LBL[c]; if(box.hidden) return;
+  const lieu = gdraft.cp && gdraft.label ? gdraft.label : "";
+  box.innerHTML = `<svg aria-hidden="true" width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="15" fill="#F3D35B" stroke="#1C1C1A" stroke-width="1.5"/><circle cx="16" cy="16" r="5.5" fill="#FBF9F3" stroke="#1C1C1A" stroke-width="1.5"/><path d="M16 5.5v2.5M16 24v2.5M5.5 16H8M24 16h2.5M8.6 8.6l1.8 1.8M21.6 21.6l1.8 1.8M8.6 23.4l1.8-1.8M21.6 10.4l1.8-1.8" stroke="#1C1C1A" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <span><b>Climat ${esc(CLIM_LBL[c].toLowerCase())}</b><small>${lieu ? esc(lieu) + " · " : ""}${esc(CLIM[c] ? CLIM[c].hint.charAt(0).toLowerCase() + CLIM[c].hint.slice(1) : "")}</small></span>`;
 }
 $("cp").addEventListener("input", () => {
   const d = cpHelp();
   if(d){ Object.assign(gdraft, {dept: d[0], label: d[1], cp: $("cp").value.trim(), clim: d[2]}); drawClim(); }
   else if(gdraft.cp) Object.assign(gdraft, {dept: null, cp: null, clim: null});
+  drawClimCard();
   gardenReady();
 });
 function drawProjet(){
@@ -528,7 +538,6 @@ function renderGarden(){
   $("garden-back").dataset.go = home[0];
   $("garden-back").querySelector("span").textContent = home[1];
   $("garden-lede").textContent = gardenEdit ? "Pour tes prochains coins." : "Quelques questions, une seule fois.";
-  $("garden-privacy").hidden = true;
   $("garden-next").textContent = gardenEdit ? "Enregistrer" : "Continuer";
   $("gar-err").hidden = true;
   gardenReady();

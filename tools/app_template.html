@@ -91,12 +91,11 @@
     <div class="topbar"><button class="back" type="button" data-go="s-photo"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15 9 H3 M8 4 L3 9 L8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Ta photo</span></button></div>
     <header class="head"><ol class="steps" id="pg-envies" aria-label="Étapes"></ol><h2>Tes <em>envies</em></h2></header>
     <fieldset><legend>De quoi rêves-tu pour ce coin ?</legend><div class="chips" id="a-obj"></div></fieldset>
-    <fieldset><legend>Sa silhouette</legend><p class="hint">Plutôt discret ou bien touffu ? Choisis la silhouette de ton futur coin.</p><div class="choices" id="a-sil"></div></fieldset>
+    <fieldset><legend>Sa silhouette</legend><div class="choices" id="a-sil"></div></fieldset>
     <fieldset><legend>L’ambiance que tu aimes</legend><div class="chips" id="a-style"></div><p class="warnl style-warn" id="a-style-warn" role="status" hidden></p><p class="hint" id="a-style-hint"></p><div id="a-style-ph"></div></fieldset>
     <fieldset><legend>Tu veux aussi… <span class="opt">(facultatif)</span></legend><div class="chips" id="a-extras"></div></fieldset>
     <p class="err" id="env-err" hidden></p>
     <div class="nav-block">
-      <p class="privacy"><svg class="illu" aria-hidden="true" width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="13" width="14" height="11" rx="2" fill="#F3D35B" stroke-width="1.5"/><path d="M10 13 v-3 a4 4 0 0 1 8 0 v3" stroke-width="1.5"/><circle cx="14" cy="18" r="1.4" fill="#1C1C1A" stroke="none"/></g></svg><span>Ta photo ne sert qu’à l’analyse par Claude, l’IA d’Anthropic. On ne la garde pas.</span></p>
       <div class="nav"><button class="btn primary" type="button" id="env-next">Voir mes propositions</button></div>
     </div>
   </section>
@@ -106,20 +105,20 @@
     <div class="topbar"><button class="back" type="button" data-go="s-envies" id="garden-back"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15 9 H3 M8 4 L3 9 L8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Tes envies</span></button></div>
     <header class="head"><ol class="steps" id="pg-garden" aria-label="Étapes"></ol><p class="eyebrow" id="step-garden" hidden>Réglages du jardin</p><h2>Ton <em>jardin</em></h2><p class="lede" id="garden-lede">Quelques questions, une seule fois.</p></header>
     <fieldset id="garden-projet"><legend>Que veux-tu aménager ?</legend><div class="choices" id="a-projet"></div></fieldset>
-    <fieldset id="garden-clim"><legend>Ton climat</legend><p class="hint">Remplis ton code postal pour nous aider à détecter ton climat.</p>
+    <fieldset id="garden-clim"><legend>Ton climat</legend>
       <div class="field">
         <label for="cp">Code postal</label>
         <div class="input"><input id="cp" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="5" placeholder="31000" aria-describedby="cp-help"><span id="cp-help" aria-live="polite"></span></div>
       </div>
-      <button class="linkish" type="button" id="clim-manual" aria-expanded="false">Je préfère choisir mon climat</button>
+      <div class="clim-card" id="clim-card" aria-live="polite" hidden></div>
+      <button class="linkish" type="button" id="clim-manual" aria-expanded="false">Choisir moi-même</button>
       <div class="chips" id="a-clim" hidden></div>
     </fieldset>
-    <fieldset id="garden-sol"><legend>Ta terre</legend><p class="hint">Petit test : une poignée de terre humide colle (argileuse), file entre les doigts (sableuse), est claire et caillouteuse (calcaire), ou noire et souple (humifère).</p><div class="chips" id="a-sol"></div></fieldset>
-    <fieldset><legend>Combien de temps veux-tu donner à ton jardin ?</legend><div class="choices" id="a-arro"></div></fieldset>
-    <fieldset><legend>Des enfants ou des animaux au jardin ?</legend><p class="hint">Si oui, on écarte les plantes toxiques.</p><div class="chips" id="a-enfants"></div></fieldset>
+    <fieldset id="garden-sol"><legend>Ta terre</legend><div class="chips" id="a-sol"></div><details class="sol-test"><summary>Comment savoir ?</summary><p>Petit test : une poignée de terre humide colle (argileuse), file entre les doigts (sableuse), est claire et caillouteuse (calcaire), ou noire et souple (humifère).</p></details></fieldset>
+    <fieldset><legend>Ton temps pour l’entretien</legend><div class="choices" id="a-arro"></div></fieldset>
+    <fieldset><legend>Des enfants ou des animaux ?</legend><p class="hint">Si oui, pas de plantes toxiques.</p><div class="chips" id="a-enfants"></div></fieldset>
     <p class="err" id="gar-err" hidden></p>
     <div class="nav-block">
-      <p class="privacy" id="garden-privacy"><svg class="illu" aria-hidden="true" width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#1C1C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="13" width="14" height="11" rx="2" fill="#F3D35B" stroke-width="1.5"/><path d="M10 13 v-3 a4 4 0 0 1 8 0 v3" stroke-width="1.5"/><circle cx="14" cy="18" r="1.4" fill="#1C1C1A" stroke="none"/></g></svg><span>Ta photo ne sert qu’à l’analyse par Claude, l’IA d’Anthropic. On ne la garde pas.</span></p>
       <div class="nav"><button class="btn primary" type="button" id="garden-next">Voir mes propositions</button></div>
     </div>
   </section>

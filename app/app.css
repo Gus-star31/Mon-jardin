@@ -766,3 +766,17 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 .ap-age{display:flex;gap:6px;margin-top:10px}
 .ap-age button{flex:1;min-height:36px;padding:0 8px;border:1.3px solid var(--encre);border-radius:18px;background:var(--carte);font:inherit;font-size:15px;color:var(--encre);cursor:pointer}
 .ap-age button[aria-pressed="true"]{background:var(--encre);color:var(--papier)}
+
+/* Ton jardin : le climat retenu, bien visible */
+.clim-card{display:flex;gap:12px;align-items:flex-start;margin-top:12px;padding:14px 16px;border:1.3px solid var(--encre);border-radius:14px;background:var(--soleil-pale)}
+.clim-card[hidden]{display:none}
+.clim-card svg{flex:none}
+.clim-card span{display:flex;flex-direction:column;gap:3px}
+.clim-card b{font-size:17px;line-height:22px;font-weight:600}
+.clim-card small{font-size:15px;line-height:20px;color:var(--encre-douce)}
+#cp-help{color:var(--terre)}
+/* Ta terre : le petit test, replié */
+.sol-test{margin-top:10px;font-size:15px;line-height:21px;color:var(--encre-douce)}
+.sol-test summary{cursor:pointer;color:var(--prusse);text-decoration:underline;text-underline-offset:3px;list-style:none}
+.sol-test summary::-webkit-details-marker{display:none}
+.sol-test p{margin:8px 0 0}
