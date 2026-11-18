@@ -1622,7 +1622,7 @@ function renderPlante(){
   const clim = (garden && garden.clim) || "so", min = CLIM[clim] ? CLIM[clim].min : -10;
   const rows = [["Soleil", capFirst(ouList([...p.expo].map(k => EXPO_TXT[k])))], ["Eau", WATER_TXT[water(p)]],
     ["Froid", `Jusqu’à ${degres(p.rust)}${p.rust > min ? ` : chez toi, ${degres(min)}` : ""}`], ["Place", `${mesure(p.h)} de haut${p.l ? `, ${mesure(p.l)} de large` : ""}`]];
-  $("pd-body").innerHTML = `${ph ? `<figure class="scan-photo"><img src="${ph.src}" alt="${esc(p.nom)}" referrerpolicy="no-referrer"></figure>` : ""}
+  $("pd-body").innerHTML = `${ph ? `<figure class="scan-photo"><img src="${ph.src}" alt="${esc(p.nom)}" referrerpolicy="no-referrer"></figure>${ph.perso ? "" : `<p class="ph-credit">Photo : ${credit(ph)}, <a href="${esc(ph.page)}" target="_blank" rel="noopener">Wikimedia Commons</a></p>`}` : ""}
     <header class="head"><span class="tag sauge">${esc(coinNom(e))}</span><h2>${plantTitle(e.nom)}</h2><i class="latin">${esc(p.latin)}</i>
       <p class="lede">${e.deja ? "Déjà dans ton jardin : on la garde et on la suit." : e.planted ? `Plantée le ${dateLongue(e.planted)}, ${depuis(e.planted)}.` : "Pas encore plantée."}</p></header>
     <section class="scan-sec"><h3>Ce mois-ci</h3>${now.length ? now.map(c => `<article class="tip"><h3>${esc(c.t)}</h3><p>${esc(c.d)}</p></article>`).join("") : `<p class="empty">Rien à faire en ${MOIS_NOM[m - 1]} : profite.</p>`}</section>
@@ -1696,16 +1696,18 @@ $("a-body").addEventListener("click", e => {
 // Les fiches vérifiées citent leurs sources (x.src) : on montre le nom du site, en lien.
 const srcHost = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch(_) { return u; } };
 const srcLine = p => { const L = p.src; return L && L.length ? `<p class="pd-src">Vérifié sur ${L.length} sources : ${L.map(u => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(srcHost(u))}</a>`).join(", ")}.</p>` : ""; };
+// Crédit d'une photo Commons : auteur, puis licence avec le lien vers son texte (exigé par les licences Creative Commons).
+const credit = ph => { const lic = ph.license || "Licence libre", L = ph.licenseUrl ? `<a href="${esc(ph.licenseUrl)}" target="_blank" rel="noopener license">${esc(lic)}</a>` : esc(lic); return ph.artist ? `${esc(ph.artist)} · ${L}` : L; };
 // Les sources : toutes les photos (auteur, licence, page d'origine), l'IA et les données des plantes, réunies en un seul écran.
 function renderSources(){
   const plantes = PLANTS.map(p => [p, photoOf(p)]).filter(([, ph]) => ph && !ph.perso).sort(([a], [b]) => a.nom.localeCompare(b.nom, "fr"))
-    .map(([p, ph]) => `<li><a href="${ph.page}" target="_blank" rel="noopener">${esc(p.nom)} ↗</a><small>${ph.artist ? `${esc(ph.artist)} · ${esc(ph.license || "licence libre")}` : "Auteur et licence sur la page de la photo"}</small></li>`).join("");
-  const ambiances = Object.values(STYLE_PHOTOS).map(s => `<li><a href="${s.page}" target="_blank" rel="noopener">${esc(s.cap)} ↗</a></li>`).join("");
+    .map(([p, ph]) => `<li><a href="${ph.page}" target="_blank" rel="noopener">${esc(p.nom)} ↗</a><small>${credit(ph)}</small></li>`).join("");
+  const ambiances = Object.values(STYLE_PHOTOS).map(s => `<li><a href="${s.page}" target="_blank" rel="noopener">${esc(s.cap)} ↗</a><small>${credit(s)}</small></li>`).join("");
   $("src-body").innerHTML = `
     <section class="src-sec"><h3>Analyse et dessin</h3><p>Tes photos sont lues par Claude, l’IA d’Anthropic. Les aperçus sont dessinés par Gemini, de Google.</p></section>
     <section class="src-sec"><h3>Données des plantes</h3><p>Chaque fiche est recoupée sur au moins 3 sources (jardineries, pépiniéristes, RHS) : ${PLANTS.filter(p => p.src && p.src.length >= 3).length} plantes sur ${PLANTS.length} le sont déjà, leurs sources sont citées sur leur fiche. Hauteurs, arrosage, froid supporté et prix restent des ordres de grandeur.</p></section>
     <section class="src-sec"><h3>Photos d’ambiance</h3><ul>${ambiances}</ul></section>
-    <section class="src-sec"><h3>Photos des plantes</h3><p>Toutes viennent de Wikimedia Commons, sous licence libre.</p><ul>${plantes}</ul></section>`;
+    <section class="src-sec"><h3>Photos des plantes</h3><p>Toutes viennent de Wikimedia Commons, sous licence libre ou dans le domaine public. Elles sont seulement redimensionnées, sans autre modification.</p><ul>${plantes}</ul></section>`;
 }
 
 function openDemo(){

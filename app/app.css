@@ -928,3 +928,7 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 /* Sources citées sur la fiche d'une plante */
 .pd-src{font-size:.8rem;color:var(--muted,#6b6b6b);margin:.5rem 0 0;line-height:1.4}
 .pd-src a{color:inherit;text-decoration:underline}
+
+/* Crédit sous la photo d'une fiche (licences Creative Commons) */
+.ph-credit{font-size:.72rem;color:var(--muted);margin:.35rem 0 0;line-height:1.35}
+.ph-credit a{color:inherit;text-decoration:underline}
