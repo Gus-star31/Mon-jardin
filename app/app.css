@@ -924,3 +924,7 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 /* Accueil : la recherche, translucide sur le bleu, pour que la carte du conseil ressorte */
 .home-search{background:rgba(243,239,230,.14);color:var(--papier);box-shadow:inset 0 0 0 1px rgba(243,239,230,.28)}
 .home-search .hs-scan{background:var(--papier);color:var(--prusse)}
+
+/* Sources citées sur la fiche d'une plante */
+.pd-src{font-size:.8rem;color:var(--muted,#6b6b6b);margin:.5rem 0 0;line-height:1.4}
+.pd-src a{color:inherit;text-decoration:underline}

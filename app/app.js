@@ -1255,6 +1255,21 @@ function jardinier(saison){
 // Home : un tableau de bord du jardin (saison, conseil du mois, chiffres, coins en mosaïque), distinct de la page d'un coin.
 const SAISON = m => [12, 1, 2].includes(m) ? "hiver" : m <= 5 ? "printemps" : m <= 8 ? "été" : "automne";
 const SAISON_PHRASE = {1:"Le jardin dort, profites-en.", 2:"Les premières pousses arrivent.", 3:"C’est le bon mois pour planter.", 4:"C’est le bon mois pour planter.", 5:"Garde un œil sur l’arrosage.", 6:"Profite des fleurs.", 7:"Arrose malin, le soir.", 8:"Arrose malin, le soir.", 9:"On prépare les plantations d’automne.", 10:"C’est le bon mois pour planter.", 11:"C’est le bon mois pour planter.", 12:"Le jardin dort, profites-en."};
+// Un geste de saison par mois, pour tout jardin en France (titre court, une phrase).
+const GESTE_DU_MOIS = {
+  1: ["On protège du gel", "Un voile d’hivernage sur les plantes frileuses les nuits de gel, et on évite de marcher sur la terre gelée."],
+  2: ["On rabat avant le printemps", "Coupe les graminées sèches et rabats les arbustes qui fleurissent en été, avant que ça repousse."],
+  3: ["On divise et on plante", "Divise les grosses touffes de vivaces et plante les nouvelles avant les chaleurs."],
+  4: ["On paille", "Une couche de paillis sur une terre encore humide garde l’eau tout l’été et freine les herbes."],
+  5: ["Les gelées sont passées", "Après les Saints de glace, sors les pots et plante les plantes frileuses."],
+  6: ["On coupe les fleurs fanées", "Ça relance la floraison des vivaces et des rosiers remontants."],
+  7: ["On arrose le soir, au pied", "Un arrosage copieux et espacé vaut mieux que de petites doses chaque jour."],
+  8: ["On surveille les jeunes plantes", "Les plantations de l’année n’ont pas encore de racines profondes : ce sont elles qui ont soif."],
+  9: ["On prépare l’automne", "La terre est encore chaude : prépare les trous et choisis les plantes à installer."],
+  10: ["On plante arbres et arbustes", "Les racines s’installent tout l’hiver : c’est la meilleure saison pour planter."],
+  11: ["Feuilles mortes et plantations", "Ramasse les feuilles pour pailler les massifs, et continue à planter hors gel."],
+  12: ["On protège les frileuses", "Paille le pied des plantes sensibles au froid et abrite les pots fragiles."],
+};
 function renderJardin(){
   const list = espaces(), m = new Date().getMonth() + 1;
   if(!list.length) editing = false;
@@ -1263,12 +1278,10 @@ function renderJardin(){
   $("j-season").textContent = `En ${MOIS_NOM[m - 1]} · ${SAISON(m)}`;
   $("j-title").innerHTML = prenom && !demo ? `Bonjour <em>${esc(prenom)}</em>` : "Bonjour";
   $("j-lede").textContent = list.length ? SAISON_PHRASE[m] : "Une photo suffit pour commencer.";
-  // Le conseil du mois : un geste pour les plantes en terre ; à défaut, un conseil d'après les plantes à planter (ou celles de l'exemple).
-  const care = demo ? [] : monthCare(m);
-  const P = demo ? gardenPlants().map(o => o.p) : [...new Set(aPlanter().map(e => e.nom))].map(PLANT_OF).filter(Boolean);
-  const tips = care.length ? care.map(o => [o.t, o.d, nomsTxt(o.noms)]) : P.length ? monthTips(P, m) : [], tip = tips.find(x => !/^En fleur/.test(x[0])) || tips[0];
-  $("j-tip").innerHTML = (tip ? `<button class="tip tip-link" type="button" data-tab-go="s-conseils"><span class="eyebrow">Le conseil du mois</span><h3>${esc(tip[0])}</h3>${tip[2] ? `<p class="tip-for">${esc(tip[2])}</p>` : `<p>${esc(tip[1])}</p>`}</button>` : "")
-    + (tip && !editing && !demo ? `<button class="link" type="button" data-tab-go="s-conseils">Tous tes conseils →</button>` : "");
+  // Le conseil du mois : un geste de saison valable pour tout jardin. Les gestes plante par plante sont dans « Mes plantes », sur la carte du coin et dans les conseils.
+  const g = GESTE_DU_MOIS[m], mine = !demo && (monthCare(m).length || aPlanter().length);
+  $("j-tip").innerHTML = `<div class="tip"><span class="eyebrow">Le conseil du mois</span><h3>${esc(g[0])}</h3><p>${esc(g[1])}</p></div>`
+    + (mine && !editing ? `<button class="link" type="button" data-tab-go="s-conseils">Tes conseils, plante par plante →</button>` : "");
   const todo = demo ? [] : aPlanter();
   $("j-todo").innerHTML = todo.length && !editing ? `<button class="todo-card" type="button" data-tab-go="s-plantes"><span class="card-ico">${TODO_ICO}</span><span><b>${todo.length} plante${todo.length > 1 ? "s" : ""} à planter</b><small>Ta liste pour la jardinerie</small></span><span aria-hidden="true">→</span></button>` : "";
   $("j-search").hidden = editing || demo || !list.length;
@@ -1615,6 +1628,7 @@ function renderPlante(){
     <section class="scan-sec"><h3>Ce mois-ci</h3>${now.length ? now.map(c => `<article class="tip"><h3>${esc(c.t)}</h3><p>${esc(c.d)}</p></article>`).join("") : `<p class="empty">Rien à faire en ${MOIS_NOM[m - 1]} : profite.</p>`}</section>
     ${year.length ? `<section class="scan-sec"><h3>Son année</h3><div class="scan-card">${year.map(([mm, cs]) => `<div class="sc-row${mm === m ? " now" : ""}"><span><b>${capFirst(MOIS_NOM[mm - 1])}</b><small>${cs.map(c => esc(c.t)).join(" · ")}</small></span></div>`).join("")}</div></section>` : ""}
     <section class="scan-sec"><h3>Ce qu’il lui faut</h3><div class="scan-card">${rows.map(([t, d]) => `<div class="sc-row"><span><b>${t}</b><small>${esc(d)}</small></span></div>`).join("")}</div></section>
+    ${srcLine(p)}
     <div class="pd-actions">
       <button class="link danger" type="button" data-pd="gone">Retirer de mes plantes</button></div>`;
 }
@@ -1679,6 +1693,9 @@ $("a-body").addEventListener("click", e => {
   if(b.dataset.act === "logout"){ store.set("app-out", true); setLoginMode(false); loginForm(true); show("s-login"); }
 });
 
+// Les fiches vérifiées citent leurs sources (x.src) : on montre le nom du site, en lien.
+const srcHost = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch(_) { return u; } };
+const srcLine = p => { const L = p.src; return L && L.length ? `<p class="pd-src">Vérifié sur ${L.length} sources : ${L.map(u => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(srcHost(u))}</a>`).join(", ")}.</p>` : ""; };
 // Les sources : toutes les photos (auteur, licence, page d'origine), l'IA et les données des plantes, réunies en un seul écran.
 function renderSources(){
   const plantes = PLANTS.map(p => [p, photoOf(p)]).filter(([, ph]) => ph && !ph.perso).sort(([a], [b]) => a.nom.localeCompare(b.nom, "fr"))
@@ -1686,7 +1703,7 @@ function renderSources(){
   const ambiances = Object.values(STYLE_PHOTOS).map(s => `<li><a href="${s.page}" target="_blank" rel="noopener">${esc(s.cap)} ↗</a></li>`).join("");
   $("src-body").innerHTML = `
     <section class="src-sec"><h3>Analyse et dessin</h3><p>Tes photos sont lues par Claude, l’IA d’Anthropic. Les aperçus sont dessinés par Gemini, de Google.</p></section>
-    <section class="src-sec"><h3>Données des plantes</h3><p>Hauteurs, arrosage, froid supporté et prix : des ordres de grandeur, à vérifier en jardinerie.</p></section>
+    <section class="src-sec"><h3>Données des plantes</h3><p>Chaque fiche est recoupée sur au moins 3 sources (jardineries, pépiniéristes, RHS) : ${PLANTS.filter(p => p.src && p.src.length >= 3).length} plantes sur ${PLANTS.length} le sont déjà, leurs sources sont citées sur leur fiche. Hauteurs, arrosage, froid supporté et prix restent des ordres de grandeur.</p></section>
     <section class="src-sec"><h3>Photos d’ambiance</h3><ul>${ambiances}</ul></section>
     <section class="src-sec"><h3>Photos des plantes</h3><p>Toutes viennent de Wikimedia Commons, sous licence libre.</p><ul>${plantes}</ul></section>`;
 }
