@@ -255,7 +255,7 @@ const OPT = {
   haut:[["2","2 m"],["3","3 m"],["4","4 m et plus"]],
   fmt:[["petit","Petits formats"],["moyen","Formats moyens"]],
   taille:[["p","Petit · 3 m²"],["m","Moyen · 6 m²"],["g","Grand · 12 m²"]],
-  hmax:[["50","Jusqu'à 50 cm"],["100","Jusqu'à 1 m"],["0","Sans limite"]],
+  hmax:[["50","Jusqu'à 50 cm"],["100","Jusqu'à 1 m"],["haut","Plutôt hautes"],["0","Peu importe"]],
   dens:[["a","Aéré"],["n","Généreux"],["d","Très fourni"]]
 };
 // Densité : écart entre les plantes sur le plan, en part de leur largeur adulte.
@@ -415,6 +415,10 @@ let AVOID = new Set();
 const inStyle = p => !STYLES[state.style].re || (p.x ? (p.x.styles||[]).includes(state.style) : STYLES[state.style].re.test(p.latin));
 const WATER_LBL = {1:"Sans arrosage",2:"Arrosage occasionnel",3:"Arrosage régulier"};
 const isEcran = p => p.type==="arbuste" && p.h>=(+state.haut)*100 && evergreen(p);
+// « Plutôt hautes » : pas de plafond, et la composition privilégie les grandes plantes (fond étoffé, vivaces et graminées hautes).
+const wantTall = () => state.hmax === "haut";
+const TALL_MIN = {structure:150, vivace:70, graminee:80};
+function preferTall(cand, r){ if(!wantTall() || !TALL_MIN[r]) return cand; const t = cand.filter(p=>p.h>=TALL_MIN[r]); return t.length ? t : cand; }
 
 const state = {projet:"jardin",style:"libre",vite:"rapide",age:"3",arro:"1",prof:"150",haut:"2",hmax:"0",dens:"n",fmt:"petit",obj:["massif"],expo:"s",sol:"ac",eau:"d",clim:"so",types:["arbuste","graminee","vivace","couvre-sol","bulbe","aromatique"],pal:"all",taille:"m"};
 let combo = [];   // [{plant, role, locked}]
@@ -470,6 +474,8 @@ function compatible(p){
   const forced = (G.hedge && isEcran(p)) || (G.wall && p.type==="grimpante") || (G.hedge && state.haut==="4" && p.type==="arbre");
   if(!state.types.includes(p.type) && !forced) return false;
   if(+state.hmax && p.h > +state.hmax && !forced) return false;
+  // Sans les arbres : on écarte aussi les arbustes qui en ont la taille (plus de 4 m), sauf pour une haie.
+  if(!state.types.includes("arbre") && p.type==="arbuste" && p.h > 400 && !forced) return false;
   if(state.pal!=="all" && !PAL[state.pal].includes(p.fam)) return false;
   if(water(p) > +state.arro) return false;
   if(G.melli && p.type!=="graminee" && !melli(p)) return false;
@@ -516,7 +522,8 @@ function pick(pool, covered, colors){
     const colorBonus = colors.has(p.fam) ? 0.4 : 0;
     const care = +state.arro === 1 ? -0.8*effort(p) : +state.arro === 2 ? -0.3*effort(p) : 0;
     const R = RECIPE[state.style], recipeBonus = R ? ((R.pal||[]).includes(p.fam) ? 0.6 : 0) + (R.mel && melli(p) ? 0.5 : 0) : 0;
-    return {p, s: Math.random()*1.4 + nm*0.18 + colorBonus + recipeBonus + care - (SEEN.get(p.id)||0)*0.9};
+    const tall = wantTall() ? Math.min(p.h, 250)/100*0.5 : 0;
+    return {p, s: Math.random()*1.4 + nm*0.18 + colorBonus + recipeBonus + care + tall - (SEEN.get(p.id)||0)*0.9};
   }).sort((x,y)=>y.s-x.s);
   remember(scored[0].p);
   return scored[0].p;
@@ -534,7 +541,8 @@ function rowLayers(){
   if(n===0) return [];
   if(G.hedge) return n===1 ? ["mid"] : ["mid","front"];
   if(n===1) return ["mid"];
-  if(n===2) return P>=150 ? ["back","front"] : ["mid","front"];
+  // Plutôt hautes : un fond d'arbustes et une rangée de vivaces hautes, plutôt qu'une bordure basse.
+  if(n===2) return P>=150 ? (wantTall() ? ["back","mid"] : ["back","front"]) : ["mid","front"];
   return ["back","mid","front"];
 }
 function layout(){
@@ -558,6 +566,12 @@ function layout(){
       if(e) e.c = Math.max(r==="vivace" ? 1 : 0, e.c+dv);
       else if(dv>0){ const l = L.includes(LAYER[r]) ? LAYER[r] : L.includes("mid") ? "mid" : L[0]; S.push({role:r, layer:l, c:dv}); }
     }
+  }
+  // Plutôt hautes : un vrai fond d'arbustes même sur peu de profondeur, et la bordure basse seulement sur trois rangées.
+  if(wantTall() && L.length){
+    const need = {p:1,m:2,g:3}[T], st = S.find(x=>x.role==="structure");
+    if(st) st.c = Math.max(st.c, need); else S.push({role:"structure", layer: L.includes("back") ? "back" : L[0], c: need});
+    if(L.length < 3){ const b = S.find(x=>x.role==="bordure"); if(b) b.c = 0; }
   }
   return S.filter(e=>e.c>0);
 }
@@ -586,6 +600,7 @@ function generate(keepLocks=true){
         cand = fast.length ? fast : mid.length ? mid : cand;
       }
       if(state.style!=="libre"){ const st = cand.filter(inStyle); if(st.length) cand = st; }
+      cand = preferTall(cand, e.role);
       if(e.role==="arbre" && state.vite==="rapide"){ const nl = cand.filter(p=>growth(p)!=="lente"); if(nl.length) cand = nl; }
       if(!cand.length && e.role==="ecran") cand = pool.filter(p=>p.type==="arbuste" && p.h>=150 && !used.has(p.id));
       for(const fr of (FALL[e.role]||[])){ if(cand.length) break; cand = pool.filter(p=>role(p)===fr && !used.has(p.id) && (e.layer!=="front" || p.h<=50)); if(state.style!=="libre"){ const st=cand.filter(inStyle); if(st.length) cand=st; } }
@@ -609,6 +624,7 @@ function replace(idx){
   let rc = pool.filter(x=>role(x)===cur.role && !used.has(x.id));
   if(cur.role==="ecran" && state.vite==="rapide"){ const f = rc.filter(x=>growth(x)==="rapide"); if(f.length) rc = f; }
   if(state.style!=="libre"){ const st = rc.filter(inStyle); if(st.length) rc = st; }
+  rc = preferTall(rc, cur.role);
   const p = pick(rc, covered, colors);
   if(p){ combo[idx] = {plant:p, role:role(p), layer:cur.layer, locked:false}; render(pool.length,0); }
   else { const b=document.querySelector(`[data-rep="${idx}"]`); if(b){ b.textContent="Aucune autre"; b.disabled=true; } }
