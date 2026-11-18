@@ -943,3 +943,9 @@ h1 .count,h2 .count,h3 .count,.count{font-family:inherit;font-size:inherit;font-
 
 /* Feuille du logo : seulement le contour, sans remplissage */
 .brand .illu path{fill:none}
+
+/* Mon compte · Tes données : ce qui est gardé, envoyé, jamais fait */
+.data-list{list-style:none;margin:6px 0 8px;padding:0;display:grid;gap:10px}
+.data-list li{font-size:.92rem;line-height:1.45;color:var(--muted)}
+.data-list b{display:block;color:var(--ink);font-weight:600}
+.acct-data .btn{margin-top:6px}

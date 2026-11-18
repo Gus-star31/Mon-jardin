@@ -107,8 +107,9 @@
     <fieldset id="garden-projet"><legend>Que veux-tu aménager ?</legend><div class="choices" id="a-projet"></div></fieldset>
     <fieldset id="garden-clim"><legend>Ton climat</legend>
       <div class="field">
-        <label for="cp">Code postal</label>
-        <div class="input"><input id="cp" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="5" placeholder="31000" aria-describedby="cp-help"><span id="cp-help" aria-live="polite"></span></div>
+        <label for="cp">Département</label>
+        <div class="input"><input id="cp" type="text" autocomplete="off" maxlength="5" placeholder="31, ou ton code postal" aria-describedby="cp-help cp-why"><span id="cp-help" aria-live="polite"></span></div>
+        <p class="hint" id="cp-why">On garde seulement ton département, pour connaître ton climat.</p>
       </div>
       <div class="clim-card" id="clim-card" aria-live="polite" hidden></div>
       <button class="linkish" type="button" id="clim-manual" aria-expanded="false">Choisir moi-même</button>

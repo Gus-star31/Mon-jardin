@@ -103,6 +103,8 @@ function nomCourt(s){
   return mots(avant).length <= 3 ? avant : mots(s).slice(0, 3).join(" ");
 }
 let garden = store.get("app-garden", null);
+// Minimisation : seul le département est gardé, jamais le code postal complet (anciens réglages convertis).
+if(garden && garden.cp && garden.dept && garden.cp !== garden.dept){ garden.cp = garden.dept; store.set("app-garden", garden); }
 let envies = Object.assign({objectifs:["massif"], style:"libre", silhouette:"nsp", extras:[]}, store.get("app-envies", {}));
 // Reprise des données de la version précédente : le jardin se déduit de la dernière analyse.
 (() => {
@@ -502,6 +504,7 @@ function drawArro(){
 $("a-arro").addEventListener("change", e => { gdraft.arrosage = e.target.value; });
 // Code postal → département (Corse : 200-201 Corse-du-Sud, 202-206 Haute-Corse) → climat.
 function deptFromCp(cp){
+  if(/^(\d{2}|2[ab])$/i.test(cp)) return DEPTS.find(x => x[0] === cp.toUpperCase()) || null;
   if(!/^\d{5}$/.test(cp)) return null;
   const code = cp.startsWith("20") ? (+cp.slice(0, 3) <= 201 ? "2A" : "2B") : cp.slice(0, 2);
   return DEPTS.find(x => x[0] === code) || null;
@@ -509,6 +512,8 @@ function deptFromCp(cp){
 function cpHelp(){
   const cp = $("cp").value.trim(), d = deptFromCp(cp);
   $("cp-help").textContent = !d && cp.length === 5 ? "Code inconnu" : "";
+  // Un code postal complet sert seulement à trouver le département : on le remplace aussitôt par celui-ci.
+  if(d && cp.length === 5){ $("cp").value = d[0]; }
   drawClimCard();
   return d;
 }
@@ -561,7 +566,7 @@ $("garden-next").addEventListener("click", () => {
   if(!gdraft.clim || !gdraft.projet) return;
   const clim = gdraft.clim, d = gdraft.cp && gdraft.dept ? DEPTS.find(x => x[0] === gdraft.dept && x[2] === clim) : null;
   const wasSafe = securite();
-  garden = {label: d ? d[1] : `Climat ${CLIM_LBL[clim].toLowerCase()}`, dept: d ? d[0] : null, cp: d ? gdraft.cp : null, clim, sol: gdraft.sol || null, arrosage: gdraft.arrosage || "1", enfants: gdraft.enfants || "non", balcon: gdraft.projet === "balcon" ? gdraft.balcon : null};
+  garden = {label: d ? d[1] : `Climat ${CLIM_LBL[clim].toLowerCase()}`, dept: d ? d[0] : null, cp: d ? d[0] : null, clim, sol: gdraft.sol || null, arrosage: gdraft.arrosage || "1", enfants: gdraft.enfants || "non", balcon: gdraft.projet === "balcon" ? gdraft.balcon : null};
   store.set("app-garden", garden);
   projet = gdraft.projet; store.set("app-projet", projet);
   syncSecurite();
@@ -1351,7 +1356,7 @@ window.addEventListener("pagehide", () => { if(toastDone) hideToast(); });
 function openDeleteAccount(from){
   sheetMode = "compte"; sheetReturn = from;
   $("sheet-t").innerHTML = `Supprimer <em>ton compte</em> ?`;
-  $("sheet-p").textContent = "Ton jardin, tes coins, tes idées et tes photos seront effacés de ce téléphone. On ne pourra pas les retrouver.";
+  $("sheet-p").textContent = "Ton jardin, tes coins, tes photos, tes plantes, ton prénom, ton e-mail et tes crédits seront effacés de ce téléphone. Rien n’est gardé ailleurs : on ne pourra pas les retrouver.";
   $("sheet-ok").textContent = "Supprimer mon compte";
   $("sheet").hidden = false; $("sheet-ok").focus();
 }
@@ -1678,8 +1683,16 @@ function renderCompte(){
     <section class="acct-sec"><h3>Connexion</h3><p>${known === "google" ? "Connexion avec Google" : esc(known || "")}</p></section>
     <section class="acct-sec"><div class="title-row"><h3>Ton jardin</h3><button class="edit-link" type="button" data-act="reglages">Modifier</button></div><p>${esc(cond)}</p></section>
     <section class="acct-sec"><div class="title-row"><h3>Tes crédits</h3><button class="edit-link" type="button" data-act="credits">Recharger</button></div><p>${credits.solde} crédit${credits.solde > 1 ? "s" : ""} restant${credits.solde > 1 ? "s" : ""}</p></section>
-    <section class="acct-sec"><h3>Tes données</h3><p>Ton jardin reste sur ce téléphone. Tes photos ne servent qu’à l’analyse, on ne les garde pas.</p></section>
     <section class="acct-sec"><h3>Les sources</h3><p>Photos, données des plantes et IA.</p><button class="link" type="button" data-act="sources">Voir les sources</button></section>
+    <section class="acct-sec acct-data"><h3>Tes données</h3>
+      <p>Coup de pousse n’a besoin que de deux choses : ton e-mail, pour ton compte, et ton département, si tu veux qu’on calcule ton climat.</p>
+      <ul class="data-list">
+        <li><b>Sur ton téléphone seulement</b> ton e-mail, ton prénom si tu l’as donné, ton département, tes coins, tes plantes et tes crédits. Personne d’autre ne les voit.</li>
+        <li><b>Envoyé le temps d’une réponse</b> la photo d’un coin ou d’une plante, avec ton département et tes réponses, à l’IA qui fait l’analyse. Rien n’est gardé sur nos serveurs. La position GPS des photos est effacée avant l’envoi.</li>
+        <li><b>Jamais</b> de publicité, de revente, de pistage ni de cookies.</li>
+      </ul>
+      <a class="link" href="/app/legal.html#confidentialite" target="_blank" rel="noopener">Tout le détail</a>
+      <button class="btn secondary sm" type="button" data-act="erase">Effacer toutes mes données</button></section>
     <section class="acct-sec"><h3>Informations légales</h3><p>Mentions légales, confidentialité, conditions d’utilisation et de vente.</p><a class="link" href="/app/legal.html" target="_blank" rel="noopener">Lire les informations légales</a></section>
     <button class="btn secondary" type="button" data-act="logout">Se déconnecter</button>
     <button class="link danger" type="button" data-act="delete">Supprimer mon compte</button>`;
@@ -1690,6 +1703,7 @@ $("a-body").addEventListener("click", e => {
   if(b.dataset.act === "prenom") openPrenom(true);
   if(b.dataset.act === "delete"){ openDeleteAccount(b); return; }
   if(b.dataset.act === "sources"){ renderSources(); show("s-sources"); }
+  if(b.dataset.act === "erase"){ openDeleteAccount(b); return; }
   if(b.dataset.act === "credits") openCredits("s-compte");
   if(b.dataset.act === "aide"){ startCoach(); showToast("Les cartes d’aide reviendront quand tu ajouteras un coin."); }
   if(b.dataset.act === "logout"){ store.set("app-out", true); setLoginMode(false); loginForm(true); show("s-login"); }
